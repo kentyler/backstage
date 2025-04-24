@@ -16,7 +16,7 @@ const router = express.Router();
 router.post('/', async (req, res, next) => {
   try {
     const { turnId, targetTurnId, relationshipTypeId } = req.body;
-    const rel = await relController.createGroupConversationAvatarTurnRelationship(
+    const rel = await relController.createAvatarTurnRelationship(
       Number(turnId),
       Number(targetTurnId),
       relationshipTypeId != null ? Number(relationshipTypeId) : undefined
@@ -33,7 +33,7 @@ router.post('/', async (req, res, next) => {
  */
 router.get('/:id', async (req, res, next) => {
   try {
-    const rel = await relController.getGroupConversationAvatarTurnRelationshipById(Number(req.params.id));
+    const rel = await relController.getAvatarTurnRelationshipById(Number(req.params.id));
     if (!rel) return res.status(404).json({ error: 'Not found' });
     res.json(rel);
   } catch (err) {
@@ -47,7 +47,7 @@ router.get('/:id', async (req, res, next) => {
  */
 router.get('/by-turn/:turnId', async (req, res, next) => {
   try {
-    const list = await relController.getGroupConversationAvatarTurnRelationshipsByTurn(Number(req.params.turnId));
+    const list = await relController.getAvatarTurnRelationshipsByTurn(Number(req.params.turnId));
     res.json(list);
   } catch (err) {
     next(err);
@@ -62,7 +62,7 @@ router.get('/by-turn/:turnId', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
   try {
     const { newTypeId } = req.body;
-    const updated = await relController.updateGroupConversationAvatarTurnRelationship(
+    const updated = await relController.updateAvatarTurnRelationship(
       Number(req.params.id),
       Number(newTypeId)
     );
@@ -75,4 +75,15 @@ router.put('/:id', async (req, res, next) => {
 
 /**
  * DELETE /api/avatar-turn-relationships/:id
-**/
+ * Remove a relationship by its ID.
+ */
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const success = await relController.deleteAvatarTurnRelationship(Number(req.params.id));
+    res.json({ success });
+  } catch (err) {
+    next(err);
+  }
+});
+
+export default router;

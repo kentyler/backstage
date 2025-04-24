@@ -1,6 +1,6 @@
 // src/routes/participants.js
 import express from 'express';
-import * as participantCtrl from '../db/participant/index.js';
+import * as participantCtrl from '../db/participants/index.js';
 
 const router = express.Router();
 

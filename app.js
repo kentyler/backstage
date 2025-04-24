@@ -1,11 +1,11 @@
 // src/app.js
 import express from 'express';
-import groupRoutes from './routes/groups.js';
-import participantRoutes from './routes/participants.js';
-import groupConversationRoutes       from './routes/groupConversations.js';
-import groupConversationAvatarRoutes    from './routes/groupConversationAvatars.js';
-import groupConversationAvatarTurnsRoutes from './routes/groupConversationAvatarTurns.js'
-import groupConversationAvatarTurnRelationshipsRoutes from './routes/groupConversationAvatarTurnRelationships.js'
+import groupRoutes from './src/routes/groups.js';
+import participantRoutes from './src/routes/participants.js';
+import groupConversationRoutes       from './src/routes/groupConversations.js';
+import groupConversationAvatarRoutes    from './src/routes/groupConversationAvatars.js';
+import groupConversationAvatarTurnsRoutes from './src/routes/groupConversationAvatarTurns.js'
+import groupConversationAvatarTurnRelationshipsRoutes from './src/routes/groupConversationAvatarTurnRelationships.js'
 
 const app = express();
 app.use(express.json());
