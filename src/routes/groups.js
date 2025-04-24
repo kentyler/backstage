@@ -1,4 +1,9 @@
-// src/routes/groups.js
+
+/**
+ * @file src/routes/groups.js
+ * @description Creates routes for all the group functions.
+ */
+
 import express from 'express';
 import * as groupCtrl from '../db/groups/index.js';
 
