@@ -1,0 +1,100 @@
+-- Enable the pgvector extension for vector operations
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Participants Table
+CREATE TABLE participants (
+    id BIGINT PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    current_avatar_id BIGINT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Avatars Table
+CREATE TABLE avatars (
+    id BIGINT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    instruction_set TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Groups Table
+CREATE TABLE groups (
+    id BIGINT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Participant_Groups Table
+CREATE TABLE participant_groups (
+    participant_id BIGINT,
+    group_id BIGINT,
+    role TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    PRIMARY KEY (participant_id, group_id)
+);
+
+-- Group Conversations Table
+CREATE TABLE group_conversations (
+    id BIGINT PRIMARY KEY,
+    group_id BIGINT,
+    name TEXT NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Group Conversation Avatars Table
+CREATE TABLE group_conversation_avatars (
+    group_conversation_id BIGINT,
+    avatar_id BIGINT,
+    added_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    PRIMARY KEY (group_conversation_id, avatar_id)
+);
+
+-- Group Conversation Avatar Turns Table
+CREATE TABLE group_conversation_avatar_turns (
+    id BIGINT PRIMARY KEY,
+    group_conversation_id BIGINT NOT NULL,
+    avatar_id BIGINT NOT NULL,
+    turn_index INTEGER NOT NULL,
+    content_text TEXT NOT NULL,
+    content_vector VECTOR(1536),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Group Conversation Uploads Table
+CREATE TABLE group_conversation_uploads (
+    id BIGINT PRIMARY KEY,
+    group_conversation_id BIGINT NOT NULL,
+    turn_id BIGINT NOT NULL,
+    filename TEXT NOT NULL,
+    mime_type TEXT,
+    file_path TEXT NOT NULL,
+    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Group Conversation Upload Vectors Table
+CREATE TABLE group_conversation_upload_vectors (
+    id BIGINT PRIMARY KEY,
+    upload_id BIGINT NOT NULL,
+    chunk_index INTEGER NOT NULL,
+    content_text TEXT NOT NULL,
+    content_vector VECTOR(1536),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Relationship Types Table
+CREATE TABLE relationship_types (
+    id BIGINT PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    description TEXT
+);
+
+-- File Types Table
+CREATE TABLE file_types (
+    id BIGINT PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    description TEXT
+);

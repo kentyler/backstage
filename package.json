@@ -1,0 +1,22 @@
+{
+  "type": "module",
+  "devDependencies": {
+    "@vitest/ui": "^3.1.1",
+    "vitest": "^3.1.1"
+  },
+  "scripts": {
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "gh": "^2.8.9",
+    "jsonwebtoken": "^9.0.2",
+    "knex": "^3.1.0",
+    "pg": "^8.14.1"
+  }
+}

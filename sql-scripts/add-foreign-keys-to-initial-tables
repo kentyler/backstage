@@ -1,0 +1,50 @@
+-- Participants Table Foreign Key
+ALTER TABLE participants
+ADD CONSTRAINT fk_participants_current_avatar
+FOREIGN KEY (current_avatar_id) REFERENCES avatars(id);
+
+-- Participant_Groups Table Foreign Keys
+ALTER TABLE participant_groups
+ADD CONSTRAINT fk_participant_groups_participant
+FOREIGN KEY (participant_id) REFERENCES participants(id);
+
+ALTER TABLE participant_groups
+ADD CONSTRAINT fk_participant_groups_group
+FOREIGN KEY (group_id) REFERENCES groups(id);
+
+-- Group Conversations Table Foreign Key
+ALTER TABLE group_conversations
+ADD CONSTRAINT fk_group_conversations_group
+FOREIGN KEY (group_id) REFERENCES groups(id);
+
+-- Group Conversation Avatars Table Foreign Keys
+ALTER TABLE group_conversation_avatars
+ADD CONSTRAINT fk_group_conversation_avatars_conversation
+FOREIGN KEY (group_conversation_id) REFERENCES group_conversations(id);
+
+ALTER TABLE group_conversation_avatars
+ADD CONSTRAINT fk_group_conversation_avatars_avatar
+FOREIGN KEY (avatar_id) REFERENCES avatars(id);
+
+-- Group Conversation Avatar Turns Table Foreign Keys
+ALTER TABLE group_conversation_avatar_turns
+ADD CONSTRAINT fk_turns_conversation
+FOREIGN KEY (group_conversation_id) REFERENCES group_conversations(id);
+
+ALTER TABLE group_conversation_avatar_turns
+ADD CONSTRAINT fk_turns_avatar
+FOREIGN KEY (avatar_id) REFERENCES avatars(id);
+
+-- Group Conversation Uploads Table Foreign Keys
+ALTER TABLE group_conversation_uploads
+ADD CONSTRAINT fk_uploads_conversation
+FOREIGN KEY (group_conversation_id) REFERENCES group_conversations(id);
+
+ALTER TABLE group_conversation_uploads
+ADD CONSTRAINT fk_uploads_turn
+FOREIGN KEY (turn_id) REFERENCES group_conversation_avatar_turns(id);
+
+-- Group Conversation Upload Vectors Table Foreign Key
+ALTER TABLE group_conversation_upload_vectors
+ADD CONSTRAINT fk_upload_vectors_upload
+FOREIGN KEY (upload_id) REFERENCES group_conversation_uploads(id);
