@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>My App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    
+    header {
+      background-color: #f8f9fa;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .app-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    
+    .user-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .dropdown-button {
+      background-color: #007bff;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+    
+    .dropdown-button:hover {
+      background-color: #0069d9;
+    }
+    
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: #f9f9f9;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+      border-radius: 4px;
+    }
+    
+    .dropdown-content a {
+      color: black;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+    }
+    
+    .dropdown-content a:hover {
+      background-color: #f1f1f1;
+    }
+    
+    .user-dropdown:hover .dropdown-content {
+      display: block;
+    }
+    
+    .dropdown-button::after {
+      content: "▼";
+      margin-left: 8px;
+      font-size: 0.7rem;
+    }
+    
+    .main-content {
+      padding: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="display:none">
+    <!-- Header with user dropdown -->
+    <header>
+      <div class="app-title">My App</div>
+      <div class="user-dropdown">
+        <button id="user-button" class="dropdown-button">
+          <span id="user-name">User</span>
+        </button>
+        <div class="dropdown-content">
+          <a href="#" id="logout-link">Log out</a>
+        </div>
+      </div>
+    </header>
+    
+    <!-- Main content -->
+    <div class="main-content">
+      <h1>Welcome to the Dashboard</h1>
+    </div>
+  </div>
+
+  <script>
+    // Store user data globally
+    let currentUser = null;
+    
+    // Function to fetch current user data
+    async function fetchCurrentUser() {
+      try {
+        const res = await fetch('/api/me', {
+          method: 'GET',
+          credentials: 'include'  // send cookies
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          currentUser = data.user;
+          
+          // Update UI with user info
+          document.getElementById('user-name').textContent = 
+            currentUser.participant?.name || (currentUser.participantId ? `User #${currentUser.participantId}` : 'User');
+          
+          // Show the app
+          document.getElementById('app').style.display = 'block';
+        } else {
+          // Not authorized — bounce to login
+          window.location.href = 'login.html';
+        }
+      } catch (err) {
+        console.error('Error fetching user:', err);
+        // Network or other error — also send back to login
+        window.location.href = 'login.html';
+      }
+    }
+    
+    // Function to handle logout
+    async function handleLogout(event) {
+      event.preventDefault();
+      
+      try {
+        const res = await fetch('/api/participants/logout', {
+          method: 'POST',
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          // Redirect to login page after successful logout
+          window.location.href = 'login.html';
+        } else {
+          console.error('Logout failed');
+        }
+      } catch (err) {
+        console.error('Error during logout:', err);
+      }
+    }
+    
+    // Initialize the app
+    (async function(){
+      // Fetch current user data
+      await fetchCurrentUser();
+      
+      // Add event listener for logout
+      document.getElementById('logout-link').addEventListener('click', handleLogout);
+    })();
+  </script>
+</body>
+</html>
