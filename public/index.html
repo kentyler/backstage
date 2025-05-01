@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <title>My App</title>
+  <title>Conversational AI</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -30,8 +30,8 @@
     }
     
     .dropdown-button {
-      background-color: #007bff;
-      color: white;
+      background-color: #E0FFFF; /* LightCyan */
+      color: #333; /* Darker text for better contrast */
       padding: 0.5rem 1rem;
       border: none;
       border-radius: 4px;
@@ -41,7 +41,7 @@
     }
     
     .dropdown-button:hover {
-      background-color: #0069d9;
+      background-color: #C0EBEB; /* Slightly darker shade of LightCyan */
     }
     
     .dropdown-content {
@@ -55,14 +55,15 @@
       border-radius: 4px;
     }
     
-    .dropdown-content a {
+    .dropdown-content a, .dropdown-content .group-item {
       color: black;
       padding: 12px 16px;
       text-decoration: none;
       display: block;
+      cursor: pointer;
     }
     
-    .dropdown-content a:hover {
+    .dropdown-content a:hover, .dropdown-content .group-item:hover {
       background-color: #f1f1f1;
     }
     
@@ -76,8 +77,172 @@
       font-size: 0.7rem;
     }
     
-    .main-content {
+    .app-container {
+      display: flex;
+      height: calc(100vh - 60px); /* Subtract header height */
+    }
+    
+    .conversations-column {
+      width: 250px;
+      border-right: 1px solid #dee2e6;
+      display: flex;
+      flex-direction: column;
+      background-color: #f8f9fa;
+      position: relative;
+    }
+    
+    .conversations-header {
       padding: 1rem;
+      border-bottom: 1px solid #dee2e6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .conversations-title {
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    
+    .new-conversation-btn {
+      background-color: #E0FFFF; /* LightCyan */
+      color: #333; /* Darker text for better contrast */
+      border: none;
+      border-radius: 4px;
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .new-conversation-btn:hover {
+      background-color: #C0EBEB; /* Slightly darker shade of LightCyan */
+    }
+    
+    .new-conversation-container {
+      padding: 0.8rem;
+      border-top: 1px solid #dee2e6;
+      margin-top: auto; /* Push to bottom */
+    }
+    
+    .conversations-list {
+      overflow-y: auto;
+      flex-grow: 1;
+    }
+    
+    .conversation-item {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+    }
+    
+    .conversation-item:hover {
+      background-color: #e9ecef;
+    }
+    
+    .conversation-item.selected {
+      background-color: #e6f2ff;
+      font-weight: bold;
+    }
+    
+    .main-content {
+      flex-grow: 1;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    
+    .dropdown-header {
+      font-weight: bold;
+      padding: 8px 16px;
+      color: #6c757d;
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .dropdown-divider {
+      height: 0;
+      margin: 0.5rem 0;
+      overflow: hidden;
+      border-top: 1px solid #dee2e6;
+    }
+    
+    .group-item {
+      padding: 8px 16px 8px 24px;
+    }
+    
+    .group-name {
+      color: #007bff;
+      font-weight: normal;
+      margin-left: 5px;
+    }
+    
+    .group-item.selected {
+      background-color: #e6f2ff;
+      font-weight: bold;
+    }
+    
+    /* Conversation UI styles */
+    .transcript-area {
+      height: calc(100% - 150px);
+      overflow-y: auto;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background-color: #f9f9f9;
+    }
+    
+    .input-area {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .user-input {
+      flex-grow: 1;
+      padding: 10px;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      resize: vertical;
+      min-height: 80px;
+      font-family: inherit;
+      font-size: 1rem;
+    }
+    
+    .send-button {
+      padding: 0 20px;
+      background-color: #E0FFFF;
+      color: #333;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      align-self: flex-end;
+      height: 40px;
+    }
+    
+    .send-button:hover {
+      background-color: #C0EBEB;
+    }
+    
+    .message {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 4px;
+      max-width: 80%;
+    }
+    
+    .user-message {
+      background-color: #E0FFFF;
+      margin-left: auto;
+      border-top-right-radius: 0;
+    }
+    
+    .response-message {
+      background-color: #f0f0f0;
+      margin-right: auto;
+      border-top-left-radius: 0;
     }
   </style>
 </head>
@@ -85,26 +250,60 @@
   <div id="app" style="display:none">
     <!-- Header with user dropdown -->
     <header>
-      <div class="app-title">My App</div>
+      <div class="app-title">Conversational AI<span id="group-name-display" class="group-name"></span></div>
       <div class="user-dropdown">
         <button id="user-button" class="dropdown-button">
           <span id="user-name">User</span>
         </button>
         <div class="dropdown-content">
+          <div id="groups-container">
+            <div class="dropdown-header">Groups</div>
+            <!-- Groups will be populated here -->
+          </div>
+          <div class="dropdown-divider"></div>
           <a href="#" id="logout-link">Log out</a>
         </div>
       </div>
     </header>
     
-    <!-- Main content -->
-    <div class="main-content">
-      <h1>Welcome to the Dashboard</h1>
+    <!-- App container with left column and main content -->
+    <div class="app-container">
+      <!-- Left column for conversations -->
+      <div class="conversations-column">
+        <div class="conversations-header">
+          <div class="conversations-title">Conversations</div>
+        </div>
+        <div id="conversations-list" class="conversations-list">
+          <!-- Conversations will be populated here -->
+        </div>
+        <div class="new-conversation-container">
+          <button id="new-conversation-btn" class="new-conversation-btn">New Conversation</button>
+        </div>
+      </div>
+      
+      <!-- Main content - Conversation area -->
+      <div class="main-content">
+        <h1 id="conversation-title">Select a conversation</h1>
+        
+        <!-- Transcript area -->
+        <div id="transcript-area" class="transcript-area">
+          <!-- Conversation messages will appear here -->
+        </div>
+        
+        <!-- Input area -->
+        <div class="input-area">
+          <textarea id="user-input" class="user-input" placeholder="Type your message here..." rows="4"></textarea>
+          <button id="send-button" class="send-button">Send</button>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
-    // Store user data globally
+    // Store user data and groups globally
     let currentUser = null;
+    let userGroups = [];
+    let selectedGroup = null;
     
     // Function to fetch current user data
     async function fetchCurrentUser() {
@@ -156,13 +355,437 @@
       }
     }
     
+    
+    // Function to fetch groups
+    async function fetchGroups() {
+      try {
+        // Build URL with participantId query parameter if available
+        let url = '/api/groups';
+        if (currentUser && currentUser.participantId) {
+          url += `?participantId=${currentUser.participantId}`;
+        }
+        
+        console.log('Fetching groups from:', url);
+        
+        const res = await fetch(url, {
+          method: 'GET',
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          const groups = await res.json();
+          console.log('Fetched groups:', groups);
+          userGroups = groups;
+          
+          // Populate groups in the dropdown
+          const groupsContainer = document.getElementById('groups-container');
+          
+          // Clear existing groups except the header
+          const header = groupsContainer.querySelector('.dropdown-header');
+          groupsContainer.innerHTML = '';
+          groupsContainer.appendChild(header);
+          
+          // Add groups to the dropdown
+          groups.forEach(group => {
+            const groupItem = document.createElement('div');
+            groupItem.className = 'group-item';
+            groupItem.textContent = group.name;
+            groupItem.dataset.groupId = group.id;
+            groupItem.addEventListener('click', () => selectGroup(group));
+            groupsContainer.appendChild(groupItem);
+            console.log('Added group to dropdown:', group.name);
+          });
+          
+          // Select the first group by default if available
+          if (groups.length > 0) {
+            console.log('Selecting first group by default:', groups[0].name);
+            selectGroup(groups[0]);
+          }
+        } else {
+          console.error('Failed to fetch groups');
+        }
+      } catch (err) {
+        console.error('Error fetching groups:', err);
+      }
+    }
+    
+    // Function to fetch conversations for a group
+    async function fetchConversations(groupId) {
+      try {
+        const url = `/api/group-conversations/by-group/${groupId}`;
+        console.log(`Fetching conversations from: ${url}`);
+        
+        const res = await fetch(url, {
+          method: 'GET',
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          const conversations = await res.json();
+          console.log(`Fetched ${conversations.length} conversations for group ${groupId}:`, conversations);
+          return conversations;
+        } else {
+          console.error('Failed to fetch conversations');
+          return [];
+        }
+      } catch (err) {
+        console.error('Error fetching conversations:', err);
+        return [];
+      }
+    }
+    
+    // Function to display conversations in the left column
+    function displayConversations(conversations) {
+      const conversationsList = document.getElementById('conversations-list');
+      
+      // Clear existing conversations
+      conversationsList.innerHTML = '';
+      
+      if (conversations.length === 0) {
+        const noConversationsMsg = document.createElement('div');
+        noConversationsMsg.className = 'conversation-item';
+        noConversationsMsg.textContent = 'No conversations yet';
+        conversationsList.appendChild(noConversationsMsg);
+        return;
+      }
+      
+      // Add conversations to the list
+      conversations.forEach(conversation => {
+        const conversationItem = document.createElement('div');
+        conversationItem.className = 'conversation-item';
+        conversationItem.textContent = conversation.name;
+        conversationItem.dataset.conversationId = conversation.id;
+        
+        // Add click event to handle conversation selection
+        conversationItem.addEventListener('click', () => {
+          console.log(`Selected conversation: ${conversation.name} (ID: ${conversation.id})`);
+          
+          // Update visual selection
+          document.querySelectorAll('.conversation-item').forEach(item => {
+            item.classList.remove('selected');
+          });
+          conversationItem.classList.add('selected');
+          
+          // Call the selectConversation function to update the UI
+          selectConversation(conversation);
+        });
+        
+        conversationsList.appendChild(conversationItem);
+      });
+    }
+    
+    // Function to create a new conversation
+    async function createNewConversation() {
+      if (!selectedGroup) {
+        console.error('No group selected');
+        return;
+      }
+      
+      // Prompt user for conversation name
+      const name = prompt('Enter a name for the new conversation:');
+      if (!name) return; // User cancelled
+      
+      try {
+        const res = await fetch('/api/group-conversations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            groupId: selectedGroup.id,
+            name: name,
+            description: ''  // Optional description
+          }),
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          const newConversation = await res.json();
+          console.log('Created new conversation:', newConversation);
+          
+          // Refresh conversations list
+          const conversations = await fetchConversations(selectedGroup.id);
+          displayConversations(conversations);
+        } else {
+          console.error('Failed to create conversation');
+        }
+      } catch (err) {
+        console.error('Error creating conversation:', err);
+      }
+    }
+    
+    // Function to handle group selection
+    async function selectGroup(group) {
+      selectedGroup = group;
+      console.log(`Selected group: ${group.name} (ID: ${group.id})`);
+      
+      // Fetch and display conversations for this group
+      const conversations = await fetchConversations(group.id);
+      displayConversations(conversations);
+      
+      // Update UI to show the selected group in the header
+      const groupNameDisplay = document.getElementById('group-name-display');
+      if (groupNameDisplay) {
+        groupNameDisplay.textContent = `: ${group.name}`;
+        console.log(`Updated header with group name: ${group.name}`);
+      } else {
+        console.error('Could not find group-name-display element');
+      }
+      
+      // Update the main content heading to show the group name
+      const mainContentHeading = document.querySelector('.main-content h1');
+      if (mainContentHeading) {
+        mainContentHeading.textContent = `${group.name} Conversations`;
+        console.log(`Updated main content heading to: ${group.name} Conversations`);
+      } else {
+        console.error('Could not find main-content h1 element');
+      }
+      
+      // Update visual selection in dropdown
+      document.querySelectorAll('.group-item').forEach(item => {
+        item.classList.remove('selected');
+      });
+      
+      // Add selected class to the clicked group
+      const selectedItem = document.querySelector(`.group-item[data-group-id="${group.id}"]`);
+      if (selectedItem) {
+        selectedItem.classList.add('selected');
+        console.log(`Added selected class to group: ${group.name}`);
+      } else {
+        console.error(`Could not find group item with ID: ${group.id}`);
+      }
+    }
+    
+    // Function to handle conversation selection
+    function selectConversation(conversation) {
+      console.log(`Selected conversation: ${conversation.name} (ID: ${conversation.id})`);
+      
+      // Update the conversation title
+      const conversationTitle = document.getElementById('conversation-title');
+      conversationTitle.textContent = conversation.name;
+      
+      // Clear the transcript area
+      const transcriptArea = document.getElementById('transcript-area');
+      transcriptArea.innerHTML = '';
+      
+      // Enable the input area
+      const userInput = document.getElementById('user-input');
+      const sendButton = document.getElementById('send-button');
+      userInput.disabled = false;
+      sendButton.disabled = false;
+      
+      // Show loading indicator while fetching conversation history
+      const loadingMessage = "Loading conversation history...";
+      const loadingMessageId = Date.now(); // Use timestamp as a unique ID
+      addMessageToTranscript(loadingMessage, 'response', loadingMessageId);
+      
+      // Fetch conversation turns from the API
+      fetch(`/api/conversations/${conversation.id}/turns`, {
+        method: 'GET',
+        credentials: 'include' // send cookies
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch conversation history: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(turns => {
+        console.log(`Loaded ${turns.length} turns for conversation ${conversation.id}`);
+        
+        // Remove loading message
+        removeMessageFromTranscript(loadingMessageId);
+        
+        // If no turns, show an empty conversation
+        if (turns.length === 0) {
+          console.log('No turns found for this conversation');
+          return;
+        }
+        
+        // Display each turn in the transcript
+        turns.forEach(turn => {
+          // Determine if this is a user message or LLM response based on avatar ID
+          const isUserMessage = turn.avatar_id === currentUser.participant?.current_avatar_id;
+          const messageType = isUserMessage ? 'user' : 'response';
+          
+          // Add the message to the transcript
+          addMessageToTranscript(turn.content_text, messageType);
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching conversation history:', error);
+        
+        // Remove loading message
+        removeMessageFromTranscript(loadingMessageId);
+        
+        // Show error message
+        addMessageToTranscript("Failed to load conversation history. Please try again.", 'response');
+      });
+    }
+    
+    // Function to handle message submission
+    function handleMessageSubmit() {
+      const userInput = document.getElementById('user-input');
+      const message = userInput.value.trim();
+      
+      if (!message) return; // Don't send empty messages
+      
+      // Check if a conversation is selected
+      const conversationTitle = document.getElementById('conversation-title');
+      if (conversationTitle.textContent === 'Select a conversation') {
+        alert('Please select a conversation first');
+        return;
+      }
+      
+      // Format the message with the participant's name before displaying it
+      const formattedMessage = `<${currentUser.participant.name}>:${message}`;
+      
+      // Add user message to transcript
+      addMessageToTranscript(formattedMessage, 'user');
+      
+      // Clear input
+      userInput.value = '';
+      userInput.style.height = 'auto'; // Reset height
+      
+      // Get the selected conversation ID
+      const selectedConversation = document.querySelector('.conversation-item.selected');
+      if (!selectedConversation) {
+        console.error('No conversation selected');
+        return;
+      }
+      
+      const conversationId = selectedConversation.dataset.conversationId;
+      console.log(`Sending message to conversation ${conversationId}: ${message}`);
+      
+      // Show loading indicator
+      const loadingMessage = "Thinking...";
+      const loadingMessageId = Date.now(); // Use timestamp as a unique ID
+      addMessageToTranscript(loadingMessage, 'response', loadingMessageId);
+      
+      // Make API call to get response from Claude
+      fetch(`/api/conversations/${conversationId}/turns`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ prompt: message }),
+        credentials: 'include'  // send cookies
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`API call failed with status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Received response:', data);
+        
+        // Remove loading message
+        removeMessageFromTranscript(loadingMessageId);
+        
+        // Add the actual response
+        if (data && data.llmTurn && data.llmTurn.content_text) {
+          // The API returns an object with userTurn and llmTurn properties
+          const llmResponse = data.llmTurn.content_text;
+          addMessageToTranscript(llmResponse, 'response');
+        } else if (data && Array.isArray(data) && data.length >= 2) {
+          // Fallback for array format (as in the test page)
+          const llmResponse = data[1].content_text;
+          addMessageToTranscript(llmResponse, 'response');
+        } else {
+          addMessageToTranscript("Sorry, I couldn't generate a response at this time.", 'response');
+        }
+      })
+      .catch(error => {
+        console.error('Error getting response:', error);
+        
+        // Remove loading message
+        removeMessageFromTranscript(loadingMessageId);
+        
+        // Show error message
+        addMessageToTranscript("Sorry, there was an error processing your request.", 'response');
+      });
+    }
+    
+    // Function to add a message to the transcript
+    function addMessageToTranscript(text, type, id) {
+      const transcriptArea = document.getElementById('transcript-area');
+      const messageDiv = document.createElement('div');
+      
+      messageDiv.className = `message ${type}-message`;
+      messageDiv.textContent = text;
+      
+      // If an ID is provided, set it as a data attribute
+      if (id) {
+        messageDiv.dataset.messageId = id;
+      }
+      
+      transcriptArea.appendChild(messageDiv);
+      
+      // Auto-scroll to the bottom
+      transcriptArea.scrollTop = transcriptArea.scrollHeight;
+    }
+    
+    // Function to remove a message from the transcript by ID
+    function removeMessageFromTranscript(id) {
+      if (!id) return;
+      
+      const message = document.querySelector(`.message[data-message-id="${id}"]`);
+      if (message) {
+        message.remove();
+      }
+    }
+    
+    // Function to make textarea auto-resize
+    function setupTextareaAutoResize() {
+      const textarea = document.getElementById('user-input');
+      
+      textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+      });
+    }
+    
     // Initialize the app
     (async function(){
-      // Fetch current user data
-      await fetchCurrentUser();
-      
-      // Add event listener for logout
-      document.getElementById('logout-link').addEventListener('click', handleLogout);
+      try {
+        // Fetch current user data
+        await fetchCurrentUser();
+        
+        // Fetch groups for the user
+        await fetchGroups();
+        
+        // Add event listener for logout
+        document.getElementById('logout-link').addEventListener('click', handleLogout);
+        
+        // Add event listener for new conversation button
+        document.getElementById('new-conversation-btn').addEventListener('click', createNewConversation);
+        
+        // Set up conversation UI
+        setupTextareaAutoResize();
+        
+        // Add event listener for send button
+        document.getElementById('send-button').addEventListener('click', handleMessageSubmit);
+        
+        // Add event listener for Enter key in textarea (Shift+Enter for new line)
+        document.getElementById('user-input').addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // Prevent default to avoid new line
+            handleMessageSubmit();
+          }
+        });
+        
+        // Initially disable the input area until a conversation is selected
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        userInput.disabled = true;
+        userInput.placeholder = "Select a conversation to start chatting...";
+        sendButton.disabled = true;
+        
+        console.log('App initialized successfully');
+      } catch (err) {
+        console.error('Error initializing app:', err);
+      }
     })();
   </script>
 </body>

@@ -1,5 +1,11 @@
 # Project Documentation
 
+## C:\Users\Ken\Desktop\back-stage\cli.js
+
+```
+Create a new participant, but handle 409 conflict with a friendly message.
+```
+
 ## C:\Users\Ken\Desktop\back-stage\scripts\check-env.js
 
 ```
@@ -18,6 +24,23 @@ Run this script to verify that your database configuration works
 Test database connection and basic queries
 ```
 
+## C:\Users\Ken\Desktop\back-stage\src\controllers\participants\loginHandler.js
+
+```
+@file src/controllers/participants/loginHandler.js
+@description Handler for participant authentication.
+```
+
+```
+Handles participant login requests
+@param {object} req - Express request object
+@param {object} req.body - Request body
+@param {string} req.body.email - Participant email
+@param {string} req.body.password - Participant password
+@param {object} res - Express response object
+@returns {Promise<void>}
+```
+
 ## C:\Users\Ken\Desktop\back-stage\src\db\connection.js
 
 ```
@@ -25,7 +48,152 @@ Database connection module
 Provides a PostgreSQL connection pool for the application
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\group\createGroup.js
+## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatars\createGroupConversationAvatar.js
+
+```
+@file src/db/groupConversationAvatars/createGroupConversationAvatar.js
+@description Adds an avatar to a group conversation.
+```
+
+```
+Inserts a new row into group_conversation_avatars.
+*
+@param {number} conversationId
+@param {number} avatarId
+@returns {Promise<{group_conversation_id: number, avatar_id: number, added_at: string}>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatars\deleteGroupConversationAvatar.js
+
+```
+@file src/db/groupConversationAvatars/deleteGroupConversationAvatar.js
+@description Removes an avatar from a conversation.
+```
+
+```
+Deletes the link between an avatar and a conversation.
+*
+@param {number} conversationId
+@param {number} avatarId
+@returns {Promise<boolean>} true if deleted, false otherwise
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatars\getGroupConversationAvatarsByConversation.js
+
+```
+@file src/db/groupConversationAvatars/getAvatarsByConversation.js
+@description Lists all avatars in a given conversation.
+```
+
+```
+Fetches avatar entries for one conversation.
+*
+@param {number} conversationId
+@returns {Promise<Array<{avatar_id: number, added_at: string}>>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatars\getGroupConversationsByAvatar.js
+
+```
+@file src/db/groupConversationAvatars/getConversationsByAvatar.js
+@description Lists all conversations that include a given avatar.
+```
+
+```
+Fetches conversation entries for one avatar.
+*
+@param {number} avatarId
+@returns {Promise<Array<{group_conversation_id: number, added_at: string}>>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatarTurnRelationships\createGroupConversationAvatarTurnRelationship.js
+
+```
+Creates a directed relationship between two avatar turns.
+@param {number} turnId
+@param {number} targetTurnId
+@param {number} [relationshipTypeId=1]
+@returns {Promise<object>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatarTurnRelationships\deleteGroupConversationAvatarTurnRelationship.js
+
+```
+Deletes a relationship by its ID.
+@param {number} id
+@returns {Promise<boolean>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatarTurnRelationships\getGroupConversationAvatarTurnRelationshipById.js
+
+```
+Fetches a relationship by its ID.
+@param {number} id
+@returns {Promise<object|null>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatarTurnRelationships\getGroupConversationAvatarTurnRelationshipsByTurn.js
+
+```
+Lists all relationships originating from a turn.
+@param {number} turnId
+@returns {Promise<object[]>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatarTurnRelationships\updateGroupConversationAvatarTurnRelationship.js
+
+```
+Updates the relationship type of an existing relationship.
+@param {number} id
+@param {number} newTypeId
+@returns {Promise<object|null>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\groupConversations\createGroupConversation.js
+
+```
+Creates a new conversation under a group.
+@param {number} groupId - The ID of the group.
+@param {string} name - The conversation name.
+@param {string} description - The conversation description.
+@returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\groupConversations\deleteGroupConversation.js
+
+```
+Deletes a conversation by its ID.
+@param {number} id - The conversation ID.
+@returns {Promise<boolean>} True if deleted, false otherwise.
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\groupConversations\getGroupConversationById.js
+
+```
+Retrieves a conversation by its ID.
+@param {number} id - The conversation ID.
+@returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}|null>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\groupConversations\getGroupConversationsByGroup.js
+
+```
+Retrieves all conversations for a given group.
+@param {number} groupId - The group ID.
+@returns {Promise<Array<{id: number, group_id: number, name: string, description: string, created_at: string}>>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\groupConversations\updateGroupConversation.js
+
+```
+Updates a conversation's name and description.
+@param {number} id - The conversation ID.
+@param {string} newName - The new conversation name.
+@param {string} newDescription - The new conversation description.
+@returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}|null>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\groups\createGroup.js
 
 ```
 @file src/db/group/createGroup.js
@@ -39,7 +207,7 @@ Creates a new group with the given name.
 @returns {Promise<{id: number, name: string, created_at: string}>} The newly created group record.
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\group\deleteGroup.js
+## C:\Users\Ken\Desktop\back-stage\src\db\groups\deleteGroup.js
 
 ```
 @file src/db/group/deleteGroup.js
@@ -53,7 +221,7 @@ Deletes a group from the database.
 @returns {Promise<boolean>} True if a group was deleted, false otherwise.
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\group\getAllGroups.js
+## C:\Users\Ken\Desktop\back-stage\src\db\groups\getAllGroups.js
 
 ```
 @file src/db/group/getAllGroups.js
@@ -66,7 +234,7 @@ Retrieves all groups from the database.
 @returns {Promise<Array<{id: number, name: string, created_at: string}>>} Array of group records.
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\group\getGroupById.js
+## C:\Users\Ken\Desktop\back-stage\src\db\groups\getGroupById.js
 
 ```
 @file src/db/group/getGroupById.js
@@ -80,7 +248,7 @@ Retrieves a single group by its ID.
 @returns {Promise<{id: number, name: string, created_at: string}|null>} The group record, or null if not found.
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\group\getGroupByName.js
+## C:\Users\Ken\Desktop\back-stage\src\db\groups\getGroupByName.js
 
 ```
 @file src/db/group/getGroupByName.js
@@ -94,7 +262,7 @@ Retrieves a single group by its name.
 @returns {Promise<{id: number, name: string, created_at: string}|null>} The group record, or null if not found.
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\group\updateGroup.js
+## C:\Users\Ken\Desktop\back-stage\src\db\groups\updateGroup.js
 
 ```
 @file src/db/group/updateGroup.js
@@ -109,155 +277,7 @@ Updates the name of an existing group.
 @returns {Promise<{id: number, name: string, created_at: string}|null>} The updated group record, or null if not found.
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\groupConversation\index.js
-
-```
-@file src/db/groupConversation/index.js
-@description CRUD operations for group_conversations.
-```
-
-```
-Creates a new conversation under a group.
-*
-@param {number} groupId - The ID of the group.
-@param {string} name - The conversation name.
-@param {string} description - The conversation description.
-@returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}>}
-```
-
-```
-Retrieves a conversation by its ID.
-*
-@param {number} id - The conversation ID.
-@returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}|null>}
-```
-
-```
-Retrieves all conversations for a given group.
-*
-@param {number} groupId - The group ID.
-@returns {Promise<Array<{id: number, group_id: number, name: string, description: string, created_at: string}>>}
-```
-
-```
-Updates a conversation's name and description.
-*
-@param {number} id - The conversation ID.
-@param {string} newName - The new conversation name.
-@param {string} newDescription - The new conversation description.
-@returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}|null>}
-```
-
-```
-Deletes a conversation by its ID.
-*
-@param {number} id - The conversation ID.
-@returns {Promise<boolean>} True if deleted, false otherwise.
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatarTurnRelationships\index.js
-
-```
-@file src/db/groupConversationAvatarTurnRelationships/index.js
-@description CRUD operations for creating and managing relationships between avatar turns in group conversations.
-```
-
-```
-Creates a directed relationship between two avatar turns.
-Always from the newer turn back to the earlier turn.
-@param {number} turnId - The ID of the later/responding turn.
-@param {number} targetTurnId - The ID of the earlier/prompt turn.
-@param {number} [relationshipTypeId=1] - The lookup ID for the relationship type (e.g. "response_to").
-@returns {Promise<{id: number, turn_id: number, target_turn_id: number, turn_relationship_type_id: number, created_at: string}>}
-```
-
-```
-Fetches a relationship row by its ID.
-@param {number} id - The relationship record ID.
-@returns {Promise<{id: number, turn_id: number, target_turn_id: number, turn_relationship_type_id: number, created_at: string} | null>}
-```
-
-```
-Lists all relationships originating from a given turn.
-@param {number} turnId - The ID of the originating turn.
-@returns {Promise<Array<{id: number, turn_id: number, target_turn_id: number, turn_relationship_type_id: number, created_at: string}>>}
-```
-
-```
-Updates the relationship type of an existing relationship.
-@param {number} id - The relationship record ID.
-@param {number} newTypeId - The new relationship type lookup ID.
-@returns {Promise<{id: number, turn_id: number, target_turn_id: number, turn_relationship_type_id: number, created_at: string} | null>}
-```
-
-```
-Deletes a relationship by its ID.
-@param {number} id - The relationship record ID.
-@returns {Promise<boolean>} True if the record was deleted.
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatarTurns\index.js
-
-```
-@file src/db/groupConversationAvatarTurns/index.js
-@description CRUD operations for avatar turns in group conversations.
-```
-
-```
-Ensures a JS number[] matches the required VECTOR_DIM by padding with zeros or truncating.
-@param {number[]} arr
-@returns {number[]}
-```
-
-```
-Converts a JS number[] into a PostgreSQL vector literal string.
-E.g. [0.1,0.2,...] → "[0.1,0.2,...]"
-@param {number[]} arr
-@returns {string}
-```
-
-```
-Creates a new avatar turn in a group conversation.
-*
-@param {number} conversationId - The ID of the group conversation.
-@param {number} avatarId - The ID of the avatar.
-@param {number} turnIndex - The index/order of the turn.
-@param {string} contentText - The text content of the turn.
-@param {Array<number>} contentVector - The embedding vector for the content.
-@returns {Promise<{id: number, group_conversation_id: number, avatar_id: number, turn_index: number, content_text: string, content_vector: Array<number>, created_at: string}>}
-```
-
-```
-Retrieves a single avatar turn by its ID.
-*
-@param {number} id - The ID of the avatar turn.
-@returns {Promise<{id: number, group_conversation_id: number, avatar_id: number, turn_index: number, content_text: string, content_vector: Array<number>, created_at: string}|null>}
-```
-
-```
-Retrieves all avatar turns for a given group conversation, ordered by turn_index.
-*
-@param {number} conversationId - The group conversation ID.
-@returns {Promise<Array<{id: number, group_conversation_id: number, avatar_id: number, turn_index: number, content_text: string, content_vector: Array<number>, created_at: string}>>}
-```
-
-```
-Updates content_text and/or content_vector of an existing avatar turn.
-*
-@param {number} id - The ID of the avatar turn.
-@param {string} newText - The new text content for the turn.
-@param {Array<number>} newVector - The new embedding vector for the content.
-@returns {Promise<{id: number, group_conversation_id: number, avatar_id: number, turn_index: number, content_text: string, content_vector: Array<number>, created_at: string}|null>}
-```
-
-```
-Deletes an avatar turn by its ID.
-*
-@param {number} id - The ID of the avatar turn.
-@returns {Promise<boolean>} True if a turn was deleted, false otherwise.
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\participant\createParticipant.js
+## C:\Users\Ken\Desktop\back-stage\src\db\participants\createParticipant.js
 
 ```
 @file src/db/participant/createParticipant.js
@@ -278,7 +298,7 @@ Creates a new participant in the database
 @throws {Error} If email already exists or another error occurs
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\participant\createParticipantHandler.js
+## C:\Users\Ken\Desktop\back-stage\src\db\participants\createParticipantHandler.js
 
 ```
 @file src/api/participants/createParticipantHandler.js
@@ -296,7 +316,7 @@ Handles request to create a new participant
 @returns {Promise<void>}
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\participant\deleteParticipant.js
+## C:\Users\Ken\Desktop\back-stage\src\db\participants\deleteParticipant.js
 
 ```
 @file src/db/participant/deleteParticipant.js
@@ -315,7 +335,7 @@ Deletes a participant from the database
 @throws {Error} If a database error occurs
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\participant\deleteParticipantHandler.js
+## C:\Users\Ken\Desktop\back-stage\src\db\participants\deleteParticipantHandler.js
 
 ```
 @file src/api/participants/deleteParticipantHandler.js
@@ -331,7 +351,7 @@ Handles request to delete a participant
 @returns {Promise<void>}
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\participant\getAllParticipants.js
+## C:\Users\Ken\Desktop\back-stage\src\db\participants\getAllParticipants.js
 
 ```
 @file src/db/participant/getAllParticipants.js
@@ -349,7 +369,7 @@ Retrieves all participants from the database
 @throws {Error} If a database error occurs
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\participant\getAllParticipantsHandler.js
+## C:\Users\Ken\Desktop\back-stage\src\db\participants\getAllParticipantsHandler.js
 
 ```
 @file src/api/participants/getAllParticipantsHandler.js
@@ -363,7 +383,7 @@ Handles request to get all participants
 @returns {Promise<void>}
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\participant\getParticipantByEmail.js
+## C:\Users\Ken\Desktop\back-stage\src\db\participants\getParticipantByEmail.js
 
 ```
 @file src/db/participant/getParticipantByEmail.js
@@ -382,7 +402,7 @@ Retrieves a participant by their email address
 @throws {Error} If a database error occurs
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\participant\getParticipantById.js
+## C:\Users\Ken\Desktop\back-stage\src\db\participants\getParticipantById.js
 
 ```
 @file src/db/participant/getParticipantById.js
@@ -401,7 +421,7 @@ Retrieves a participant by their ID
 @throws {Error} If a database error occurs
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\participant\getParticipantByIdHandler.js
+## C:\Users\Ken\Desktop\back-stage\src\db\participants\getParticipantByIdHandler.js
 
 ```
 @file src/api/participants/getParticipantByIdHandler.js
@@ -417,7 +437,7 @@ Handles request to get a participant by ID
 @returns {Promise<void>}
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\participant\getParticipantsByGroup.js
+## C:\Users\Ken\Desktop\back-stage\src\db\participants\getParticipantsByGroup.js
 
 ```
 @file src/db/participant/getParticipantsByGroup.js
@@ -436,7 +456,7 @@ Retrieves all participants in a specific group
 @throws {Error} If a database error occurs
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\participant\getParticipantsByGroupHandler.js
+## C:\Users\Ken\Desktop\back-stage\src\db\participants\getParticipantsByGroupHandler.js
 
 ```
 @file src/api/participants/getParticipantsByGroupHandler.js
@@ -452,31 +472,14 @@ Handles request to get all participants in a group
 @returns {Promise<void>}
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\participant\index.js
+## C:\Users\Ken\Desktop\back-stage\src\db\participants\index.js
 
 ```
-@file src/db/participant/index.js
+@file src/db/participants/index.js
 @description Exports all participant-related database operations.
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\participant\LogInHandler.js
-
-```
-@file src/api/participants/loginHandler.js
-@description Handler for participant authentication.
-```
-
-```
-Handles participant login requests
-@param {object} req - Express request object
-@param {object} req.body - Request body
-@param {string} req.body.email - Participant email
-@param {string} req.body.password - Participant password
-@param {object} res - Express response object
-@returns {Promise<void>}
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\participant\updateParticipant.js
+## C:\Users\Ken\Desktop\back-stage\src\db\participants\updateParticipant.js
 
 ```
 @file src/db/participant/updateParticipant.js
@@ -500,7 +503,7 @@ Updates a participant's information
 @throws {Error} If email already exists or another error occurs
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\db\participant\updateParticipantHandler.js
+## C:\Users\Ken\Desktop\back-stage\src\db\participants\updateParticipantHandler.js
 
 ```
 @file src/api/participants/updateParticipantHandler.js
@@ -521,16 +524,183 @@ Handles request to update a participant
 @returns {Promise<void>}
 ```
 
+## C:\Users\Ken\Desktop\back-stage\src\middleware\auth.js
+
+```
+Express middleware that:
+1. Looks for an Authorization: Bearer <token> header
+2. Verifies the JWT
+3. Attaches the decoded payload to req.user
+4. Returns 401 if missing or invalid
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\routes\groupConversationAvatars.js
+
+```
+POST   /api/group-conversation-avatars
+body: { conversationId, avatarId }
+```
+
+```
+GET    /api/group-conversation-avatars/by-conversation/:conversationId
+```
+
+```
+GET    /api/group-conversation-avatars/by-avatar/:avatarId
+```
+
+```
+DELETE /api/group-conversation-avatars/:conversationId/:avatarId
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\routes\groupConversationAvatarTurnRelationships.js
+
+```
+@file HTTP routes for managing avatar‐turn relationships in group conversations.
+```
+
+```
+POST   /api/avatar-turn-relationships/
+Create a new turn-relationship.
+Expects JSON body: { turnId, targetTurnId, relationshipTypeId }
+```
+
+```
+GET    /api/avatar-turn-relationships/:id
+Fetch a single relationship by its ID.
+```
+
+```
+GET    /api/avatar-turn-relationships/by-turn/:turnId
+List all relationships originating from a given turn.
+```
+
+```
+PUT    /api/avatar-turn-relationships/:id
+Update the relationship type of an existing relationship.
+Expects JSON body: { newTypeId }
+```
+
+```
+DELETE /api/avatar-turn-relationships/:id
+Remove a relationship by its ID.
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\routes\groupConversationAvatarTurns.js
+
+```
+@file src/routes/avatarTurns.js
+@description HTTP routes for managing avatar‐turns in group conversations.
+```
+
+```
+POST /api/avatar-turns
+Create a new avatar-turn.
+Expects JSON body: { conversationId, avatarId, turnIndex, contentText, contentVector }
+```
+
+```
+GET /api/avatar-turns/:id
+Fetch a single turn by its ID.
+```
+
+```
+GET /api/avatar-turns/by-conversation/:conversationId
+List all turns within a given conversation.
+```
+
+```
+PUT /api/avatar-turns/:id
+Update text and/or vector of an existing turn.
+Expects JSON body: { contentText, contentVector }
+```
+
+```
+DELETE /api/avatar-turns/:id
+Remove a turn by its ID.
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\routes\groupConversations.js
+
+```
+POST   /api/group-conversations
+body: { groupId, name, description }
+```
+
+```
+GET    /api/group-conversations/:id
+```
+
+```
+GET    /api/group-conversations/by-group/:groupId
+```
+
+```
+PUT    /api/group-conversations/:id
+body: { newName, newDescription }
+```
+
+```
+DELETE /api/group-conversations/:id
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\routes\groups.js
+
+```
+@file src/routes/groups.js
+@description Creates routes for all the group functions.
+```
+
 ## C:\Users\Ken\Desktop\back-stage\src\routes\participants.js
 
 ```
 @file src/routes/participants.js
-@description Express router for participant-related endpoints.
+@description Creates routes for all the participant functions.
 ```
 
 ```
-Express router for participant endpoints
-@type {express.Router}
+POST   /api/participants
+body: { name, email, password }
+```
+
+```
+GET    /api/participants
+```
+
+```
+GET    /api/participants/:id
+```
+
+```
+PUT    /api/participants/:id
+body: { name?, email?, password?, current_avatar_id? }
+```
+
+```
+DELETE /api/participants/:id
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\services\authService.js
+
+```
+@file src/services/authService.js
+@description reusable JWT logic
+```
+
+```
+creates a JWT token
+@param payload
+```
+
+```
+verifies a JWT token
+@param token
+```
+
+## C:\Users\Ken\Desktop\back-stage\test\groupConversationAvatars.test.js
+
+```
+Helper to clean up all avatars for a conversation + drop the conversation
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\test\groupConversationAvatarTurnRelationships.test.js

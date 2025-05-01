@@ -7,4 +7,5 @@ export { getGroupById } from './getGroupById.js';
 export { getGroupByName } from './getGroupByName.js';
 export { updateGroup } from './updateGroup.js';
 export { deleteGroup } from './deleteGroup.js';
+export { getGroupsByParticipant } from './getGroupsByParticipant.js';
 

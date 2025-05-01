@@ -6,21 +6,30 @@ const { JWT_SECRET } = process.env;
 
 /**
  * Express middleware that:
- * 1. Looks for an Authorization: Bearer <token> header
+ * 1. Reads a JWT from Authorization header or HttpOnly cookie
  * 2. Verifies the JWT
  * 3. Attaches the decoded payload to req.user
  * 4. Returns 401 if missing or invalid
  */
 export function requireAuth(req, res, next) {
-  const auth = req.headers.authorization;
-  if (!auth?.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Missing or malformed auth header' });
+  // 1. Extract token from header or cookie
+  let token;
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith('Bearer ')) {
+    token = authHeader.slice(7);
+  } else if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
   }
 
-  const token = auth.slice(7);
+  // 2. If no token, reject
+  if (!token) {
+    return res.status(401).json({ error: 'Missing auth token' });
+  }
+
+  // 3. Verify and attach payload
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    req.user = payload;            // e.g. { participantId, email, iat, exp }
+    req.user = payload;  // e.g. { participantId, iat, exp }
     return next();
   } catch (err) {
     return res.status(401).json({ error: 'Invalid or expired token' });

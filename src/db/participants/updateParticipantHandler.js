@@ -1,8 +1,8 @@
 /**
- * @file src/api/participants/updateParticipantHandler.js
+ * @file src/db/participants/updateParticipantHandler.js
  * @description Handler for updating a participant.
  */
-import { updateParticipant } from '../../db/participant/updateParticipant.js';
+import { updateParticipant } from './updateParticipant.js';
 import bcryptjs from 'bcryptjs';
 
 /**
@@ -16,6 +16,8 @@ import bcryptjs from 'bcryptjs';
  * @param {string} [req.body.email] - Updated email
  * @param {string} [req.body.password] - Updated password (will be hashed)
  * @param {number} [req.body.current_avatar_id] - Updated avatar ID
+ * @param {object} req.user - Authenticated user information
+ * @param {number} req.user.participantId - ID of the authenticated participant
  * @param {object} res - Express response object
  * @returns {Promise<void>}
  */
@@ -32,7 +34,14 @@ export async function updateParticipantHandler(req, res) {
     }
     if (current_avatar_id !== undefined) updates.current_avatar_id = current_avatar_id;
     
-    const updatedParticipant = await updateParticipant(Number(req.params.id), updates);
+    // Get the ID of the authenticated user making the change
+    const createdByParticipantId = req.user?.participantId || null;
+    
+    const updatedParticipant = await updateParticipant(
+      Number(req.params.id), 
+      updates,
+      createdByParticipantId
+    );
     
     if (!updatedParticipant) {
       return res.status(404).json({ error: 'Participant not found' });
@@ -40,7 +49,7 @@ export async function updateParticipantHandler(req, res) {
     
     res.json(updatedParticipant);
   } catch (error) {
-    if (error.message === 'EMAIL_EXISTS') {
+    if (error.message.includes('already exists')) {
       return res.status(409).json({ error: 'A participant with this email already exists' });
     }
     res.status(500).json({ error: error.message });

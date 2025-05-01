@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Conversation UI Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f8f9fa;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      height: calc(100vh - 80px);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-top: 0;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    /* Conversation UI styles */
+    .transcript-area {
+      flex-grow: 1;
+      overflow-y: auto;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background-color: #f9f9f9;
+    }
+    
+    .input-area {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .user-input {
+      flex-grow: 1;
+      padding: 10px;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      resize: vertical;
+      min-height: 80px;
+      font-family: inherit;
+      font-size: 1rem;
+    }
+    
+    .send-button {
+      padding: 0 20px;
+      background-color: #E0FFFF;
+      color: #333;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      align-self: flex-end;
+      height: 40px;
+    }
+    
+    .send-button:hover {
+      background-color: #C0EBEB;
+    }
+    
+    .message {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 4px;
+      max-width: 80%;
+    }
+    
+    .user-message {
+      background-color: #E0FFFF;
+      margin-left: auto;
+      border-top-right-radius: 0;
+    }
+    
+    .response-message {
+      background-color: #f0f0f0;
+      margin-right: auto;
+      border-top-left-radius: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Conversation Test</h1>
+    
+    <!-- Transcript area -->
+    <div id="transcript-area" class="transcript-area">
+      <!-- Conversation messages will appear here -->
+    </div>
+    
+    <!-- Input area -->
+    <div class="input-area">
+      <textarea id="user-input" class="user-input" placeholder="Type your message here..." rows="4"></textarea>
+      <button id="send-button" class="send-button">Send</button>
+    </div>
+  </div>
+
+  <script>
+    // Global state
+    let currentUser = null;
+    let currentConversationId = null;
+    
+    // Function to check if user is logged in
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/me');
+        if (response.ok) {
+          const data = await response.json();
+          currentUser = data.user;
+          console.log('Logged in as:', currentUser);
+          return true;
+        } else {
+          console.error('Not logged in');
+          window.location.href = '/login.html';
+          return false;
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        return false;
+      }
+    }
+    
+    // Function to get or create a conversation
+    async function getOrCreateConversation() {
+      if (currentConversationId) {
+        return currentConversationId;
+      }
+      
+      // For now, we'll use a hardcoded conversation ID
+      // In a real app, we would create a new conversation or get an existing one
+      currentConversationId = 1;
+      
+      // Load existing messages for this conversation
+      await loadExistingMessages();
+      
+      return currentConversationId;
+    }
+    
+    // Function to load existing messages
+    async function loadExistingMessages() {
+      try {
+        const response = await fetch(`/api/conversations/${currentConversationId}/turns`);
+        if (response.ok) {
+          const turns = await response.json();
+          
+          // Clear transcript
+          const transcriptArea = document.getElementById('transcript-area');
+          transcriptArea.innerHTML = '';
+          
+          // Add each turn to the transcript
+          turns.forEach(turn => {
+            // Determine if this is a user message or LLM response
+            // We're assuming even indices are user messages, odd indices are LLM responses
+            const type = turn.avatar_id === currentUser.participant.current_avatar_id ? 'user' : 'response';
+            addMessageToTranscript(turn.content_text, type);
+          });
+        } else {
+          console.error('Failed to load messages');
+        }
+      } catch (error) {
+        console.error('Error loading messages:', error);
+      }
+    }
+    
+    // Function to handle message submission
+    async function handleMessageSubmit() {
+      const userInput = document.getElementById('user-input');
+      const message = userInput.value.trim();
+      
+      if (!message) return; // Don't send empty messages
+      
+      // Format the message with the participant's name before displaying it
+      const formattedMessage = `<${currentUser.participant.name}>:${message}`;
+      
+      // Add user message to transcript immediately for better UX
+      addMessageToTranscript(formattedMessage, 'user');
+      
+      // Clear input
+      userInput.value = '';
+      userInput.style.height = 'auto'; // Reset height
+      
+      try {
+        // Ensure we have a conversation
+        const conversationId = await getOrCreateConversation();
+        
+        // Send message to server
+        const response = await fetch(`/api/conversations/${conversationId}/turns`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ prompt: message })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Add LLM response to transcript
+          addMessageToTranscript(data.llmTurn.content_text, 'response');
+        } else {
+          console.error('Failed to send message');
+          // Show error in transcript
+          addMessageToTranscript('Error: Failed to get response', 'response');
+        }
+      } catch (error) {
+        console.error('Error sending message:', error);
+        // Show error in transcript
+        addMessageToTranscript('Error: ' + error.message, 'response');
+      }
+    }
+    
+    // Function to add a message to the transcript
+    function addMessageToTranscript(text, type) {
+      const transcriptArea = document.getElementById('transcript-area');
+      const messageDiv = document.createElement('div');
+      
+      messageDiv.className = `message ${type}-message`;
+      messageDiv.textContent = text;
+      
+      transcriptArea.appendChild(messageDiv);
+      
+      // Auto-scroll to the bottom
+      transcriptArea.scrollTop = transcriptArea.scrollHeight;
+    }
+    
+    // Function to make textarea auto-resize
+    function setupTextareaAutoResize() {
+      const textarea = document.getElementById('user-input');
+      
+      textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+      });
+    }
+    
+    // Initialize the app
+    document.addEventListener('DOMContentLoaded', async function() {
+      // Check if user is logged in
+      const isLoggedIn = await checkAuth();
+      if (!isLoggedIn) return;
+      
+      // Get or create a conversation
+      await getOrCreateConversation();
+      
+      // Set up conversation UI
+      setupTextareaAutoResize();
+      
+      // Add event listener for send button
+      document.getElementById('send-button').addEventListener('click', handleMessageSubmit);
+      
+      // Add event listener for Enter key in textarea (Shift+Enter for new line)
+      document.getElementById('user-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault(); // Prevent default to avoid new line
+          handleMessageSubmit();
+        }
+      });
+      
+      console.log('Conversation test initialized');
+    });
+  </script>
+</body>
+</html>

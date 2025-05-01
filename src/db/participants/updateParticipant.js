@@ -7,6 +7,7 @@
  * The database connection pool
  */
 import { pool as defaultPool } from '../connection.js';
+import { createParticipantAvatar } from '../participantAvatars/createParticipantAvatar.js';
 
 /**
  * Updates a participant's information
@@ -16,11 +17,12 @@ import { pool as defaultPool } from '../connection.js';
  * @param {string} [updates.email] - Updated email
  * @param {string} [updates.password] - Updated password (should be hashed)
  * @param {number} [updates.current_avatar_id] - Updated avatar ID
+ * @param {number} [createdByParticipantId=null] - ID of participant making the change (for logging)
  * @param {object} [pool=defaultPool] - Database connection pool (for testing)
  * @returns {Promise<object|null>} The updated participant record, or null if not found
  * @throws {Error} If email already exists or another error occurs
  */
-export async function updateParticipant(id, updates, pool = defaultPool) {
+export async function updateParticipant(id, updates, createdByParticipantId = null, pool = defaultPool) {
   try {
     // Check if the participant exists
     const existingParticipant = await pool.query(
@@ -88,6 +90,22 @@ export async function updateParticipant(id, updates, pool = defaultPool) {
 
     // Execute update
     const result = await pool.query(query, values);
+    
+    // If current_avatar_id was updated, create a record in participant_avatars table
+    if (updates.current_avatar_id !== undefined && result.rows[0]) {
+      try {
+        await createParticipantAvatar(
+          id, 
+          updates.current_avatar_id,
+          createdByParticipantId || id, // If no creator specified, use the participant's own ID
+          pool
+        );
+      } catch (avatarError) {
+        console.error(`Failed to create participant-avatar relationship: ${avatarError.message}`);
+        // Continue with the update even if logging fails
+      }
+    }
+    
     return result.rows[0];
   } catch (error) {
     throw new Error(`Failed to update participant: ${error.message}`);

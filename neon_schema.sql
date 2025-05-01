@@ -18,6 +18,20 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
+
+
+--
 -- Name: vector; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -226,45 +240,10 @@ ALTER SEQUENCE public.file_types_id_seq OWNED BY public.file_types.id;
 
 
 --
--- Name: group_conversation_avatar_events; Type: TABLE; Schema: public; Owner: -
+-- Name: grp_con_avatar_turn_relationships; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.group_conversation_avatar_events (
-    id integer NOT NULL,
-    group_conversation_id bigint NOT NULL,
-    avatar_id bigint NOT NULL,
-    avatar_event_type_id integer NOT NULL,
-    performed_by_avatar_id bigint NOT NULL,
-    details jsonb,
-    created_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
--- Name: group_conversation_avatar_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.group_conversation_avatar_events_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: group_conversation_avatar_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.group_conversation_avatar_events_id_seq OWNED BY public.group_conversation_avatar_events.id;
-
-
---
--- Name: group_conversation_avatar_turn_relationships; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.group_conversation_avatar_turn_relationships (
+CREATE TABLE public.grp_con_avatar_turn_relationships (
     id bigint NOT NULL,
     turn_id bigint NOT NULL,
     target_turn_id bigint NOT NULL,
@@ -289,16 +268,16 @@ CREATE SEQUENCE public.group_conversation_avatar_turn_relationships_id_seq
 -- Name: group_conversation_avatar_turn_relationships_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.group_conversation_avatar_turn_relationships_id_seq OWNED BY public.group_conversation_avatar_turn_relationships.id;
+ALTER SEQUENCE public.group_conversation_avatar_turn_relationships_id_seq OWNED BY public.grp_con_avatar_turn_relationships.id;
 
 
 --
--- Name: group_conversation_avatar_turns; Type: TABLE; Schema: public; Owner: -
+-- Name: grp_con_avatar_turns; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.group_conversation_avatar_turns (
+CREATE TABLE public.grp_con_avatar_turns (
     id bigint NOT NULL,
-    group_conversation_id bigint NOT NULL,
+    grp_con_id bigint NOT NULL,
     avatar_id bigint NOT NULL,
     turn_index integer NOT NULL,
     content_text text NOT NULL,
@@ -324,15 +303,15 @@ CREATE SEQUENCE public.group_conversation_avatar_turns_id_seq
 -- Name: group_conversation_avatar_turns_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.group_conversation_avatar_turns_id_seq OWNED BY public.group_conversation_avatar_turns.id;
+ALTER SEQUENCE public.group_conversation_avatar_turns_id_seq OWNED BY public.grp_con_avatar_turns.id;
 
 
 --
--- Name: group_conversation_avatars; Type: TABLE; Schema: public; Owner: -
+-- Name: grp_con_avatars; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.group_conversation_avatars (
-    group_conversation_id bigint NOT NULL,
+CREATE TABLE public.grp_con_avatars (
+    grp_con_id bigint NOT NULL,
     avatar_id bigint NOT NULL,
     added_at timestamp with time zone DEFAULT now()
 );
@@ -354,7 +333,7 @@ CREATE SEQUENCE public.group_conversation_avatars_avatar_id_seq
 -- Name: group_conversation_avatars_avatar_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.group_conversation_avatars_avatar_id_seq OWNED BY public.group_conversation_avatars.avatar_id;
+ALTER SEQUENCE public.group_conversation_avatars_avatar_id_seq OWNED BY public.grp_con_avatars.avatar_id;
 
 
 --
@@ -373,14 +352,14 @@ CREATE SEQUENCE public.group_conversation_avatars_group_conversation_id_seq
 -- Name: group_conversation_avatars_group_conversation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.group_conversation_avatars_group_conversation_id_seq OWNED BY public.group_conversation_avatars.group_conversation_id;
+ALTER SEQUENCE public.group_conversation_avatars_group_conversation_id_seq OWNED BY public.grp_con_avatars.grp_con_id;
 
 
 --
--- Name: group_conversation_upload_vectors; Type: TABLE; Schema: public; Owner: -
+-- Name: grp_con_upload_vectors; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.group_conversation_upload_vectors (
+CREATE TABLE public.grp_con_upload_vectors (
     id bigint NOT NULL,
     upload_id bigint NOT NULL,
     chunk_index integer NOT NULL,
@@ -406,16 +385,16 @@ CREATE SEQUENCE public.group_conversation_upload_vectors_id_seq
 -- Name: group_conversation_upload_vectors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.group_conversation_upload_vectors_id_seq OWNED BY public.group_conversation_upload_vectors.id;
+ALTER SEQUENCE public.group_conversation_upload_vectors_id_seq OWNED BY public.grp_con_upload_vectors.id;
 
 
 --
--- Name: group_conversation_uploads; Type: TABLE; Schema: public; Owner: -
+-- Name: grp_con_uploads; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.group_conversation_uploads (
+CREATE TABLE public.grp_con_uploads (
     id bigint NOT NULL,
-    group_conversation_id bigint NOT NULL,
+    grp_con_id bigint NOT NULL,
     turn_id bigint NOT NULL,
     filename text NOT NULL,
     mime_type text,
@@ -440,7 +419,7 @@ CREATE SEQUENCE public.group_conversation_uploads_id_seq
 -- Name: group_conversation_uploads_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.group_conversation_uploads_id_seq OWNED BY public.group_conversation_uploads.id;
+ALTER SEQUENCE public.group_conversation_uploads_id_seq OWNED BY public.grp_con_uploads.id;
 
 
 --
@@ -453,19 +432,6 @@ CREATE SEQUENCE public.group_conversations_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
---
--- Name: group_conversations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.group_conversations (
-    id bigint DEFAULT nextval('public.group_conversations_id_seq'::regclass) NOT NULL,
-    group_id bigint,
-    name text NOT NULL,
-    description text,
-    created_at timestamp with time zone DEFAULT now()
-);
 
 
 --
@@ -490,6 +456,96 @@ CREATE TABLE public.groups (
     description text,
     created_at timestamp with time zone DEFAULT now()
 );
+
+
+--
+-- Name: grp_cons; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.grp_cons (
+    id bigint DEFAULT nextval('public.group_conversations_id_seq'::regclass) NOT NULL,
+    group_id bigint,
+    name text NOT NULL,
+    description text,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: participant_avatars; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.participant_avatars (
+    id bigint NOT NULL,
+    participant_id bigint NOT NULL,
+    avatar_id bigint NOT NULL,
+    created_at date DEFAULT CURRENT_DATE,
+    created_by_participant_id bigint
+);
+
+
+--
+-- Name: participant_event_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.participant_event_types (
+    id integer NOT NULL,
+    name text NOT NULL,
+    description text NOT NULL
+);
+
+
+--
+-- Name: participant_event_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.participant_event_types_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: participant_event_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.participant_event_types_id_seq OWNED BY public.participant_event_types.id;
+
+
+--
+-- Name: participant_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.participant_events (
+    id integer NOT NULL,
+    participant_id bigint NOT NULL,
+    event_type_id integer NOT NULL,
+    details jsonb,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: participant_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.participant_events_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: participant_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.participant_events_id_seq OWNED BY public.participant_events.id;
 
 
 --
@@ -665,52 +721,52 @@ ALTER TABLE ONLY public.file_types ALTER COLUMN id SET DEFAULT nextval('public.f
 
 
 --
--- Name: group_conversation_avatar_events id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: grp_con_avatar_turn_relationships id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.group_conversation_avatar_events ALTER COLUMN id SET DEFAULT nextval('public.group_conversation_avatar_events_id_seq'::regclass);
-
-
---
--- Name: group_conversation_avatar_turn_relationships id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.group_conversation_avatar_turn_relationships ALTER COLUMN id SET DEFAULT nextval('public.group_conversation_avatar_turn_relationships_id_seq'::regclass);
+ALTER TABLE ONLY public.grp_con_avatar_turn_relationships ALTER COLUMN id SET DEFAULT nextval('public.group_conversation_avatar_turn_relationships_id_seq'::regclass);
 
 
 --
--- Name: group_conversation_avatar_turns id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: grp_con_avatar_turns id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.group_conversation_avatar_turns ALTER COLUMN id SET DEFAULT nextval('public.group_conversation_avatar_turns_id_seq'::regclass);
-
-
---
--- Name: group_conversation_avatars group_conversation_id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.group_conversation_avatars ALTER COLUMN group_conversation_id SET DEFAULT nextval('public.group_conversation_avatars_group_conversation_id_seq'::regclass);
+ALTER TABLE ONLY public.grp_con_avatar_turns ALTER COLUMN id SET DEFAULT nextval('public.group_conversation_avatar_turns_id_seq'::regclass);
 
 
 --
--- Name: group_conversation_avatars avatar_id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: grp_con_avatars grp_con_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.group_conversation_avatars ALTER COLUMN avatar_id SET DEFAULT nextval('public.group_conversation_avatars_avatar_id_seq'::regclass);
-
-
---
--- Name: group_conversation_upload_vectors id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.group_conversation_upload_vectors ALTER COLUMN id SET DEFAULT nextval('public.group_conversation_upload_vectors_id_seq'::regclass);
+ALTER TABLE ONLY public.grp_con_avatars ALTER COLUMN grp_con_id SET DEFAULT nextval('public.group_conversation_avatars_group_conversation_id_seq'::regclass);
 
 
 --
--- Name: group_conversation_uploads id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: grp_con_avatars avatar_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.group_conversation_uploads ALTER COLUMN id SET DEFAULT nextval('public.group_conversation_uploads_id_seq'::regclass);
+ALTER TABLE ONLY public.grp_con_avatars ALTER COLUMN avatar_id SET DEFAULT nextval('public.group_conversation_avatars_avatar_id_seq'::regclass);
+
+
+--
+-- Name: grp_con_upload_vectors id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.grp_con_upload_vectors ALTER COLUMN id SET DEFAULT nextval('public.group_conversation_upload_vectors_id_seq'::regclass);
+
+
+--
+-- Name: grp_con_uploads id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.grp_con_uploads ALTER COLUMN id SET DEFAULT nextval('public.group_conversation_uploads_id_seq'::regclass);
+
+
+--
+-- Name: participant_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.participant_events ALTER COLUMN id SET DEFAULT nextval('public.participant_events_id_seq'::regclass);
 
 
 --
@@ -813,50 +869,50 @@ ALTER TABLE ONLY public.file_types
 
 
 --
--- Name: group_conversation_avatar_turn_relationships group_conversation_avatar_turn_relationships_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: grp_con_avatar_turn_relationships group_conversation_avatar_turn_relationships_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.group_conversation_avatar_turn_relationships
+ALTER TABLE ONLY public.grp_con_avatar_turn_relationships
     ADD CONSTRAINT group_conversation_avatar_turn_relationships_pkey PRIMARY KEY (id);
 
 
 --
--- Name: group_conversation_avatar_turns group_conversation_avatar_turns_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: grp_con_avatar_turns group_conversation_avatar_turns_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.group_conversation_avatar_turns
+ALTER TABLE ONLY public.grp_con_avatar_turns
     ADD CONSTRAINT group_conversation_avatar_turns_pkey PRIMARY KEY (id);
 
 
 --
--- Name: group_conversation_avatars group_conversation_avatars_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: grp_con_avatars group_conversation_avatars_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.group_conversation_avatars
-    ADD CONSTRAINT group_conversation_avatars_pkey PRIMARY KEY (group_conversation_id, avatar_id);
+ALTER TABLE ONLY public.grp_con_avatars
+    ADD CONSTRAINT group_conversation_avatars_pkey PRIMARY KEY (grp_con_id, avatar_id);
 
 
 --
--- Name: group_conversation_upload_vectors group_conversation_upload_vectors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: grp_con_upload_vectors group_conversation_upload_vectors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.group_conversation_upload_vectors
+ALTER TABLE ONLY public.grp_con_upload_vectors
     ADD CONSTRAINT group_conversation_upload_vectors_pkey PRIMARY KEY (id);
 
 
 --
--- Name: group_conversation_uploads group_conversation_uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: grp_con_uploads group_conversation_uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.group_conversation_uploads
+ALTER TABLE ONLY public.grp_con_uploads
     ADD CONSTRAINT group_conversation_uploads_pkey PRIMARY KEY (id);
 
 
 --
--- Name: group_conversations group_conversations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: grp_cons group_conversations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.group_conversations
+ALTER TABLE ONLY public.grp_cons
     ADD CONSTRAINT group_conversations_pkey PRIMARY KEY (id);
 
 
@@ -866,6 +922,30 @@ ALTER TABLE ONLY public.group_conversations
 
 ALTER TABLE ONLY public.groups
     ADD CONSTRAINT groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: participant_avatars participant_avatars_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.participant_avatars
+    ADD CONSTRAINT participant_avatars_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: participant_event_types participant_event_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.participant_event_types
+    ADD CONSTRAINT participant_event_types_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: participant_events participant_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.participant_events
+    ADD CONSTRAINT participant_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -909,14 +989,6 @@ ALTER TABLE ONLY public.turn_relationship_types
 
 
 --
--- Name: group_conversation_avatar_events session_avatar_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.group_conversation_avatar_events
-    ADD CONSTRAINT session_avatar_events_pkey PRIMARY KEY (id);
-
-
---
 -- Name: turn_kinds turn_kinds_name_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -936,7 +1008,7 @@ ALTER TABLE ONLY public.turn_kinds
 -- Name: idx_gcavtr_target; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_gcavtr_target ON public.group_conversation_avatar_turn_relationships USING btree (target_turn_id);
+CREATE INDEX idx_gcavtr_target ON public.grp_con_avatar_turn_relationships USING btree (target_turn_id);
 
 
 --
@@ -956,58 +1028,26 @@ ALTER TABLE ONLY public.participants
 
 
 --
--- Name: group_conversation_avatar_events group_conversation_avatar_events_avatar_event_type_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: grp_con_avatar_turn_relationships group_conversation_avatar_turn_relationship_target_turn_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.group_conversation_avatar_events
-    ADD CONSTRAINT group_conversation_avatar_events_avatar_event_type_id_fkey FOREIGN KEY (avatar_event_type_id) REFERENCES public.avatar_event_types(id) ON DELETE RESTRICT;
-
-
---
--- Name: group_conversation_avatar_events group_conversation_avatar_events_avatar_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.group_conversation_avatar_events
-    ADD CONSTRAINT group_conversation_avatar_events_avatar_id_fkey FOREIGN KEY (avatar_id) REFERENCES public.avatars(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.grp_con_avatar_turn_relationships
+    ADD CONSTRAINT group_conversation_avatar_turn_relationship_target_turn_id_fkey FOREIGN KEY (target_turn_id) REFERENCES public.grp_con_avatar_turns(id) ON DELETE CASCADE;
 
 
 --
--- Name: group_conversation_avatar_events group_conversation_avatar_events_group_conversation_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: grp_con_avatar_turn_relationships group_conversation_avatar_turn_relationships_turn_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.group_conversation_avatar_events
-    ADD CONSTRAINT group_conversation_avatar_events_group_conversation_id_fkey FOREIGN KEY (group_conversation_id) REFERENCES public.group_conversations(id) ON DELETE CASCADE;
-
-
---
--- Name: group_conversation_avatar_events group_conversation_avatar_events_performed_by_avatar_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.group_conversation_avatar_events
-    ADD CONSTRAINT group_conversation_avatar_events_performed_by_avatar_id_fkey FOREIGN KEY (performed_by_avatar_id) REFERENCES public.avatars(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.grp_con_avatar_turn_relationships
+    ADD CONSTRAINT group_conversation_avatar_turn_relationships_turn_id_fkey FOREIGN KEY (turn_id) REFERENCES public.grp_con_avatar_turns(id) ON DELETE CASCADE;
 
 
 --
--- Name: group_conversation_avatar_turn_relationships group_conversation_avatar_turn_relationship_target_turn_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: grp_con_avatar_turns group_conversation_avatar_turns_turn_kind_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.group_conversation_avatar_turn_relationships
-    ADD CONSTRAINT group_conversation_avatar_turn_relationship_target_turn_id_fkey FOREIGN KEY (target_turn_id) REFERENCES public.group_conversation_avatar_turns(id) ON DELETE CASCADE;
-
-
---
--- Name: group_conversation_avatar_turn_relationships group_conversation_avatar_turn_relationships_turn_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.group_conversation_avatar_turn_relationships
-    ADD CONSTRAINT group_conversation_avatar_turn_relationships_turn_id_fkey FOREIGN KEY (turn_id) REFERENCES public.group_conversation_avatar_turns(id) ON DELETE CASCADE;
-
-
---
--- Name: group_conversation_avatar_turns group_conversation_avatar_turns_turn_kind_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.group_conversation_avatar_turns
+ALTER TABLE ONLY public.grp_con_avatar_turns
     ADD CONSTRAINT group_conversation_avatar_turns_turn_kind_id_fkey FOREIGN KEY (turn_kind_id) REFERENCES public.turn_kinds(id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 

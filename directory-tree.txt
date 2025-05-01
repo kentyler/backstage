@@ -1,5 +1,6 @@
 📁 C:\Users\Ken\Desktop\back-stage
   📄 .env
+  📄 .gitignore
   📁 .history/
     📄 .env_20250415151017
     📄 .env_20250415152302
@@ -21,8 +22,36 @@
     📄 .env_20250416151053
     📄 .env_20250416160620
     📄 .env_20250416160843
+    📄 .env_20250424104550
+    📄 .gitignore_20250424121607
+    📄 .gitignore_20250424121608
+    📄 .gitignore_20250424121633
+    📄 app_20250417151032.js
+    📄 app_20250419092054.js
+    📄 app_20250422135005.js
+    📄 app_20250422135524.js
+    📄 app_20250422152939.js
+    📄 app_20250422153123.js
+    📄 app_20250422154327.js
+    📄 app_20250422154410.js
+    📄 app_20250422154446.js
+    📄 app_20250422154521.js
+    📄 app_20250422154523.js
+    📄 app_20250422165531.js
+    📄 app_20250423131013.js
+    📄 app_20250424105352.js
+    📄 app_20250424132037.js
+    📄 app_20250425110404.js
+    📄 app_20250425110802.js
+    📄 app_20250425111738.js
+    📄 app_20250425111921.js
+    📄 app_20250428125910.js
     📄 build-tree_20250418125243.js
     📄 build-tree_20250418125456.js
+    📄 cli_20250425095025.js
+    📄 cli_20250425095026.js
+    📄 cli_20250425104220.js
+    📄 cli_20250425105334.js
     📄 dir-tree_20250418125455.js
     📄 dir-tree_20250418125718.js
     📄 dir-tree_20250418125937.js
@@ -37,6 +66,9 @@
     📄 package_20250415131009.json
     📄 package_20250415131243.json
     📄 package_20250416140912.json
+    📄 package_20250422135243.json
+    📄 package_20250424124151.json
+    📄 package_20250424124319.json
     📄 pg_dump_20250418093759.ps1
     📄 pg_dump_20250418094734.ps1
     📄 pg_dump_20250418094833.ps1
@@ -45,11 +77,16 @@
     📄 print-tree_20250418124929.js
     📄 print-tree_20250418125244.js
     📁 scripts/
+      📄 check-env_20250418163733.js
+      📄 check-env_20250418163746.js
       📄 neontest_20250416160043.js
       📄 neontest_20250416160044.js
       📄 neontest_20250416160436.js
       📄 neontest_20250416161117.js
       📄 neontest_20250416161601.js
+      📄 test-db-connection_20250418162838.js
+      📄 test-db-connection_20250418163446.js
+      📄 test-db-connection_20250418163639.js
       📄 testConnection_20250415153604.js
       📄 testConnection_20250415153622.js
       📄 testConnection_20250415153830.mjs
@@ -59,13 +96,24 @@
       📄 testConnection_20250416134031.mjs
       📄 testConnection_20250416134744.mjs
       📄 testConnection_20250416151906.mjs
+      📄 testConnection_20250418163401.mjs
+    📄 server_20250422135204.js
+    📄 server_20250422135205.js
+    📄 server_20250423131036.js
     📁 sql-scripts/
       📄 add-avatar-scopes-fk-in-avatar_20250417152703
       📄 add-avatar-scopes-fk-in-avatar_20250417152712
       📄 add-avatar-scopes-fk-in-avatar_20250417153711
       📄 add-foreign-keys-to-initial-tables_20250417085508
       📄 add-foreign-keys-to-initial-tables_20250417151141
+      📄 initial-tables_20250417085027
+      📄 initial-tables_20250418163452
     📁 src/
+      📁 controllers/
+        📁 participants/
+          📄 loginHandler_20250425112356.js
+          📄 loginHandler_20250426102117.js
+          📄 loginHandler_20250426102319.js
       📁 db/
         📄 connection_20250415150849.js
         📄 connection_20250415150951.js
@@ -89,10 +137,271 @@
         📄 connection_20250416151142.js
         📄 connection_20250416151837.js
         📄 connection_20250416152213.js
+        📄 connection_20250418164112.js
+        📄 connection_20250419092512.js
+        📄 connection_20250419093924.js
+        📄 connection_20250419094142.js
+        📄 connection_20250422160041.js
+        📄 connection_20250422160124.js
+        📁 group/
+          📄 createGroup_20250415145537.js
+          📄 createGroup_20250419094624.js
+          📄 createGroup_20250419095811.js
+          📄 deleteGroup_20250415145443.js
+          📄 deleteGroup_20250419094638.js
+          📄 deleteGroup_20250419095746.js
+          📄 getAllGroups_20250415145229.js
+          📄 getAllGroups_20250419094648.js
+          📄 getAllGroups_20250419095625.js
+          📄 getGroupById_20250415145539.js
+          📄 getGroupById_20250419094815.js
+          📄 getGroupById_20250419095658.js
+          📄 getGroupByName_20250419095107.js
+          📄 getGroupByName_20250419095108.js
+          📄 getGroupByName_20250419095713.js
+          📄 groups_20250421155504.js
+          📄 groups_20250422152515.js
+          📄 index_20250422152514.js
+          📄 index_20250422154117.js
+          📄 updateGroup_20250415145348.js
+          📄 updateGroup_20250419094710.js
+          📄 updateGroup_20250419095732.js
+        📁 groupConversation/
+          📄 createGroupConversation_20250423123855.js
+          📄 createGroupConversation_20250423123856.js
+          📄 deleteGroupConversatin_20250423123614.js
+          📄 deleteGroupConversatin_20250423123615.js
+          📄 getGroupConversatinsByGroup_20250423123741.js
+          📄 getGroupConversatinsByGroup_20250423123742.js
+          📄 getGroupConversationById_20250423123819.js
+          📄 getGroupConversationById_20250423123820.js
+          📄 index_20250419111204.js
+          📄 index_20250419111215.js
+          📄 index_20250423123525.js
+          📄 updateGroupConversation_20250423123658.js
+          📄 updateGroupConversation_20250423123659.js
+          📄 updateGroupConversation_20250423123703.js
+        📁 groupConversationAvatars/
+          📄 createGroupConversationAvatar_20250423124703.js
+          📄 createGroupConversationAvatar_20250423124704.js
+          📄 deleteGroupConversationAvatar_20250423124906.js
+          📄 deleteGroupConversationAvatar_20250423124907.js
+          📄 getAvatarsByConversation_20250423124740.js
+          📄 getAvatarsByConversation_20250423124741.js
+          📄 getConversationsByAvatar_20250423124821.js
+          📄 getConversationsByAvatar_20250423124822.js
+          📄 getGroupConversationAvatarsByConversation_20250423124740.js
+          📄 getGroupConversationAvatarsByConversation_20250423144043.js
+          📄 getGroupConversationsByAvatar_20250423124821.js
+          📄 getGroupConversationsByAvatar_20250423144046.js
+          📄 index_20250423125652.js
+          📄 index_20250423125653.js
+          📄 index_20250423144040.js
+          📄 index_20250424100417.js
+        📁 groupConversationAvatarTurn/
+          📄 createAvatarTurn_20250422163550.js
+          📄 createAvatarTurn_20250422163551.js
+          📄 deleteAvatarTurn_20250422163831.js
+          📄 deleteAvatarTurn_20250422163832.js
+          📄 getAvatarTurnById_20250422163634.js
+          📄 getAvatarTurnById_20250422163635.js
+          📄 getAvatarTurnsByConversation_20250422163723.js
+          📄 getAvatarTurnsByConversation_20250422163724.js
+          📄 index_20250422163904.js
+          📄 index_20250422163905.js
+          📄 updateAvatarTurn_20250422163802.js
+          📄 updateAvatarTurn_20250422163803.js
+        📁 groupConversationAvatarTurnRelationships/
+          📄 createGroupConversationAvatarTurnRelationship_20250423131825.js
+          📄 createGroupConversationAvatarTurnRelationship_20250423131826.js
+          📄 deleteGroupConversationAvatarTurnRelationship_20250423131352.js
+          📄 deleteGroupConversationAvatarTurnRelationship_20250423131353.js
+          📄 getGroupConversationAvatarTurnRelationshipById_20250423131724.js
+          📄 getGroupConversationAvatarTurnRelationshipById_20250423131725.js
+          📄 getGroupConversationAvatarTurnRelationshipsByTurn_20250423131619.js
+          📄 getGroupConversationAvatarTurnRelationshipsByTurn_20250423131620.js
+          📄 index_20250421094752.js
+          📄 index_20250421094758.js
+          📄 index_20250421095127.js
+          📄 index_20250421095358.js
+          📄 index_20250421160224.js
+          📄 index_20250421160249.js
+          📄 index_20250421160531.js
+          📄 index_20250421160748.js
+          📄 index_20250421160938.js
+          📄 index_20250421162135.js
+          📄 index_20250422164946.js
+          📄 index_20250422164959.js
+          📄 index_20250423130909.js
+          📄 index_20250423131926.js
+          📄 updateGroupConversationAvatarTurnRelationship_20250423131504.js
+          📄 updateGroupConversationAvatarTurnRelationship_20250423131505.js
+        📁 groupConversationAvatarTurns/
+          📄 createGroupConversationAvatarTurn_20250422163550.js
+          📄 createGroupConversationAvatarTurn_20250423132328.js
+          📄 deleteGroupConversationAvatarTurn_20250422163831.js
+          📄 deleteGroupConversationAvatarTurn_20250423132335.js
+          📄 getGroupConversationAvatarTurnById_20250422163634.js
+          📄 getGroupConversationAvatarTurnById_20250423132349.js
+          📄 getGroupConversationAvatarTurnsByConversation_20250422163723.js
+          📄 getGroupConversationAvatarTurnsByConversation_20250424094247.js
+          📄 index_20250419112553.js
+          📄 index_20250421090451.js
+          📄 index_20250421092107.js
+          📄 index_20250421092242.js
+          📄 index_20250421092404.js
+          📄 index_20250421092613.js
+          📄 index_20250422160514.js
+          📄 index_20250422160917.js
+          📄 index_20250422163952.js
+          📄 index_20250422165023.js
+          📄 index_20250423131203.js
+          📄 index_20250423132245.js
+          📄 updateGroupConversationAvatarTurn_20250422163802.js
+          📄 updateGroupConversationAvatarTurn_20250423132400.js
+        📁 groups/
+          📄 index_20250422155221.js
+          📄 index_20250422155230.js
+        📁 participant/
+          📄 createParticipantHandler_20250418132455.js
+          📄 createParticipantHandler_20250418132502.js
+          📄 createParticipantHandler_20250418145715.js
+          📄 createParticipant_20250418131310.js
+          📄 createParticipant_20250418131329.js
+          📄 createParticipant_20250418145309.js
+          📄 createParticipant_20250418145310.js
+          📄 createParticipant_20250418161743.js
+          📄 createParticipant_20250419093307.js
+          📄 createParticipant_20250419093750.js
+          📄 deleteParticipantHandler_20250418132659.js
+          📄 deleteParticipantHandler_20250418132708.js
+          📄 deleteParticipantHandler_20250418145820.js
+          📄 deleteParticipant_20250418131644.js
+          📄 deleteParticipant_20250418131652.js
+          📄 deleteParticipant_20250418145501.js
+          📄 deleteParticipant_20250418161941.js
+          📄 getAllParticipantsHandler_20250418132101.js
+          📄 getAllParticipantsHandler_20250418163448.js
+          📄 getAllParticipants_20250418131507.js
+          📄 getAllParticipants_20250418131513.js
+          📄 getAllParticipants_20250418145419.js
+          📄 getAllParticipants_20250418161852.js
+          📄 getParticipantByEmail_20250418131440.js
+          📄 getParticipantByEmail_20250418145401.js
+          📄 getParticipantByEmail_20250418161828.js
+          📄 getParticipantByIdHandler_20250418132213.js
+          📄 getParticipantByIdHandler_20250418132228.js
+          📄 getParticipantByIdHandler_20250418163450.js
+          📄 getParticipantById_20250418131356.js
+          📄 getParticipantById_20250418131405.js
+          📄 getParticipantById_20250418145331.js
+          📄 getParticipantById_20250418161806.js
+          📄 getParticipantsByGroupHandler_20250418131725.js
+          📄 getParticipantsByGroupHandler_20250418132428.js
+          📄 getParticipantsByGroupHandler_20250418145654.js
+          📄 getParticipantsByGroup_20250418131719.js
+          📄 getParticipantsByGroup_20250418131726.js
+          📄 getParticipantsByGroup_20250418145521.js
+          📄 getParticipantsByGroup_20250418162032.js
+          📄 index_20250418131750.js
+          📄 index_20250418131758.js
+          📄 index_20250418145545.js
+          📄 LogInHandler_20250418145908.js
+          📄 LogInHandler_20250418145918.js
+          📄 participants_20250418145942.js
+          📄 participants_20250422152547.js
+          📄 updateParticipantHandler_20250418132547.js
+          📄 updateParticipantHandler_20250418132600.js
+          📄 updateParticipantHandler_20250418145758.js
+          📄 updateParticipant_20250418131605.js
+          📄 updateParticipant_20250418131612.js
+          📄 updateParticipant_20250418145438.js
+          📄 updateParticipant_20250418161926.js
+        📁 participants/
+          📄 index_20250418145544.js
+          📄 index_20250423131106.js
+          📄 LogInHandler_20250418145917.js
+          📄 LogInHandler_20250424104047.js
+          📄 LogInHandler_20250425112357.js
+      📁 middleware/
+        📄 auth_20250424103749.js
+        📄 auth_20250424103802.js
+      📁 routes/
+        📄 GroupConversationAvatars_20250423124957.js
+        📄 GroupConversationAvatars_20250423124958.js
+        📄 GroupConversationAvatars_20250423144059.js
+        📄 groupConversationAvatarTurnRelationships_20250423145400.js
+        📄 groupConversationAvatarTurnRelationships_20250423145414.js
+        📄 groupConversationAvatarTurnRelationships_20250423151119.js
+        📄 groupConversationAvatarTurnRelationships_20250424094634.js
+        📄 groupConversationAvatarTurnRelationships_20250424132332.js
+        📄 groupConversationAvatarTurnRelationships_20250424132435.js
+        📄 groupConversationAvatarTurnRelationships_20250424133246.js
+        📄 groupConversationAvatarTurns_20250422165022.js
+        📄 groupConversationAvatarTurns_20250423131206.js
+        📄 groupConversationAvatarTurns_20250423144058.js
+        📄 groupConversations_20250423124042.js
+        📄 groupConversations_20250423124043.js
+        📄 groupConversations_20250423144107.js
+        📄 groups_20250417151303.js
+        📄 groups_20250419092047.js
+        📄 groups_20250421155505.js
+        📄 groups_20250423131115.js
+        📄 groups_20250424125914.js
+        📄 participants_20250418131937.js
+        📄 participants_20250418131949.js
+        📄 participants_20250418145943.js
+        📄 participants_20250423123015.js
+        📄 participants_20250424132152.js
+        📄 participants_20250425111705.js
+        📄 participants_20250425113335.js
+        📄 participants_20250428125613.js
+        📄 participants_20250428125908.js
+        📄 participants_20250428130041.js
+      📁 services/
+        📄 authService_20250426101629.js
+        📄 authService_20250426101630.js
+        📄 authService_20250426102114.js
     📁 test/
       📄 group.test_20250415133948.js
       📄 group.test_20250415133954.js
       📄 group.test_20250415150630.js
+      📄 group.test_20250419094059.js
+      📄 group.test_20250419094340.js
+      📄 group.test_20250419100142.js
+      📄 group.test_20250423143423.js
+      📄 groupConversation.test_20250419111351.js
+      📄 groupConversation.test_20250419111405.js
+      📄 groupConversation.test_20250423143522.js
+      📄 groupConversation.test_20250423150346.js
+      📄 groupConversationAvatars.test_20250423143341.js
+      📄 groupConversationAvatars.test_20250423143342.js
+      📄 groupConversationAvatars.test_20250423144023.js
+      📄 groupConversationAvatars.test_20250424100530.js
+      📄 groupConversationAvatars.test_20250424100720.js
+      📄 groupConversationAvatars.test_20250424101259.js
+      📄 groupConversationAvatarTurnRelationships.test_20250421095116.js
+      📄 groupConversationAvatarTurnRelationships.test_20250421095123.js
+      📄 groupConversationAvatarTurnRelationships.test_20250421095409.js
+      📄 groupConversationAvatarTurnRelationships.test_20250423143824.js
+      📄 groupConversationAvatarTurnRelationships.test_20250424100223.js
+      📄 groupConversationAvatarTurnRelationships.test_20250424101049.js
+      📄 groupConversationAvatarTurns.test_20250419112858.js
+      📄 groupConversationAvatarTurns.test_20250421090931.js
+      📄 groupConversationAvatarTurns.test_20250423144019.js
+      📄 groupConversationAvatarTurns.test_20250423150233.js
+      📄 groupConversationAvatarTurns.test_20250423150455.js
+      📄 groupConversationAvatarTurns.test_20250423150821.js
+      📄 groupConversationAvatarTurns.test_20250423150902.js
+      📄 groupConversationAvatarTurns.test_20250423150924.js
+      📄 groupConversationAvatarTurns_20250419112849.js
+      📄 groupConversationAvatarTurns_20250419112859.js
+      📄 participant.integration.test_20250418161004.js
+      📄 participant.integration.test_20250418161034.js
+      📄 participant.integration.test_20250418161710.js
+      📄 participant.integration.test_20250418162546.js
+      📄 participant.integration.test_20250419091349.js
+      📄 participant.integration.test_20250423144017.js
       📁 src/
         📁 db/
           📁 group/
@@ -106,6 +415,8 @@
             📄 getGroupById_20250415145540.js
             📄 updateGroup_20250415145339.js
             📄 updateGroup_20250415145349.js
+      📄 test_database_connections_20250418162830.js
+      📄 test_database_connections_20250418162839.js
     📁 tests/
       📄 example.tests_20250415131340.js
       📄 example.tests_20250415131350.js
@@ -115,7 +426,9 @@
   📁 .vscode/
     📄 settings.json
   📄 app.js
+  📄 cli.js
   📄 dir-tree.js
+  📄 directory-tree.txt
   📄 documentation.md
   📄 extract_jsdocs.py
   📄 index.js
@@ -124,30 +437,88 @@
   📄 package.json
   📄 pg_dump_schema.ps1
   📁 scripts/
+    📄 check-env.js
     📄 neontest.js
+    📄 test-db-connection.js
     📄 testConnection.mjs
+  📄 server.js
   📁 sql-scripts/
     📄 add-avatar-scopes-fk-in-avatar
     📄 add-foreign-keys-to-initial-tables
     📄 initial-tables
   📁 src/
-    📁 api/
-      📁 groups/
+    📁 controllers/
       📁 participants/
-      📁 sessions/
-    📁 config/
+        📄 loginHandler.js
     📁 db/
       📄 connection.js
-      📁 group/
+      📁 groupConversationAvatars/
+        📄 createGroupConversationAvatar.js
+        📄 deleteGroupConversationAvatar.js
+        📄 getGroupConversationAvatarsByConversation.js
+        📄 getGroupConversationsByAvatar.js
+        📄 index.js
+      📁 groupConversationAvatarTurnRelationships/
+        📄 createGroupConversationAvatarTurnRelationship.js
+        📄 deleteGroupConversationAvatarTurnRelationship.js
+        📄 getGroupConversationAvatarTurnRelationshipById.js
+        📄 getGroupConversationAvatarTurnRelationshipsByTurn.js
+        📄 index.js
+        📄 updateGroupConversationAvatarTurnRelationship.js
+      📁 groupConversationAvatarTurns/
+        📄 createGroupConversationAvatarTurn.js
+        📄 deleteGroupConversationAvatarTurn.js
+        📄 getGroupConversationAvatarTurnById.js
+        📄 getGroupConversationAvatarTurnsByConversation.js
+        📄 index.js
+        📄 updateGroupConversationAvatarTurn.js
+      📁 groupConversations/
+        📄 createGroupConversation.js
+        📄 deleteGroupConversation.js
+        📄 getGroupConversationById.js
+        📄 getGroupConversationsByGroup.js
+        📄 index.js
+        📄 updateGroupConversation.js
+      📁 groups/
         📄 createGroup.js
         📄 deleteGroup.js
         📄 getAllGroups.js
         📄 getGroupById.js
+        📄 getGroupByName.js
+        📄 index.js
         📄 updateGroup.js
+      📁 participants/
+        📄 createParticipant.js
+        📄 createParticipantHandler.js
+        📄 deleteParticipant.js
+        📄 deleteParticipantHandler.js
+        📄 getAllParticipants.js
+        📄 getAllParticipantsHandler.js
+        📄 getParticipantByEmail.js
+        📄 getParticipantById.js
+        📄 getParticipantByIdHandler.js
+        📄 getParticipantsByGroup.js
+        📄 getParticipantsByGroupHandler.js
+        📄 index.js
+        📄 updateParticipant.js
+        📄 updateParticipantHandler.js
+    📁 middleware/
+      📄 auth.js
     📁 routes/
+      📄 groupConversationAvatars.js
+      📄 groupConversationAvatarTurnRelationships.js
+      📄 groupConversationAvatarTurns.js
+      📄 groupConversations.js
       📄 groups.js
-    📁 utils/
+      📄 participants.js
+    📁 services/
+      📄 authService.js
   📁 test/
     📄 example.test.js
     📄 group.test.js
+    📄 groupConversation.test.js
+    📄 groupConversationAvatars.test.js
+    📄 groupConversationAvatarTurnRelationships.test.js
+    📄 groupConversationAvatarTurns.test.js
+    📄 participant.integration.test.js
   📄 vitest.config.js
