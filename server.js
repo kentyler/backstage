@@ -5,7 +5,7 @@
  */
 import dotenv from 'dotenv';
 import app from './app.js';
-import { initLLMService, getLLMParticipantId, getLLMConfig, getDefaultLLMConfig } from './src/services/llmService.js';
+import { initLLMService, getLLMId, getLLMConfig, getDefaultLLMConfig } from './src/services/llmService.js';
 import { initEmbeddingService } from './src/services/embeddingService.js';
 import { getGrpConAvatarTurnsByConversation } from './src/db/grpConAvatarTurns/index.js';
 
@@ -17,16 +17,15 @@ const PORT = process.env.PORT || 3000;
 // Initialize LLM and Embedding services with configuration from avatar
 (async () => {
   try {
-    // Get the LLM participant ID and configuration
-    const participantId = await getLLMParticipantId();
-    const avatarId = participantId; // Use participant ID as avatar ID
+    // Get the LLM ID and configuration using the preference cascade
+    const llmId = await getLLMId();
     const config = await getDefaultLLMConfig();
     
     // Initialize the LLM service with the configuration
     const llmInitialized = initLLMService(config);
     
     if (llmInitialized) {
-      console.log(`LLM service initialized with configuration from avatar ID ${avatarId} (Participant ID: ${participantId})`);
+      console.log(`LLM service initialized with configuration from LLM ID ${llmId}`);
       if (config) {
         console.log(`Using provider: ${config.provider}, model: ${config.model}`);
       }

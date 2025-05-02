@@ -6,11 +6,56 @@
 Create a new participant, but handle 409 conflict with a friendly message.
 ```
 
+## C:\Users\Ken\Desktop\back-stage\server.js
+
+```
+Main entry point: start the Express server.
+Assumes `app` is exported as default from app.js.
+```
+
+```
+Boot the HTTP server on the specified port.
+```
+
+## C:\Users\Ken\Desktop\back-stage\scripts\add-llm-config-to-avatars.js
+
+```
+@file scripts/add-llm-config-to-avatars.js
+@description Script to add llm_config JSON field to avatars table
+```
+
 ## C:\Users\Ken\Desktop\back-stage\scripts\check-env.js
 
 ```
 Script to check the environment variables needed for database connection
 Run this script to verify your .env file is configured properly
+```
+
+## C:\Users\Ken\Desktop\back-stage\scripts\fix-participant-events-sequence.js
+
+```
+Script to fix the participant_events sequence
+This script executes the SQL in sql-scripts/fix-participant-events-sequence.sql
+to ensure the id column in participant_events has a properly attached sequence
+```
+
+## C:\Users\Ken\Desktop\back-stage\scripts\rename-group-conversation-to-grp-con.js
+
+```
+@file scripts/rename-group-conversation-to-grp-con.js
+@description Helper script to identify files and code that need to be updated
+when renaming from groupConversation to grpCon
+```
+
+```
+This script helps identify files that need to be renamed and code that needs to be updated.
+It doesn't actually make the changes - it just provides guidance.
+To use this script:
+1. Run it to see what files need to be renamed and what code needs to be updated
+2. Manually rename the directories and files
+3. Update the code in each file
+Note: This is a complex change that affects many parts of the codebase.
+It's recommended to make these changes incrementally and test thoroughly after each step.
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\scripts\test-db-connection.js
@@ -27,18 +72,13 @@ Test database connection and basic queries
 ## C:\Users\Ken\Desktop\back-stage\src\controllers\participants\loginHandler.js
 
 ```
-@file src/controllers/participants/loginHandler.js
-@description Handler for participant authentication.
+Handles participant login requests and sets an HttpOnly cookie
 ```
 
+## C:\Users\Ken\Desktop\back-stage\src\controllers\participants\logoutHandler.js
+
 ```
-Handles participant login requests
-@param {object} req - Express request object
-@param {object} req.body - Request body
-@param {string} req.body.email - Participant email
-@param {string} req.body.password - Participant password
-@param {object} res - Express response object
-@returns {Promise<void>}
+Handles participant logout requests and clears the HttpOnly cookie
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\src\db\connection.js
@@ -46,151 +86,6 @@ Handles participant login requests
 ```
 Database connection module
 Provides a PostgreSQL connection pool for the application
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatars\createGroupConversationAvatar.js
-
-```
-@file src/db/groupConversationAvatars/createGroupConversationAvatar.js
-@description Adds an avatar to a group conversation.
-```
-
-```
-Inserts a new row into group_conversation_avatars.
-*
-@param {number} conversationId
-@param {number} avatarId
-@returns {Promise<{group_conversation_id: number, avatar_id: number, added_at: string}>}
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatars\deleteGroupConversationAvatar.js
-
-```
-@file src/db/groupConversationAvatars/deleteGroupConversationAvatar.js
-@description Removes an avatar from a conversation.
-```
-
-```
-Deletes the link between an avatar and a conversation.
-*
-@param {number} conversationId
-@param {number} avatarId
-@returns {Promise<boolean>} true if deleted, false otherwise
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatars\getGroupConversationAvatarsByConversation.js
-
-```
-@file src/db/groupConversationAvatars/getAvatarsByConversation.js
-@description Lists all avatars in a given conversation.
-```
-
-```
-Fetches avatar entries for one conversation.
-*
-@param {number} conversationId
-@returns {Promise<Array<{avatar_id: number, added_at: string}>>}
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatars\getGroupConversationsByAvatar.js
-
-```
-@file src/db/groupConversationAvatars/getConversationsByAvatar.js
-@description Lists all conversations that include a given avatar.
-```
-
-```
-Fetches conversation entries for one avatar.
-*
-@param {number} avatarId
-@returns {Promise<Array<{group_conversation_id: number, added_at: string}>>}
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatarTurnRelationships\createGroupConversationAvatarTurnRelationship.js
-
-```
-Creates a directed relationship between two avatar turns.
-@param {number} turnId
-@param {number} targetTurnId
-@param {number} [relationshipTypeId=1]
-@returns {Promise<object>}
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatarTurnRelationships\deleteGroupConversationAvatarTurnRelationship.js
-
-```
-Deletes a relationship by its ID.
-@param {number} id
-@returns {Promise<boolean>}
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatarTurnRelationships\getGroupConversationAvatarTurnRelationshipById.js
-
-```
-Fetches a relationship by its ID.
-@param {number} id
-@returns {Promise<object|null>}
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatarTurnRelationships\getGroupConversationAvatarTurnRelationshipsByTurn.js
-
-```
-Lists all relationships originating from a turn.
-@param {number} turnId
-@returns {Promise<object[]>}
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\groupConversationAvatarTurnRelationships\updateGroupConversationAvatarTurnRelationship.js
-
-```
-Updates the relationship type of an existing relationship.
-@param {number} id
-@param {number} newTypeId
-@returns {Promise<object|null>}
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\groupConversations\createGroupConversation.js
-
-```
-Creates a new conversation under a group.
-@param {number} groupId - The ID of the group.
-@param {string} name - The conversation name.
-@param {string} description - The conversation description.
-@returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}>}
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\groupConversations\deleteGroupConversation.js
-
-```
-Deletes a conversation by its ID.
-@param {number} id - The conversation ID.
-@returns {Promise<boolean>} True if deleted, false otherwise.
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\groupConversations\getGroupConversationById.js
-
-```
-Retrieves a conversation by its ID.
-@param {number} id - The conversation ID.
-@returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}|null>}
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\groupConversations\getGroupConversationsByGroup.js
-
-```
-Retrieves all conversations for a given group.
-@param {number} groupId - The group ID.
-@returns {Promise<Array<{id: number, group_id: number, name: string, description: string, created_at: string}>>}
-```
-
-## C:\Users\Ken\Desktop\back-stage\src\db\groupConversations\updateGroupConversation.js
-
-```
-Updates a conversation's name and description.
-@param {number} id - The conversation ID.
-@param {string} newName - The new conversation name.
-@param {string} newDescription - The new conversation description.
-@returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}|null>}
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\src\db\groups\createGroup.js
@@ -262,19 +157,350 @@ Retrieves a single group by its name.
 @returns {Promise<{id: number, name: string, created_at: string}|null>} The group record, or null if not found.
 ```
 
+## C:\Users\Ken\Desktop\back-stage\src\db\groups\getGroupsByParticipant.js
+
+```
+@file src/db/groups/getGroupsByParticipant.js
+@description Retrieves all groups that a specific participant belongs to.
+```
+
+```
+The database connection pool
+```
+
+```
+Retrieves all groups that a specific participant belongs to
+@param {number} participantId - The ID of the participant
+@param {object} [pool=defaultPool] - Database connection pool (for testing)
+@returns {Promise<Array<{id: number, name: string, created_at: string, role: string}>>} Array of group records
+@throws {Error} If a database error occurs
+```
+
 ## C:\Users\Ken\Desktop\back-stage\src\db\groups\updateGroup.js
 
 ```
 @file src/db/group/updateGroup.js
-@description Updates a group's name in the database.
+@description Updates a group's properties in the database.
 ```
 
 ```
-Updates the name of an existing group.
+Updates an existing group's properties.
 *
 @param {number} groupId - The ID of the group to update.
-@param {string} newName - The new name for the group.
+@param {Object} updates - The properties to update.
+@param {string} [updates.name] - The new name for the group.
 @returns {Promise<{id: number, name: string, created_at: string}|null>} The updated group record, or null if not found.
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConAvatars\createGrpConAvatar.js
+
+```
+@file src/db/grpConAvatars/createGrpConAvatar.js
+@description Adds an avatar to a group conversation.
+```
+
+```
+Inserts a new row into grp_con_avatars.
+*
+@param {number} conversationId
+@param {number} avatarId
+@returns {Promise<{grp_con_id: number, avatar_id: number, added_at: string}>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConAvatars\deleteGrpConAvatar.js
+
+```
+@file src/db/grpConAvatars/deleteGrpConAvatar.js
+@description Removes an avatar from a conversation.
+```
+
+```
+Deletes the link between an avatar and a conversation.
+*
+@param {number} conversationId
+@param {number} avatarId
+@returns {Promise<boolean>} true if deleted, false otherwise
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConAvatars\getGrpConAvatarsByConversation.js
+
+```
+@file src/db/grpConAvatars/getGrpConAvatarsByConversation.js
+@description Lists all avatars in a given conversation.
+```
+
+```
+Fetches avatar entries for one conversation.
+*
+@param {number} conversationId
+@returns {Promise<Array<{avatar_id: number, added_at: string}>>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConAvatars\getGrpConsByAvatar.js
+
+```
+@file src/db/grpConAvatars/getGrpConsByAvatar.js
+@description Lists all conversations that include a given avatar.
+```
+
+```
+Fetches conversation entries for one avatar.
+*
+@param {number} avatarId
+@returns {Promise<Array<{grp_con_id: number, added_at: string}>>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConAvatarTurnRelationships\createGrpConAvatarTurnRelationship.js
+
+```
+Creates a directed relationship between two avatar turns.
+@param {number} turnId
+@param {number} targetTurnId
+@param {number} [relationshipTypeId=1]
+@returns {Promise<object>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConAvatarTurnRelationships\deleteGrpConAvatarTurnRelationship.js
+
+```
+Deletes a relationship by its ID.
+@param {number} id
+@returns {Promise<boolean>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConAvatarTurnRelationships\getGrpConAvatarTurnRelationshipById.js
+
+```
+Fetches a relationship by its ID.
+@param {number} id
+@returns {Promise<object|null>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConAvatarTurnRelationships\getGrpConAvatarTurnRelationshipsByTurn.js
+
+```
+Lists all relationships originating from a turn.
+@param {number} turnId
+@returns {Promise<object[]>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConAvatarTurnRelationships\updateGrpConAvatarTurnRelationship.js
+
+```
+Updates the relationship type of an existing relationship.
+@param {number} id
+@param {number} newTypeId
+@returns {Promise<object|null>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConAvatarTurns\getGrpConAvatarTurnsByConversation.js
+
+```
+Parse a vector string from the database into an array of numbers
+@param {string} vectorStr - The vector string from the database (e.g., "[0.1,0.2,0.3]")
+@returns {number[]} The parsed vector as an array of numbers
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpCons\createGrpCon.js
+
+```
+Creates a new conversation under a group.
+@param {number} groupId - The ID of the group.
+@param {string} name - The conversation name.
+@param {string} description - The conversation description.
+@returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpCons\deleteGrpCon.js
+
+```
+Deletes a conversation by its ID.
+@param {number} id - The conversation ID.
+@returns {Promise<boolean>} True if deleted, false otherwise.
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpCons\getGrpConById.js
+
+```
+Retrieves a conversation by its ID.
+@param {number} id - The conversation ID.
+@returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}|null>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpCons\getGrpConsByGroup.js
+
+```
+Retrieves conversations for a given group, ordered by creation date (newest first) and limited to 50.
+@param {number} groupId - The group ID.
+@returns {Promise<Array<{id: number, group_id: number, name: string, description: string, created_at: string}>>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpCons\updateGrpCon.js
+
+```
+Updates a conversation's name and description.
+@param {number} id - The conversation ID.
+@param {string} newName - The new conversation name.
+@param {string} newDescription - The new conversation description.
+@returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}|null>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\participantAvatars\createParticipantAvatar.js
+
+```
+@file src/db/participantAvatars/createParticipantAvatar.js
+@description Creates a new participant-avatar relationship.
+```
+
+```
+Creates a new participant-avatar relationship.
+*
+@param {number} participantId - The ID of the participant
+@param {number} avatarId - The ID of the avatar
+@param {number} [createdByParticipantId=null] - The ID of the participant who created this relationship
+@param {object} [customPool=pool] - Database connection pool (for testing)
+@returns {Promise<object>} The newly created participant-avatar relationship
+@throws {Error} If the operation fails
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\participantAvatars\deleteParticipantAvatar.js
+
+```
+@file src/db/participantAvatars/deleteParticipantAvatar.js
+@description Deletes a participant-avatar relationship.
+```
+
+```
+Deletes a participant-avatar relationship by ID.
+*
+@param {number} id - The ID of the participant-avatar relationship to delete
+@param {object} [customPool=pool] - Database connection pool (for testing)
+@returns {Promise<object|null>} The deleted relationship or null if not found
+@throws {Error} If the operation fails
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\participantAvatars\getParticipantAvatarById.js
+
+```
+@file src/db/participantAvatars/getParticipantAvatarById.js
+@description Retrieves a participant-avatar relationship by ID.
+```
+
+```
+Retrieves a participant-avatar relationship by ID.
+*
+@param {number} id - The ID of the participant-avatar relationship
+@param {object} [customPool=pool] - Database connection pool (for testing)
+@returns {Promise<object|null>} The participant-avatar relationship or null if not found
+@throws {Error} If the operation fails
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\participantAvatars\getParticipantAvatarsByAvatar.js
+
+```
+@file src/db/participantAvatars/getParticipantAvatarsByAvatar.js
+@description Retrieves all participant relationships for a specific avatar.
+```
+
+```
+Retrieves all participant relationships for a specific avatar.
+*
+@param {number} avatarId - The ID of the avatar
+@param {object} [customPool=pool] - Database connection pool (for testing)
+@returns {Promise<Array<object>>} Array of participant-avatar relationships
+@throws {Error} If the operation fails
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\participantAvatars\getParticipantAvatarsByParticipant.js
+
+```
+@file src/db/participantAvatars/getParticipantAvatarsByParticipant.js
+@description Retrieves all avatar relationships for a specific participant.
+```
+
+```
+Retrieves all avatar relationships for a specific participant.
+*
+@param {number} participantId - The ID of the participant
+@param {object} [customPool=pool] - Database connection pool (for testing)
+@returns {Promise<Array<object>>} Array of participant-avatar relationships
+@throws {Error} If the operation fails
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\participantAvatars\index.js
+
+```
+@file src/db/participantAvatars/index.js
+@description Exports all participant-avatar relationship database operations.
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\participantEvents\createParticipantEvent.js
+
+```
+@file src/db/participantEvents/createParticipantEvent.js
+@description Creates a new participant event record in the database.
+```
+
+```
+Creates a new participant event in the database
+@param {number} participantId - The ID of the participant
+@param {number} eventTypeId - The ID of the event type
+@param {object} [details=null] - Optional JSON details about the event
+@param {object} [customPool=pool] - Database connection pool (for testing)
+@returns {Promise<object>} The newly created participant event record
+@throws {Error} If an error occurs during creation
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\participantEvents\getParticipantEventById.js
+
+```
+@file src/db/participantEvents/getParticipantEventById.js
+@description Retrieves a participant event by its ID.
+```
+
+```
+Retrieves a participant event by its ID
+@param {number} id - The ID of the participant event to retrieve
+@param {object} [customPool=pool] - Database connection pool (for testing)
+@returns {Promise<object|null>} The participant event record or null if not found
+@throws {Error} If an error occurs during retrieval
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\participantEvents\getParticipantEventsByParticipant.js
+
+```
+@file src/db/participantEvents/getParticipantEventsByParticipant.js
+@description Retrieves all events for a specific participant.
+```
+
+```
+Retrieves all events for a specific participant
+@param {number} participantId - The ID of the participant
+@param {object} [customPool=pool] - Database connection pool (for testing)
+@returns {Promise<Array>} Array of participant event records
+@throws {Error} If an error occurs during retrieval
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\participantEvents\getParticipantEventsByType.js
+
+```
+@file src/db/participantEvents/getParticipantEventsByType.js
+@description Retrieves all events of a specific type.
+```
+
+```
+Retrieves all events of a specific type
+@param {number} eventTypeId - The ID of the event type
+@param {object} [customPool=pool] - Database connection pool (for testing)
+@returns {Promise<Array>} Array of participant event records
+@throws {Error} If an error occurs during retrieval
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\participantEvents\index.js
+
+```
+@file src/db/participantEvents/index.js
+@description Export all participant events database functions
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\src\db\participants\createParticipant.js
@@ -498,6 +724,8 @@ Updates a participant's information
 @param {string} [updates.email] - Updated email
 @param {string} [updates.password] - Updated password (should be hashed)
 @param {number} [updates.current_avatar_id] - Updated avatar ID
+@param {number} [updates.llm_id] - Updated LLM configuration ID
+@param {number} [createdByParticipantId=null] - ID of participant making the change (for logging)
 @param {object} [pool=defaultPool] - Database connection pool (for testing)
 @returns {Promise<object|null>} The updated participant record, or null if not found
 @throws {Error} If email already exists or another error occurs
@@ -506,7 +734,7 @@ Updates a participant's information
 ## C:\Users\Ken\Desktop\back-stage\src\db\participants\updateParticipantHandler.js
 
 ```
-@file src/api/participants/updateParticipantHandler.js
+@file src/db/participants/updateParticipantHandler.js
 @description Handler for updating a participant.
 ```
 
@@ -520,6 +748,8 @@ Handles request to update a participant
 @param {string} [req.body.email] - Updated email
 @param {string} [req.body.password] - Updated password (will be hashed)
 @param {number} [req.body.current_avatar_id] - Updated avatar ID
+@param {object} req.user - Authenticated user information
+@param {number} req.user.participantId - ID of the authenticated participant
 @param {object} res - Express response object
 @returns {Promise<void>}
 ```
@@ -528,32 +758,58 @@ Handles request to update a participant
 
 ```
 Express middleware that:
-1. Looks for an Authorization: Bearer <token> header
+1. Reads a JWT from Authorization header or HttpOnly cookie
 2. Verifies the JWT
 3. Attaches the decoded payload to req.user
 4. Returns 401 if missing or invalid
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\routes\groupConversationAvatars.js
+## C:\Users\Ken\Desktop\back-stage\src\routes\conversations.js
 
 ```
-POST   /api/group-conversation-avatars
+@file src/routes/conversations.js
+@description Routes for handling conversations between participants and LLMs
+```
+
+```
+POST /api/conversations/:conversationId/turns
+Creates a new turn in a conversation and generates an LLM response
+Requires authentication
+```
+
+```
+GET /api/conversations/:conversationId/turns
+Gets all turns for a conversation
+Requires authentication
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\routes\groups.js
+
+```
+@file src/routes/groups.js
+@description Creates routes for all the group functions.
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\routes\grpConAvatars.js
+
+```
+POST   /api/grp-con-avatars
 body: { conversationId, avatarId }
 ```
 
 ```
-GET    /api/group-conversation-avatars/by-conversation/:conversationId
+GET    /api/grp-con-avatars/by-conversation/:conversationId
 ```
 
 ```
-GET    /api/group-conversation-avatars/by-avatar/:avatarId
+GET    /api/grp-con-avatars/by-avatar/:avatarId
 ```
 
 ```
-DELETE /api/group-conversation-avatars/:conversationId/:avatarId
+DELETE /api/grp-con-avatars/:conversationId/:avatarId
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\routes\groupConversationAvatarTurnRelationships.js
+## C:\Users\Ken\Desktop\back-stage\src\routes\grpConAvatarTurnRelationships.js
 
 ```
 @file HTTP routes for managing avatar‐turn relationships in group conversations.
@@ -586,7 +842,7 @@ DELETE /api/avatar-turn-relationships/:id
 Remove a relationship by its ID.
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\routes\groupConversationAvatarTurns.js
+## C:\Users\Ken\Desktop\back-stage\src\routes\grpConAvatarTurns.js
 
 ```
 @file src/routes/avatarTurns.js
@@ -597,6 +853,7 @@ Remove a relationship by its ID.
 POST /api/avatar-turns
 Create a new avatar-turn.
 Expects JSON body: { conversationId, avatarId, turnIndex, contentText, contentVector }
+If contentVector is not provided, it will be generated from contentText
 ```
 
 ```
@@ -613,6 +870,7 @@ List all turns within a given conversation.
 PUT /api/avatar-turns/:id
 Update text and/or vector of an existing turn.
 Expects JSON body: { contentText, contentVector }
+If contentVector is not provided but contentText is, a new vector will be generated
 ```
 
 ```
@@ -620,35 +878,111 @@ DELETE /api/avatar-turns/:id
 Remove a turn by its ID.
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\routes\groupConversations.js
+## C:\Users\Ken\Desktop\back-stage\src\routes\grpCons.js
 
 ```
-POST   /api/group-conversations
+POST   /api/grpCons
 body: { groupId, name, description }
 ```
 
 ```
-GET    /api/group-conversations/:id
+GET    /api/grpCons/:id
 ```
 
 ```
-GET    /api/group-conversations/by-group/:groupId
+GET    /api/grpCons/by-group/:groupId
 ```
 
 ```
-PUT    /api/group-conversations/:id
+PUT    /api/grpCons/:id
 body: { newName, newDescription }
 ```
 
 ```
-DELETE /api/group-conversations/:id
+DELETE /api/grpCons/:id
 ```
 
-## C:\Users\Ken\Desktop\back-stage\src\routes\groups.js
+## C:\Users\Ken\Desktop\back-stage\src\routes\me.js
 
 ```
-@file src/routes/groups.js
-@description Creates routes for all the group functions.
+Route module for authenticated user info.
+*
+@module routes/me
+```
+
+```
+GET /api/me
+*
+Returns the authenticated user's information including participant details.
+Requires a valid JWT or session via requireAuth middleware.
+*
+@name GetMe
+@route {GET} /api/me
+@middleware requireAuth
+@returns {Object} 200 - User object with participant details
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\routes\participantAvatars.js
+
+```
+@file src/routes/participantAvatars.js
+@description Routes for managing participant-avatar relationships.
+```
+
+```
+Create a new participant-avatar relationship
+POST /api/participant-avatars
+```
+
+```
+Get a participant-avatar relationship by ID
+GET /api/participant-avatars/:id
+```
+
+```
+Get all avatar relationships for a participant
+GET /api/participant-avatars/participant/:participantId
+```
+
+```
+Get all participant relationships for an avatar
+GET /api/participant-avatars/avatar/:avatarId
+```
+
+```
+Delete a participant-avatar relationship
+DELETE /api/participant-avatars/:id
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\routes\participantEvents.js
+
+```
+@file src/routes/participantEvents.js
+@description API routes for participant events
+```
+
+```
+@route GET /api/participant-events
+@description Get all events for the authenticated participant
+@access Private
+```
+
+```
+@route GET /api/participant-events/:id
+@description Get a specific participant event by ID
+@access Private
+```
+
+```
+@route GET /api/participant-events/type/:typeId
+@description Get all events of a specific type (admin only)
+@access Private/Admin
+```
+
+```
+@route POST /api/participant-events
+@description Create a new participant event
+@access Private
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\src\routes\participants.js
@@ -659,25 +993,41 @@ DELETE /api/group-conversations/:id
 ```
 
 ```
-POST   /api/participants
-body: { name, email, password }
+POST /api/participants/login
+Authenticate a participant and issue a token.
 ```
 
 ```
-GET    /api/participants
+POST /api/participants/logout
+Logout a participant and clear their token.
+Requires authentication.
 ```
 
 ```
-GET    /api/participants/:id
+POST /api/participants
+Create a new participant.
+Body: { name, email, password }
 ```
 
 ```
-PUT    /api/participants/:id
-body: { name?, email?, password?, current_avatar_id? }
+GET /api/participants
+Retrieve all participants.
+```
+
+```
+GET /api/participants/:id
+Retrieve a single participant by ID.
+```
+
+```
+PUT /api/participants/:id
+Update a participant's data.
+Body: { name?, email?, password?, current_avatar_id? }
 ```
 
 ```
 DELETE /api/participants/:id
+Delete a participant by ID.
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\src\services\authService.js
@@ -697,16 +1047,141 @@ verifies a JWT token
 @param token
 ```
 
-## C:\Users\Ken\Desktop\back-stage\test\groupConversationAvatars.test.js
+## C:\Users\Ken\Desktop\back-stage\src\services\embeddingService.js
+
+```
+@file src/services/embeddingService.js
+@description Service for generating embeddings (vectors) from text content using Anthropic API,
+preprocessing prompts, and finding similar texts based on embedding similarity
+```
+
+```
+Initialize the embedding service with the provided configuration or environment variable
+@param {Object} config - The LLM configuration (optional)
+@returns {boolean} Whether the initialization was successful
+```
+
+```
+Generate an embedding vector for the given text
+@param {string} text - The text to generate an embedding for
+@param {Object} config - The LLM configuration (optional)
+@returns {Promise<number[]>} The embedding vector
+```
+
+```
+Normalize a vector to ensure it has the correct dimension
+@param {number[]} arr - The vector to normalize
+@returns {number[]} The normalized vector
+```
+
+```
+Generate a deterministic embedding vector based on the text content
+This is a fallback method when the API embedding generation fails
+@param {string} text - The text to generate an embedding for
+@returns {number[]} The deterministic embedding vector
+```
+
+```
+Check if a value is a valid embedding vector
+@param {any} vec - The value to check
+@returns {boolean} True if the value is a valid embedding vector
+```
+
+```
+Calculate cosine similarity between two vectors
+@param {number[]} vec1 - First vector
+@param {number[]} vec2 - Second vector
+@returns {number} Cosine similarity (between -1 and 1, higher is more similar)
+```
+
+```
+Preprocess a prompt to extract key concepts and generate query variants
+@param {string} prompt - The original prompt
+@returns {string[]} Array of query variants
+```
+
+```
+Find similar texts based on embedding similarity
+@param {number[]} queryEmbedding - The embedding vector to compare against
+@param {Array<{text: string, embedding: number[]}>} embeddingDatabase - Array of objects containing text and embedding
+@param {Object} options - Optional parameters
+@param {number} options.threshold - Similarity threshold (default: SIMILARITY_THRESHOLD)
+@param {number} options.maxResults - Maximum number of results to return (default: MAX_RESULTS)
+@returns {Array<{text: string, similarity: number}>} Array of similar texts with their similarity scores
+```
+
+```
+Find similar texts using multiple query variants
+@param {string} prompt - The original prompt
+@param {Array<{text: string, embedding: number[]}>} embeddingDatabase - Array of objects containing text and embedding
+@param {Object} options - Optional parameters
+@returns {Promise<Array<{text: string, similarity: number}>>} Array of similar texts with their similarity scores
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\services\llmService.js
+
+```
+@file src/services/llmService.js
+@description Service for interacting with various LLM providers via their APIs
+```
+
+```
+Get the LLM participant ID
+@returns {Promise<number>} The ID of the LLM participant or default ID (817)
+```
+
+```
+Get the LLM configuration for a specific LLM ID
+@param {number} llmId - The LLM ID to get the configuration for
+@returns {Promise<Object|null>} The LLM configuration or null if not found
+```
+
+```
+Get the LLM configuration for a specific participant
+@param {number} participantId - The participant ID to get the LLM configuration for
+@returns {Promise<Object|null>} The LLM configuration or null if not found
+```
+
+```
+Get the default LLM configuration
+@returns {Promise<Object|null>} The default LLM configuration or null if not found
+```
+
+```
+Get the LLM name
+@param {number} [llmId=1] - The ID of the LLM to get the name for (defaults to 1)
+@returns {Promise<string>} The name of the LLM or default name ('LLM')
+```
+
+```
+Initialize the LLM service with the provided configuration, participant ID, or environment variable
+@param {Object|number} configOrParticipantId - The LLM configuration or participant ID (optional)
+@returns {Promise<boolean>} Whether the initialization was successful
+```
+
+```
+Get a response from LLM for the given prompt
+@param {string} prompt - The user's message
+@param {Object} options - Optional parameters
+@param {string} options.systemMessage - Custom system message (optional)
+@param {Array<{role: string, content: string}>} options.messages - Array of message objects for conversation history (optional)
+@param {number} options.temperature - Controls randomness (0.0-1.0, lower is more deterministic) (optional)
+@param {number} options.topP - Controls diversity of responses (0.0-1.0) (optional)
+@param {number} options.maxTokens - Maximum number of tokens in the response (optional)
+@param {Object} options.config - LLM configuration to use for this request (optional)
+@returns {Promise<string>} LLM's response
+```
+
+## C:\Users\Ken\Desktop\back-stage\test\grpConAvatars.test.js
 
 ```
 Helper to clean up all avatars for a conversation + drop the conversation
 ```
 
-## C:\Users\Ken\Desktop\back-stage\test\groupConversationAvatarTurnRelationships.test.js
+## C:\Users\Ken\Desktop\back-stage\test\grpConAvatarTurnRelationships.test.js
 
 ```
-@file tests/groupConversationAvatarTurnRelationships.test.js
+@file tests/grpConAvatarTurnRelationships.test.js
 @description Integration tests for avatar turn relationship operations.
 ```
 
@@ -833,5 +1308,11 @@ Using the predefined test group (ID: 1)
 
 ```
 Tests behavior for a non-existent group
+```
+
+## C:\Users\Ken\Desktop\back-stage\test\participantEvents.test.js
+
+```
+Helper to clean up test events
 ```
 

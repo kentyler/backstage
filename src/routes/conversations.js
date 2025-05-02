@@ -8,7 +8,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { getParticipantById, updateParticipant } from '../db/participants/index.js';
 import { createGrpConAvatarTurn } from '../db/grpConAvatarTurns/index.js';
 import { getGrpConAvatarTurnsByConversation } from '../db/grpConAvatarTurns/index.js';
-import { getLLMResponse, getLLMName, getLLMConfig, getLLMParticipantId, getDefaultLLMConfig } from '../services/llmService.js';
+import { getLLMResponse, getLLMName, getLLMConfig, getLLMId, getDefaultLLMConfig } from '../services/llmService.js';
 import { generateEmbedding, findSimilarTexts, findRelevantContext } from '../services/embeddingService.js';
 import { getGrpConById } from '../db/grpCons/index.js';
 import { getGroupById } from '../db/groups/index.js';
@@ -43,25 +43,32 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Group not found' });
     }
     
-    // Get the LLM participant ID and configuration
-    let llmParticipantId;
+    // Get the LLM ID and configuration using the preference cascade
+    let llmId;
     let llmConfig;
     try {
-      // Get the default LLM participant ID and configuration
-      llmParticipantId = await getLLMParticipantId();
-      llmConfig = await getDefaultLLMConfig();
+      // Get the LLM ID using the preference cascade (participant > group > site)
+      llmId = await getLLMId(participantId, conversation.group_id);
+      llmConfig = await getLLMConfig(llmId);
+      
+      if (!llmConfig) {
+        throw new Error(`No configuration found for LLM ID ${llmId}`);
+      }
+      
+      console.log(`Using LLM configuration for LLM ID ${llmId}`);
     } catch (error) {
-      console.error('Error getting LLM avatar ID:', error);
-      return res.status(500).json({ error: 'Failed to get LLM avatar ID' });
+      console.error('Error getting LLM configuration:', error);
+      return res.status(500).json({ error: `Failed to get LLM configuration: ${error.message}` });
     }
     
-    // Get the LLM name
+    // Get the LLM name using the preference system
     let llmName;
     try {
-      llmName = await getLLMName();
+      // Pass the participant ID and group ID to get the correct LLM name based on preferences
+      llmName = await getLLMName(participantId, conversation.group_id);
     } catch (error) {
       console.error('Error getting LLM name:', error);
-      llmName = 'LLM'; // Fallback to hardcoded name if DB query fails
+      llmName = 'Anthropic Claude-3-Opus'; // Fallback to hardcoded name if preference lookup fails
     }
     
     // Get the participant to access their avatar ID and name
@@ -73,28 +80,28 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
     // Format the prompt with the participant's name as a prefix
     const formattedPrompt = `<${participant.name}>:${prompt}`;
     
-    // Get the current avatar ID for the participant
-    let participantAvatarId = participant.current_avatar_id;
+    // Get the avatar ID for the participant from preferences using the preference cascade
+    let participantAvatarId;
     
-    // If participant doesn't have a current avatar ID, set a default one
-    if (!participantAvatarId) {
-      console.log(`Participant ${participantId} doesn't have a current avatar ID. Setting default avatar ID ${llmParticipantId}.`);
+    try {
+      // Use the preference cascade: participant > group > site
+      const { getPreferenceWithFallback } = await import('../db/preferences/getPreferenceWithFallback.js');
+      const avatarPreference = await getPreferenceWithFallback('avatar_id', {
+        participantId: participantId,
+        groupId: conversation.group_id
+      });
       
-      try {
-        // Update the participant with the default avatar ID
-        const updatedParticipant = await updateParticipant(participantId, { current_avatar_id: llmParticipantId });
-        
-        if (updatedParticipant) {
-          participantAvatarId = llmParticipantId;
-          console.log(`Successfully updated participant ${participantId} with default avatar ID ${llmParticipantId}.`);
-        } else {
-          console.error(`Failed to update participant ${participantId} with default avatar ID.`);
-          return res.status(500).json({ error: 'Failed to set default avatar for participant' });
-        }
-      } catch (error) {
-        console.error(`Error setting default avatar for participant ${participantId}:`, error);
-        return res.status(500).json({ error: 'Failed to set default avatar for participant' });
+      participantAvatarId = avatarPreference?.value;
+      
+      if (!participantAvatarId) {
+        // Throw an error if no avatar ID is found in the preference cascade
+        throw new Error(`No avatar ID found in preferences for participant ${participantId}, group ${conversation.group_id}, or site.`);
       }
+      
+      console.log(`Using avatar ID ${participantAvatarId} from ${avatarPreference.source} preference.`);
+    } catch (error) {
+      console.error(`Error getting avatar ID from preferences:`, error);
+      return res.status(500).json({ error: `Failed to get avatar ID: ${error.message}` });
     }
     
     // Get the current turn index for this conversation
@@ -138,7 +145,10 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
       .map(turn => ({
         text: turn.content,
         embedding: turn.embedding,
-        role: turn.avatar_id === llmParticipantId ? 'assistant' : 'user',
+        // Determine role based on the turn's metadata
+        // Since we can't rely on comparing avatar_id to llmId anymore,
+        // we'll need to use a different mechanism or add a flag to the turn
+        role: turn.is_assistant ? 'assistant' : 'user',
         turn_index: turn.turn_index
       }));
     
@@ -279,9 +289,10 @@ IMPORTANT GUIDELINES:
     }
     
     // Create the LLM's turn with the embedding
+    // Use the LLM ID as the avatar ID for the LLM's turn
     const llmTurn = await createGrpConAvatarTurn(
       conversationId,
-      llmParticipantId,
+      llmId,
       turnIndex + 1,
       llmResponse,
       responseEmbedding

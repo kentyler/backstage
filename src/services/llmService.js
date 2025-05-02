@@ -4,7 +4,11 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+// Uncomment this line after installing the OpenAI SDK with: npm install openai
+// import OpenAI from 'openai';
 import { pool } from '../db/connection.js';
+import { getPreferenceWithFallback } from '../db/preferences/getPreferenceWithFallback.js';
+import { getParticipantById } from '../db/participants/getParticipantById.js';
 
 // Initialize the LLM client
 let llmClient = null;
@@ -12,30 +16,36 @@ let currentProvider = null;
 let currentConfig = null;
 
 /**
- * Get the LLM participant ID
+ * Get the LLM ID from preferences using the preference cascade
  * 
- * @returns {Promise<number>} The ID of the LLM participant or default ID (817)
+ * @param {number} [participantId=null] - The participant ID to get the LLM ID for (optional)
+ * @param {number} [groupId=null] - The group ID to get the LLM ID for (optional)
+ * @returns {Promise<number>} The ID of the preferred LLM
+ * @throws {Error} If no LLM ID is found in the preference cascade
  */
-export async function getLLMParticipantId() {
+export async function getLLMId(participantId = null, groupId = null) {
   try {
-    const query = `
-      SELECT id FROM public.participants
-      WHERE name = 'llm'
-    `;
+    // Use the preference cascade: participant > group > site
+    const preference = await getPreferenceWithFallback('llm_selection', {
+      participantId: participantId,
+      groupId: groupId
+    });
     
-    const { rows } = await pool.query(query);
+    // Get the LLM ID from the preference (assuming it's stored as a number)
+    const llmId = preference?.value;
     
-    if (rows.length > 0) {
-      return rows[0].id;
+    if (!llmId) {
+      // If no LLM ID is found in the preference cascade, use default LLM ID 1
+      console.warn(`No LLM ID found in preferences for participant ${participantId}, group ${groupId}, or site. Using default LLM ID 1.`);
+      return 1; // Default to LLM ID 1 (Claude)
     }
     
-    // If LLM participant not found, return the default ID
-    console.warn('LLM participant not found in database, using default ID (817)');
-    return 817; // Default ID for LLM participant
+    console.log(`Using LLM ID ${llmId} from ${preference.source} preference.`);
+    return llmId;
   } catch (error) {
-    console.error('Error getting LLM participant ID:', error);
-    console.warn('Using default ID (817) due to error');
-    return 817; // Default ID in case of error
+    // If there's an error getting the preference, use default LLM ID 1
+    console.warn(`Error getting LLM ID from preferences: ${error.message}. Using default LLM ID 1.`);
+    return 1; // Default to LLM ID 1 (Claude)
   }
 }
 
@@ -79,39 +89,26 @@ export async function getLLMConfig(llmId) {
 }
 
 /**
- * Get the LLM configuration for a specific participant
+ * Get the LLM configuration for a specific participant using the preference hierarchy
  * 
  * @param {number} participantId - The participant ID to get the LLM configuration for
  * @returns {Promise<Object|null>} The LLM configuration or null if not found
  */
 export async function getLLMConfigByParticipantId(participantId) {
   try {
-    const query = `
-      SELECT l.id, l.provider, l.model, l.api_key, l.temperature, l.max_tokens, l.additional_config
-      FROM public.llms l
-      JOIN public.participants p ON l.id = p.llm_id
-      WHERE p.id = $1
-    `;
+    // Get the LLM ID from preferences
+    const llmId = await getLLMId(participantId);
     
-    const { rows } = await pool.query(query, [participantId]);
-    
-    if (rows.length > 0) {
-      const llm = rows[0];
-      // Combine the structured fields with the additional_config JSON
-      const config = {
-        id: llm.id,
-        provider: llm.provider,
-        model: llm.model,
-        api_key: llm.api_key,
-        temperature: llm.temperature,
-        max_tokens: llm.max_tokens,
-        ...llm.additional_config
-      };
-      return config;
+    // Get the LLM configuration based on the LLM ID
+    const llmConfig = await getLLMConfig(llmId);
+
+    if (llmConfig) {
+      console.log(`Using LLM configuration for LLM ID ${llmId} for participant ${participantId}`);
+      return llmConfig;
     }
     
     // If no configuration found, get the default LLM configuration
-    console.warn(`No LLM configuration found for participant ID ${participantId}, using default LLM`);
+    console.warn(`No LLM configuration found for LLM ID ${llmId}, using default LLM`);
     return await getDefaultLLMConfig();
   } catch (error) {
     console.error(`Error getting LLM configuration for participant ID ${participantId}:`, error);
@@ -120,38 +117,49 @@ export async function getLLMConfigByParticipantId(participantId) {
 }
 
 /**
- * Get the default LLM configuration
+ * Get the default LLM configuration from site preferences
  * 
- * @returns {Promise<Object|null>} The default LLM configuration or null if not found
+ * @returns {Promise<Object>} The default LLM configuration
+ * @throws {Error} If no default LLM configuration is found
  */
 export async function getDefaultLLMConfig() {
   try {
-    // Get the default LLM (ID 1)
-    return await getLLMConfig(1);
+    // Get the default LLM ID from site preferences
+    const defaultLLMId = await getLLMId();
+    
+    // Get the LLM configuration for the default LLM ID
+    const config = await getLLMConfig(defaultLLMId);
+    
+    if (!config) {
+      throw new Error(`No configuration found for default LLM ID ${defaultLLMId}`);
+    }
+    
+    return config;
   } catch (error) {
     console.error('Error getting default LLM configuration:', error);
-    
-    // If all else fails, return a hardcoded default configuration
-    console.warn('Using hardcoded default LLM configuration');
-    return {
-      provider: 'anthropic',
-      model: 'claude-3-opus-20240229',
-      api_key: process.env.LLM_API_KEY || '',
-      temperature: 0.3,
-      max_tokens: 1000,
-      top_p: 0.7
-    };
+    throw error; // Re-throw the error to be handled by the caller
   }
 }
 
 /**
- * Get the LLM name
+ * Get the LLM name based on the preference system
  * 
- * @param {number} [llmId=1] - The ID of the LLM to get the name for (defaults to 1)
- * @returns {Promise<string>} The name of the LLM or default name ('LLM')
+ * @param {number} [participantId=null] - The participant ID to get the LLM name for (optional)
+ * @param {number} [groupId=null] - The group ID to get the LLM name for (optional)
+ * @returns {Promise<string>} The name of the LLM or default name ('Anthropic Claude-3-Opus')
  */
-export async function getLLMName(llmId = 1) {
+export async function getLLMName(participantId = null, groupId = null) {
   try {
+    // Get the LLM ID from the preference system
+    const preference = await getPreferenceWithFallback('llm_selection', {
+      participantId,
+      groupId
+    });
+    
+    // Get the LLM ID from the preference (assuming it's stored as a number)
+    const llmId = preference?.value || 1;
+    
+    // Get the LLM name from the database
     const query = `
       SELECT name FROM public.llms
       WHERE id = $1
@@ -160,42 +168,29 @@ export async function getLLMName(llmId = 1) {
     const { rows } = await pool.query(query, [llmId]);
     
     if (rows.length > 0 && rows[0].name) {
+      console.log(`Using LLM name from database: "${rows[0].name}" (ID: ${llmId}, source: ${preference?.source || 'default'})`);
       return rows[0].name;
     }
     
-    // If LLM not found or name is empty, try to get from participants table as fallback
-    try {
-      const participantQuery = `
-        SELECT name FROM public.participants
-        WHERE name = 'llm'
-      `;
-      
-      const participantResult = await pool.query(participantQuery);
-      
-      if (participantResult.rows.length > 0) {
-        return participantResult.rows[0].name;
-      }
-    } catch (fallbackError) {
-      console.error('Error getting LLM name from participants table:', fallbackError);
-    }
-    
-    // If LLM not found in either table, return the default name
-    console.warn(`LLM with ID ${llmId} not found in database, using default name ("LLM")`);
-    return 'LLM'; // Default name with proper capitalization
+    // If LLM not found in the database, return the default name
+    console.warn(`LLM with ID ${llmId} not found in database, using default name ("Anthropic Claude-3-Opus")`);
+    return 'Anthropic Claude-3-Opus'; // Default name based on the database
   } catch (error) {
-    console.error(`Error getting LLM name for ID ${llmId}:`, error);
-    console.warn('Using default name ("LLM") due to error');
-    return 'LLM'; // Default name in case of error with proper capitalization
+    console.error(`Error getting LLM name:`, error);
+    console.warn('Using default name ("Anthropic Claude-3-Opus") due to error');
+    return 'Anthropic Claude-3-Opus'; // Default name in case of error
   }
 }
 
 /**
- * Initialize the LLM service with the provided configuration, participant ID, or environment variable
+ * Initialize the LLM service with the provided configuration, participant ID, group ID, or environment variable
  * 
  * @param {Object|number} configOrParticipantId - The LLM configuration or participant ID (optional)
+ * @param {Object} [options={}] - Additional options
+ * @param {number} [options.groupId] - The group ID to use for preference lookup (optional)
  * @returns {Promise<boolean>} Whether the initialization was successful
  */
-export async function initLLMService(configOrParticipantId = null) {
+export async function initLLMService(configOrParticipantId = null, options = {}) {
   let config = null;
   
   // If a number is provided, treat it as a participant ID
@@ -208,7 +203,26 @@ export async function initLLMService(configOrParticipantId = null) {
   } 
   // Otherwise, get the default LLM configuration
   else {
-    config = await getDefaultLLMConfig();
+    // If a group ID is provided, try to get the group preference
+    if (options.groupId) {
+      try {
+        const preference = await getPreferenceWithFallback('llm_selection', {
+          groupId: options.groupId
+        });
+        
+        if (preference && preference.value) {
+          config = await getLLMConfig(preference.value);
+          console.log(`Using LLM configuration from ${preference.source} preference for group ${options.groupId}`);
+        }
+      } catch (error) {
+        console.error(`Error getting LLM preference for group ${options.groupId}:`, error);
+      }
+    }
+    
+    // If no config was found from group preference, use default
+    if (!config) {
+      config = await getDefaultLLMConfig();
+    }
   }
   
   // If no configuration could be determined, return false
@@ -234,12 +248,17 @@ export async function initLLMService(configOrParticipantId = null) {
         break;
       
       // Add support for other providers here
-      // case 'openai':
-      //   llmClient = new OpenAI({
-      //     apiKey: config.api_key,
-      //   });
-      //   console.log(`Initialized OpenAI client with model ${config.model || 'gpt-4'}`);
-      //   break;
+      case 'openai':
+        // Uncomment this block after installing the OpenAI SDK
+        // llmClient = new OpenAI({
+        //   apiKey: config.api_key,
+        //   organization: config.organization_id || config.additional_config?.organization_id
+        // });
+        // console.log(`Initialized OpenAI client with model ${config.model || 'gpt-4'}`);
+        
+        // Until OpenAI SDK is installed, throw an error
+        throw new Error('OpenAI SDK not installed. Please run: npm install openai');
+        break;
       
       default:
         console.error(`Unsupported LLM provider: ${provider}`);
@@ -324,27 +343,31 @@ export async function getLLMResponse(prompt, options = {}) {
       }
       
       // Add support for other providers here
-      // case 'openai': {
-      //   // Set up request parameters for OpenAI
-      //   const model = currentConfig.model || 'gpt-4';
-      //   const requestParams = {
-      //     model: model,
-      //     messages: [
-      //       { role: 'system', content: systemMessage },
-      //       ...messages
-      //     ],
-      //     max_tokens: options.maxTokens || 1000,
-      //     temperature: options.temperature !== undefined ? options.temperature : 0.3,
-      //     top_p: options.topP !== undefined ? options.topP : 0.7
-      //   };
-      //   
-      //   const response = await llmClient.chat.completions.create(requestParams);
-      //   
-      //   // Log the response for debugging
-      //   console.log(`LLM (${currentProvider}) responded with ${response.choices[0].message.content.length} characters`);
-      //   
-      //   return response.choices[0].message.content;
-      // }
+      case 'openai': {
+        // Uncomment this block after installing the OpenAI SDK
+        // // Set up request parameters for OpenAI
+        // const model = currentConfig.model || 'gpt-4';
+        // const requestParams = {
+        //   model: model,
+        //   messages: [
+        //     { role: 'system', content: systemMessage },
+        //     ...messages
+        //   ],
+        //   max_tokens: options.maxTokens || 1000,
+        //   temperature: options.temperature !== undefined ? options.temperature : 0.3,
+        //   top_p: options.topP !== undefined ? options.topP : 0.7
+        // };
+        // 
+        // const response = await llmClient.chat.completions.create(requestParams);
+        // 
+        // // Log the response for debugging
+        // console.log(`LLM (${currentProvider}) responded with ${response.choices[0].message.content.length} characters`);
+        // 
+        // return response.choices[0].message.content;
+        
+        // Until OpenAI SDK is installed, throw an error
+        throw new Error('OpenAI SDK not installed. Please run: npm install openai');
+      }
       
       default:
         throw new Error(`Unsupported LLM provider: ${currentProvider}`);

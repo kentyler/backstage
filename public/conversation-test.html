@@ -92,6 +92,15 @@
       margin-right: auto;
       border-top-left-radius: 0;
     }
+    
+    .message-prefix {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .message-content {
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
@@ -114,6 +123,25 @@
     // Global state
     let currentUser = null;
     let currentConversationId = null;
+    
+    // Function to parse a message with a name prefix
+    function parseMessage(text) {
+      // Check if the message has a name prefix in the format <Name>:Message
+      const prefixMatch = text.match(/^<([^>]+)>:(.*)/s);
+      
+      if (prefixMatch) {
+        return {
+          name: prefixMatch[1],
+          content: prefixMatch[2].trim()
+        };
+      }
+      
+      // If no prefix is found, return the original text with a default name
+      return {
+        name: null,
+        content: text
+      };
+    }
     
     // Function to check if user is logged in
     async function checkAuth() {
@@ -165,9 +193,18 @@
           // Add each turn to the transcript
           turns.forEach(turn => {
             // Determine if this is a user message or LLM response
-            // We're assuming even indices are user messages, odd indices are LLM responses
-            const type = turn.avatar_id === currentUser.participant.current_avatar_id ? 'user' : 'response';
-            addMessageToTranscript(turn.content_text, type);
+            const isUserMessage = turn.avatar_id === currentUser.participant.current_avatar_id;
+            const type = isUserMessage ? 'user' : 'response';
+            
+            // Parse the message to extract the name and content
+            const parsedMessage = parseMessage(turn.content_text);
+            
+            // Use the parsed name if available, otherwise use the default name
+            // Prioritize the parsed name from the message prefix
+            const name = parsedMessage.name || (isUserMessage ? currentUser.participant.name : (turn.avatar_name || "LLM"));
+            
+            // Add the message to the transcript
+            addMessageToTranscript(parsedMessage.content, type, name);
           });
         } else {
           console.error('Failed to load messages');
@@ -184,11 +221,8 @@
       
       if (!message) return; // Don't send empty messages
       
-      // Format the message with the participant's name before displaying it
-      const formattedMessage = `<${currentUser.participant.name}>:${message}`;
-      
       // Add user message to transcript immediately for better UX
-      addMessageToTranscript(formattedMessage, 'user');
+      addMessageToTranscript(message, 'user', currentUser.participant.name);
       
       // Clear input
       userInput.value = '';
@@ -210,27 +244,45 @@
         if (response.ok) {
           const data = await response.json();
           
+          // Parse the LLM response to extract the name and content
+          const parsedResponse = parseMessage(data.llmTurn.content_text);
+          
+          // Use the parsed name if available, otherwise use the default name
+          // Prioritize the parsed name from the message prefix
+          const llmName = parsedResponse.name || (data.llmTurn.avatar_name || "LLM");
+          
           // Add LLM response to transcript
-          addMessageToTranscript(data.llmTurn.content_text, 'response');
+          addMessageToTranscript(parsedResponse.content, 'response', llmName);
         } else {
           console.error('Failed to send message');
           // Show error in transcript
-          addMessageToTranscript('Error: Failed to get response', 'response');
+          addMessageToTranscript('Error: Failed to get response', 'response', 'System');
         }
       } catch (error) {
         console.error('Error sending message:', error);
         // Show error in transcript
-        addMessageToTranscript('Error: ' + error.message, 'response');
+        addMessageToTranscript('Error: ' + error.message, 'response', 'System');
       }
     }
     
     // Function to add a message to the transcript
-    function addMessageToTranscript(text, type) {
+    function addMessageToTranscript(text, type, name) {
       const transcriptArea = document.getElementById('transcript-area');
       const messageDiv = document.createElement('div');
       
       messageDiv.className = `message ${type}-message`;
-      messageDiv.textContent = text;
+      
+      // Create prefix element with the name
+      const prefixDiv = document.createElement('div');
+      prefixDiv.className = 'message-prefix';
+      prefixDiv.textContent = name + ':';
+      messageDiv.appendChild(prefixDiv);
+      
+      // Create content element with the message
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+      contentDiv.textContent = text;
+      messageDiv.appendChild(contentDiv);
       
       transcriptArea.appendChild(messageDiv);
       

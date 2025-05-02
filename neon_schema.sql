@@ -460,16 +460,149 @@ CREATE TABLE public.groups (
 
 
 --
+-- Name: grp_con_avatar_turn_relationships_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.grp_con_avatar_turn_relationships_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: grp_con_avatar_turn_relationships_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.grp_con_avatar_turn_relationships_id_seq OWNED BY public.grp_con_avatar_turn_relationships.id;
+
+
+--
+-- Name: grp_con_avatar_turns_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.grp_con_avatar_turns_id_seq
+    START WITH 555
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: grp_con_avatar_turns_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.grp_con_avatar_turns_id_seq OWNED BY public.grp_con_avatar_turns.id;
+
+
+--
+-- Name: grp_con_avatars_avatar_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.grp_con_avatars_avatar_id_seq
+    START WITH 3
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: grp_con_avatars_avatar_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.grp_con_avatars_avatar_id_seq OWNED BY public.grp_con_avatars.avatar_id;
+
+
+--
+-- Name: grp_con_avatars_grp_con_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.grp_con_avatars_grp_con_id_seq
+    START WITH 498
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: grp_con_avatars_grp_con_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.grp_con_avatars_grp_con_id_seq OWNED BY public.grp_con_avatars.grp_con_id;
+
+
+--
+-- Name: grp_con_upload_vectors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.grp_con_upload_vectors_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: grp_con_upload_vectors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.grp_con_upload_vectors_id_seq OWNED BY public.grp_con_upload_vectors.id;
+
+
+--
+-- Name: grp_con_uploads_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.grp_con_uploads_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: grp_con_uploads_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.grp_con_uploads_id_seq OWNED BY public.grp_con_uploads.id;
+
+
+--
 -- Name: grp_cons; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.grp_cons (
-    id bigint DEFAULT nextval('public.group_conversations_id_seq'::regclass) NOT NULL,
+    id bigint NOT NULL,
     group_id bigint,
     name text NOT NULL,
     description text,
     created_at timestamp with time zone DEFAULT now()
 );
+
+
+--
+-- Name: grp_cons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.grp_cons_id_seq
+    START WITH 395
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: grp_cons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.grp_cons_id_seq OWNED BY public.grp_cons.id;
 
 
 --
@@ -521,6 +654,25 @@ CREATE TABLE public.participant_avatars (
     created_at date DEFAULT CURRENT_DATE,
     created_by_participant_id bigint
 );
+
+
+--
+-- Name: participant_avatars_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.participant_avatars_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: participant_avatars_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.participant_avatars_id_seq OWNED BY public.participant_avatars.id;
 
 
 --
@@ -645,6 +797,44 @@ ALTER SEQUENCE public.participant_groups_participant_id_seq OWNED BY public.part
 
 
 --
+-- Name: participant_llms; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.participant_llms (
+    id bigint NOT NULL,
+    participant_id bigint NOT NULL,
+    llm_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: TABLE participant_llms; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.participant_llms IS 'Links participants to the LLMs they own, allowing them to switch between different LLMs';
+
+
+--
+-- Name: participant_llms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.participant_llms_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: participant_llms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.participant_llms_id_seq OWNED BY public.participant_llms.id;
+
+
+--
 -- Name: participants; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -741,6 +931,25 @@ ALTER SEQUENCE public.turn_kinds_id_seq OWNED BY public.turn_kinds.id;
 
 
 --
+-- Name: turn_relationship_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.turn_relationship_types_id_seq
+    START WITH 3
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: turn_relationship_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.turn_relationship_types_id_seq OWNED BY public.turn_relationship_types.id;
+
+
+--
 -- Name: avatar_event_types id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -772,42 +981,49 @@ ALTER TABLE ONLY public.file_types ALTER COLUMN id SET DEFAULT nextval('public.f
 -- Name: grp_con_avatar_turn_relationships id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.grp_con_avatar_turn_relationships ALTER COLUMN id SET DEFAULT nextval('public.group_conversation_avatar_turn_relationships_id_seq'::regclass);
+ALTER TABLE ONLY public.grp_con_avatar_turn_relationships ALTER COLUMN id SET DEFAULT nextval('public.grp_con_avatar_turn_relationships_id_seq'::regclass);
 
 
 --
 -- Name: grp_con_avatar_turns id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.grp_con_avatar_turns ALTER COLUMN id SET DEFAULT nextval('public.group_conversation_avatar_turns_id_seq'::regclass);
+ALTER TABLE ONLY public.grp_con_avatar_turns ALTER COLUMN id SET DEFAULT nextval('public.grp_con_avatar_turns_id_seq'::regclass);
 
 
 --
 -- Name: grp_con_avatars grp_con_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.grp_con_avatars ALTER COLUMN grp_con_id SET DEFAULT nextval('public.group_conversation_avatars_group_conversation_id_seq'::regclass);
+ALTER TABLE ONLY public.grp_con_avatars ALTER COLUMN grp_con_id SET DEFAULT nextval('public.grp_con_avatars_grp_con_id_seq'::regclass);
 
 
 --
 -- Name: grp_con_avatars avatar_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.grp_con_avatars ALTER COLUMN avatar_id SET DEFAULT nextval('public.group_conversation_avatars_avatar_id_seq'::regclass);
+ALTER TABLE ONLY public.grp_con_avatars ALTER COLUMN avatar_id SET DEFAULT nextval('public.grp_con_avatars_avatar_id_seq'::regclass);
 
 
 --
 -- Name: grp_con_upload_vectors id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.grp_con_upload_vectors ALTER COLUMN id SET DEFAULT nextval('public.group_conversation_upload_vectors_id_seq'::regclass);
+ALTER TABLE ONLY public.grp_con_upload_vectors ALTER COLUMN id SET DEFAULT nextval('public.grp_con_upload_vectors_id_seq'::regclass);
 
 
 --
 -- Name: grp_con_uploads id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.grp_con_uploads ALTER COLUMN id SET DEFAULT nextval('public.group_conversation_uploads_id_seq'::regclass);
+ALTER TABLE ONLY public.grp_con_uploads ALTER COLUMN id SET DEFAULT nextval('public.grp_con_uploads_id_seq'::regclass);
+
+
+--
+-- Name: grp_cons id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.grp_cons ALTER COLUMN id SET DEFAULT nextval('public.grp_cons_id_seq'::regclass);
 
 
 --
@@ -815,6 +1031,13 @@ ALTER TABLE ONLY public.grp_con_uploads ALTER COLUMN id SET DEFAULT nextval('pub
 --
 
 ALTER TABLE ONLY public.llms ALTER COLUMN id SET DEFAULT nextval('public.llms_id_seq'::regclass);
+
+
+--
+-- Name: participant_avatars id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.participant_avatars ALTER COLUMN id SET DEFAULT nextval('public.participant_avatars_id_seq'::regclass);
 
 
 --
@@ -839,6 +1062,13 @@ ALTER TABLE ONLY public.participant_groups ALTER COLUMN group_id SET DEFAULT nex
 
 
 --
+-- Name: participant_llms id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.participant_llms ALTER COLUMN id SET DEFAULT nextval('public.participant_llms_id_seq'::regclass);
+
+
+--
 -- Name: participants id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -856,7 +1086,7 @@ ALTER TABLE ONLY public.turn_kinds ALTER COLUMN id SET DEFAULT nextval('public.t
 -- Name: turn_relationship_types id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.turn_relationship_types ALTER COLUMN id SET DEFAULT nextval('public.relationship_types_id_seq'::regclass);
+ALTER TABLE ONLY public.turn_relationship_types ALTER COLUMN id SET DEFAULT nextval('public.turn_relationship_types_id_seq'::regclass);
 
 
 --
@@ -1020,6 +1250,22 @@ ALTER TABLE ONLY public.participant_groups
 
 
 --
+-- Name: participant_llms participant_llms_participant_id_llm_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.participant_llms
+    ADD CONSTRAINT participant_llms_participant_id_llm_id_key UNIQUE (participant_id, llm_id);
+
+
+--
+-- Name: participant_llms participant_llms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.participant_llms
+    ADD CONSTRAINT participant_llms_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: participants participants_email_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1080,6 +1326,22 @@ CREATE INDEX idx_gcavtr_target ON public.grp_con_avatar_turn_relationships USING
 
 ALTER TABLE ONLY public.avatars
     ADD CONSTRAINT fk_avatars_scope FOREIGN KEY (avatar_scope_id) REFERENCES public.avatar_scopes(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: participant_llms fk_participant_llms_llm_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.participant_llms
+    ADD CONSTRAINT fk_participant_llms_llm_id FOREIGN KEY (llm_id) REFERENCES public.llms(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: participant_llms fk_participant_llms_participant_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.participant_llms
+    ADD CONSTRAINT fk_participant_llms_participant_id FOREIGN KEY (participant_id) REFERENCES public.participants(id) ON DELETE CASCADE;
 
 
 --

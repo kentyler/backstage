@@ -22,7 +22,6 @@ export async function getParticipantsByGroup(groupId, pool = defaultPool) {
         p.id,
         p.name,
         p.email,
-        p.current_avatar_id,
         p.created_at,
         pg.role
       FROM public.participants p

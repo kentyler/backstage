@@ -7,7 +7,6 @@
  * The database connection pool
  */
 import { pool as defaultPool } from '../connection.js';
-import { createParticipantAvatar } from '../participantAvatars/createParticipantAvatar.js';
 
 /**
  * Updates a participant's information
@@ -16,8 +15,6 @@ import { createParticipantAvatar } from '../participantAvatars/createParticipant
  * @param {string} [updates.name] - Updated name
  * @param {string} [updates.email] - Updated email
  * @param {string} [updates.password] - Updated password (should be hashed)
- * @param {number} [updates.current_avatar_id] - Updated avatar ID
- * @param {number} [updates.llm_id] - Updated LLM configuration ID
  * @param {number} [createdByParticipantId=null] - ID of participant making the change (for logging)
  * @param {object} [pool=defaultPool] - Database connection pool (for testing)
  * @returns {Promise<object|null>} The updated participant record, or null if not found
@@ -68,15 +65,8 @@ export async function updateParticipant(id, updates, createdByParticipantId = nu
       values.push(updates.password);
     }
 
-    if (updates.current_avatar_id !== undefined) {
-      setStatements.push(`current_avatar_id = $${paramCount++}`);
-      values.push(updates.current_avatar_id);
-    }
-
-    if (updates.llm_id !== undefined) {
-      setStatements.push(`llm_id = $${paramCount++}`);
-      values.push(updates.llm_id);
-    }
+    // current_avatar_id and llm_id fields have been removed from the participants table
+    // These are now handled through the preferences system
 
     // Return if no fields to update
     if (setStatements.length === 0) {
@@ -97,20 +87,8 @@ export async function updateParticipant(id, updates, createdByParticipantId = nu
     // Execute update
     const result = await pool.query(query, values);
     
-    // If current_avatar_id was updated, create a record in participant_avatars table
-    if (updates.current_avatar_id !== undefined && result.rows[0]) {
-      try {
-        await createParticipantAvatar(
-          id, 
-          updates.current_avatar_id,
-          createdByParticipantId || id, // If no creator specified, use the participant's own ID
-          pool
-        );
-      } catch (avatarError) {
-        console.error(`Failed to create participant-avatar relationship: ${avatarError.message}`);
-        // Continue with the update even if logging fails
-      }
-    }
+    // No longer need to create participant-avatar relationship here
+    // This is now handled through the preferences system
     
     return result.rows[0];
   } catch (error) {

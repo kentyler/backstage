@@ -77,7 +77,8 @@ router.get('/:id', async (req, res, next) => {
 /**
  * PUT /api/participants/:id
  * Update a participant's data.
- * Body: { name?, email?, password?, current_avatar_id? }
+ * Body: { name?, email?, password? }
+ * Note: Avatar preferences are now handled through the preferences system
  */
 router.put('/:id', async (req, res, next) => {
   const id = Number(req.params.id);

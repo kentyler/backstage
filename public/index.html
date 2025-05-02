@@ -204,10 +204,19 @@
       padding: 10px;
       border: 1px solid #dee2e6;
       border-radius: 4px;
-      resize: vertical;
       min-height: 80px;
+      max-height: 200px;
+      overflow-y: auto;
       font-family: inherit;
       font-size: 1rem;
+      background-color: white;
+    }
+    
+    /* Style for placeholder in contenteditable div */
+    [contenteditable=true]:empty:before {
+      content: attr(placeholder);
+      color: #6c757d;
+      cursor: text;
     }
     
     .send-button {
@@ -292,7 +301,7 @@
         
         <!-- Input area -->
         <div class="input-area">
-          <textarea id="user-input" class="user-input" placeholder="Type your message here..." rows="4"></textarea>
+          <div id="user-input" class="user-input" contenteditable="true" placeholder="Type your message here..."></div>
           <button id="send-button" class="send-button">Send</button>
         </div>
       </div>
@@ -626,7 +635,7 @@
     // Function to handle message submission
     function handleMessageSubmit() {
       const userInput = document.getElementById('user-input');
-      const message = userInput.value.trim();
+      const message = userInput.innerHTML.trim();
       
       if (!message) return; // Don't send empty messages
       
@@ -644,7 +653,7 @@
       addMessageToTranscript(formattedMessage, 'user');
       
       // Clear input
-      userInput.value = '';
+      userInput.innerHTML = '';
       userInput.style.height = 'auto'; // Reset height
       
       // Get the selected conversation ID
@@ -707,13 +716,98 @@
       });
     }
     
+    // Function to sanitize HTML to prevent XSS attacks
+    function sanitizeHTML(html) {
+      const temp = document.createElement('div');
+      temp.textContent = html;
+      return temp.innerHTML;
+    }
+    
+    // Function to format text with basic markdown-like syntax
+    function formatText(text) {
+      if (!text) return '';
+      
+      // Convert markdown-like syntax to HTML
+      // Bold: **text** -> <strong>text</strong>
+      text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      
+      // Italic: *text* -> <em>text</em>
+      text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+      
+      // Code: `text` -> <code>text</code>
+      text = text.replace(/`(.*?)`/g, '<code>$1</code>');
+      
+      // Line breaks
+      text = text.replace(/\n/g, '<br>');
+      
+      return text;
+    }
+    
+    // Function to parse a message with a name prefix
+    function parseMessage(text) {
+      // Check if the message has a name prefix in the format <Name>:Message
+      const prefixMatch = text.match(/^<([^>]+)>:(.*)/s);
+      
+      if (prefixMatch) {
+        return {
+          name: prefixMatch[1],
+          content: prefixMatch[2].trim()
+        };
+      }
+      
+      // If no prefix is found, return the original text with a default name
+      return {
+        name: null,
+        content: text
+      };
+    }
+    
     // Function to add a message to the transcript
     function addMessageToTranscript(text, type, id) {
       const transcriptArea = document.getElementById('transcript-area');
       const messageDiv = document.createElement('div');
       
       messageDiv.className = `message ${type}-message`;
-      messageDiv.textContent = text;
+      
+      // Parse the message to extract the name and content
+      const parsedMessage = parseMessage(text);
+      
+      // Create prefix element with the name if available
+      if (parsedMessage.name || type === 'user' || type === 'response') {
+        const prefixDiv = document.createElement('div');
+        prefixDiv.className = 'message-prefix';
+        
+        // Use the parsed name if available, otherwise use a default based on type
+        let displayName = parsedMessage.name;
+        if (!displayName) {
+          if (type === 'user') {
+            displayName = currentUser.participant?.name || 'You';
+          } else if (type === 'response') {
+            displayName = 'AI Assistant';
+          }
+        }
+        
+        prefixDiv.textContent = displayName + ':';
+        messageDiv.appendChild(prefixDiv);
+      }
+      
+      // Create content element with the message
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+      
+      // Use the parsed content if available, otherwise use the original text
+      const contentText = parsedMessage.name ? parsedMessage.content : text;
+      
+      // Use innerHTML to support formatted text, but sanitize first if it's not from a trusted source
+      if (type === 'user') {
+        // For user messages, we can trust the content as it comes from the input
+        contentDiv.innerHTML = contentText;
+      } else {
+        // For system/AI responses, we'll parse markdown-like formatting
+        contentDiv.innerHTML = formatText(contentText);
+      }
+      
+      messageDiv.appendChild(contentDiv);
       
       // If an ID is provided, set it as a data attribute
       if (id) {
@@ -736,13 +830,31 @@
       }
     }
     
-    // Function to make textarea auto-resize
+    // Function to set up contenteditable input area
     function setupTextareaAutoResize() {
-      const textarea = document.getElementById('user-input');
+      const editableDiv = document.getElementById('user-input');
       
-      textarea.addEventListener('input', function() {
+      // Add placeholder behavior for contenteditable
+      editableDiv.addEventListener('focus', function() {
+        if (this.innerHTML.trim() === '' && this.getAttribute('placeholder')) {
+          this.setAttribute('data-placeholder', this.getAttribute('placeholder'));
+          this.removeAttribute('placeholder');
+        }
+      });
+      
+      editableDiv.addEventListener('blur', function() {
+        if (this.innerHTML.trim() === '' && this.getAttribute('data-placeholder')) {
+          this.setAttribute('placeholder', this.getAttribute('data-placeholder'));
+          this.removeAttribute('data-placeholder');
+        }
+      });
+      
+      // Handle input events for auto-resize
+      editableDiv.addEventListener('input', function() {
+        // Auto-resize logic for contenteditable
         this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
+        const newHeight = Math.min(this.scrollHeight, 200); // Cap at max-height
+        this.style.height = newHeight + 'px';
       });
     }
     
