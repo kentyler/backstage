@@ -3,33 +3,50 @@
  * Main entry point: start the Express server.
  * Assumes `app` is exported as default from app.js.
  */
-import app from './app.js';
-import { initClaudeService, CLAUDE_PARTICIPANT_ID, CLAUDE_AVATAR_ID } from './src/services/claudeService.js';
-import { initEmbeddingService } from './src/services/embeddingService.js';
 import dotenv from 'dotenv';
+import app from './app.js';
+import { initLLMService, getLLMParticipantId, getLLMConfig, getDefaultLLMConfig } from './src/services/llmService.js';
+import { initEmbeddingService } from './src/services/embeddingService.js';
+import { getGrpConAvatarTurnsByConversation } from './src/db/grpConAvatarTurns/index.js';
 
 // Load environment variables
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 
-// Initialize Claude service
-const claudeInitialized = initClaudeService();
-if (claudeInitialized) {
-  console.log(`Claude service initialized (Participant ID: ${CLAUDE_PARTICIPANT_ID}, Avatar ID: ${CLAUDE_AVATAR_ID})`);
-} else {
-  console.warn('Claude service not initialized. LLM responses will be mocked.');
-  console.warn('To use Claude, add your API key to the .env file as CLAUDE_API_KEY=your_key_here');
-}
-
-// Initialize Embedding service
-const embeddingInitialized = initEmbeddingService();
-if (embeddingInitialized) {
-  console.log('Embedding service initialized successfully');
-} else {
-  console.warn('Embedding service not initialized. Vector embeddings will not be generated.');
-  console.warn('To use embeddings, ensure the CLAUDE_API_KEY is set in the .env file');
-}
+// Initialize LLM and Embedding services with configuration from avatar
+(async () => {
+  try {
+    // Get the LLM participant ID and configuration
+    const participantId = await getLLMParticipantId();
+    const avatarId = participantId; // Use participant ID as avatar ID
+    const config = await getDefaultLLMConfig();
+    
+    // Initialize the LLM service with the configuration
+    const llmInitialized = initLLMService(config);
+    
+    if (llmInitialized) {
+      console.log(`LLM service initialized with configuration from avatar ID ${avatarId} (Participant ID: ${participantId})`);
+      if (config) {
+        console.log(`Using provider: ${config.provider}, model: ${config.model}`);
+      }
+    } else {
+      console.warn('LLM service not initialized. LLM responses will be mocked.');
+      console.warn('To use LLM, add configuration to the avatar record or set LLM_API_KEY in the .env file');
+    }
+    
+    // Initialize Embedding service with the same configuration
+    const embeddingInitialized = initEmbeddingService(config);
+    if (embeddingInitialized) {
+      console.log('Embedding service initialized successfully with the same configuration');
+    } else {
+      console.warn('Embedding service not initialized. Vector embeddings will not be generated.');
+      console.warn('To use embeddings, ensure LLM configuration is set in the avatar record or LLM_API_KEY is set in the .env file');
+    }
+  } catch (error) {
+    console.warn(`Failed to initialize services: ${error.message}`);
+  }
+})();
 
 /**
  * Boot the HTTP server on the specified port.

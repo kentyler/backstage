@@ -8,8 +8,10 @@ import { requireAuth } from '../middleware/auth.js';
 import { getParticipantById, updateParticipant } from '../db/participants/index.js';
 import { createGrpConAvatarTurn } from '../db/grpConAvatarTurns/index.js';
 import { getGrpConAvatarTurnsByConversation } from '../db/grpConAvatarTurns/index.js';
-import { CLAUDE_PARTICIPANT_ID, CLAUDE_AVATAR_ID, getClaudeResponse } from '../services/claudeService.js';
+import { getLLMResponse, getLLMName, getLLMConfig, getLLMParticipantId, getDefaultLLMConfig } from '../services/llmService.js';
 import { generateEmbedding, findSimilarTexts, findRelevantContext } from '../services/embeddingService.js';
+import { getGrpConById } from '../db/grpCons/index.js';
+import { getGroupById } from '../db/groups/index.js';
 
 const router = express.Router();
 
@@ -29,6 +31,39 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Prompt is required' });
     }
     
+    // Get the conversation and its associated group to get the LLM avatar ID
+    const conversation = await getGrpConById(conversationId);
+    if (!conversation) {
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
+    
+    // Get the group to access its LLM avatar ID
+    const group = await getGroupById(conversation.group_id);
+    if (!group) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+    
+    // Get the LLM participant ID and configuration
+    let llmParticipantId;
+    let llmConfig;
+    try {
+      // Get the default LLM participant ID and configuration
+      llmParticipantId = await getLLMParticipantId();
+      llmConfig = await getDefaultLLMConfig();
+    } catch (error) {
+      console.error('Error getting LLM avatar ID:', error);
+      return res.status(500).json({ error: 'Failed to get LLM avatar ID' });
+    }
+    
+    // Get the LLM name
+    let llmName;
+    try {
+      llmName = await getLLMName();
+    } catch (error) {
+      console.error('Error getting LLM name:', error);
+      llmName = 'LLM'; // Fallback to hardcoded name if DB query fails
+    }
+    
     // Get the participant to access their avatar ID and name
     const participant = await getParticipantById(participantId);
     if (!participant) {
@@ -43,15 +78,15 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
     
     // If participant doesn't have a current avatar ID, set a default one
     if (!participantAvatarId) {
-      console.log(`Participant ${participantId} doesn't have a current avatar ID. Setting default avatar ID ${CLAUDE_AVATAR_ID}.`);
+      console.log(`Participant ${participantId} doesn't have a current avatar ID. Setting default avatar ID ${llmParticipantId}.`);
       
       try {
         // Update the participant with the default avatar ID
-        const updatedParticipant = await updateParticipant(participantId, { current_avatar_id: CLAUDE_AVATAR_ID });
+        const updatedParticipant = await updateParticipant(participantId, { current_avatar_id: llmParticipantId });
         
         if (updatedParticipant) {
-          participantAvatarId = CLAUDE_AVATAR_ID;
-          console.log(`Successfully updated participant ${participantId} with default avatar ID ${CLAUDE_AVATAR_ID}.`);
+          participantAvatarId = llmParticipantId;
+          console.log(`Successfully updated participant ${participantId} with default avatar ID ${llmParticipantId}.`);
         } else {
           console.error(`Failed to update participant ${participantId} with default avatar ID.`);
           return res.status(500).json({ error: 'Failed to set default avatar for participant' });
@@ -103,7 +138,7 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
       .map(turn => ({
         text: turn.content,
         embedding: turn.embedding,
-        role: turn.avatar_id === CLAUDE_AVATAR_ID ? 'assistant' : 'user',
+        role: turn.avatar_id === llmParticipantId ? 'assistant' : 'user',
         turn_index: turn.turn_index
       }));
     
@@ -125,7 +160,7 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
         }));
       
       // Measure the total text length
-      const MAX_CONTEXT_LENGTH = 100000; // Characters (well within Claude's context window)
+      const MAX_CONTEXT_LENGTH = 100000; // Characters (well within LLM's context window)
       let totalLength = 0;
       let includedTurns = [];
       
@@ -153,14 +188,14 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
       console.log('No past turns to include in conversation history');
     }
     
-    // Get response from Claude API
+    // Get response from LLM API
     let llmResponse;
     try {
       // Construct the enhanced prompt with memory context
       let systemMessage = "You are a helpful AI assistant. Respond concisely and clearly.";
       
       if (conversationHistory.length > 0) {
-        // Create a more explicit system message for broader context usage
+        // Create a more explicit system message for broader context usage with anti-hallucination instructions
         systemMessage = `You have access to the conversation history between you and the user. 
 This history contains important information that the user has shared with you previously.
 Use this history to provide more personalized and relevant responses to the user's current prompt.
@@ -171,9 +206,12 @@ IMPORTANT GUIDELINES:
 2. Use the user's previously shared preferences, facts, and details to personalize your responses.
 3. When referencing past information, be accurate and precise about what the user actually said.
 4. Keep your responses focused on the current prompt - only include past information that is directly relevant.
-5. If the user asks about something they haven't mentioned before, respond naturally without drawing attention to the lack of history.`;
+5. If the user asks about something they haven't mentioned before, respond naturally without drawing attention to the lack of history.
+6. NEVER make up or hallucinate information that isn't supported by the conversation context.
+7. If you don't know something or it wasn't mentioned in the conversation, acknowledge that rather than making up an answer.
+8. Do not introduce new topics, facts, or questions that aren't directly related to what has been discussed.`;
         
-        // Format the messages for Claude in a way that preserves the conversation flow
+        // Format the messages for LLM in a way that preserves the conversation flow
         const messages = [];
         
         // Add the conversation history as separate messages
@@ -190,32 +228,42 @@ IMPORTANT GUIDELINES:
           content: formattedPrompt
         });
         
-        // Get response from Claude API with the full message history
-        console.log(`Getting Claude response with ${messages.length} messages in history`);
-        llmResponse = await getClaudeResponse(formattedPrompt, {
+        // Get response from LLM API with the full message history, configuration, and parameters to reduce hallucinations
+        console.log(`Getting LLM response with ${messages.length} messages in history`);
+        llmResponse = await getLLMResponse(formattedPrompt, {
+          config: llmConfig,
           systemMessage,
-          messages
+          messages,
+          temperature: 0.3, // Lower temperature for more deterministic responses
+          topP: 0.7 // Lower top_p to reduce unlikely token selections
         });
       } else {
-        // No relevant context, just use the formatted prompt directly
-        console.log(`Getting Claude response for prompt without context`);
-        llmResponse = await getClaudeResponse(formattedPrompt);
+        // No relevant context, just use the formatted prompt directly with parameters to reduce hallucinations
+        console.log(`Getting LLM response for prompt without context`);
+        llmResponse = await getLLMResponse(formattedPrompt, {
+          config: llmConfig,
+          temperature: 0.3, // Lower temperature for more deterministic responses
+          topP: 0.7 // Lower top_p to reduce unlikely token selections
+        });
       }
       
-      console.log(`Successfully received Claude response (${llmResponse.length} chars)`);
-    } catch (error) {
-      console.error('Error getting Claude response:', error);
+      // Format the response with the LLM's name as a prefix
+      llmResponse = `<${llmName}>:${llmResponse}`;
       
-      // Check if Claude service is initialized
+      console.log(`Successfully received and formatted LLM response (${llmResponse.length} chars)`);
+    } catch (error) {
+      console.error('Error getting LLM response:', error);
+      
+      // Check if LLM service is initialized
       if (error.message.includes('not initialized')) {
-        return res.status(500).json({ 
-          error: 'Claude service not initialized. Please check API key configuration.' 
+        return res.status(500).json({
+          error: 'LLM service not initialized. Please check API key configuration.'
         });
       }
       
       // Return the error to the client instead of using a mock response
       return res.status(500).json({ 
-        error: `Failed to get response from Claude: ${error.message}` 
+        error: `Failed to get response from LLM: ${error.message}`
       });
     }
     
@@ -233,7 +281,7 @@ IMPORTANT GUIDELINES:
     // Create the LLM's turn with the embedding
     const llmTurn = await createGrpConAvatarTurn(
       conversationId,
-      CLAUDE_AVATAR_ID,
+      llmParticipantId,
       turnIndex + 1,
       llmResponse,
       responseEmbedding

@@ -15,15 +15,32 @@ const MAX_QUERY_VARIANTS = 3; // Maximum number of query variants to generate
 // Initialize the Anthropic client
 let anthropic = null;
 
+// Store the current configuration
+let currentConfig = null;
+
 /**
- * Initialize the embedding service with the API key
- * This should be called when the application starts
+ * Initialize the embedding service with the provided configuration or environment variable
+ * 
+ * @param {Object} config - The LLM configuration (optional)
+ * @returns {boolean} Whether the initialization was successful
  */
-export function initEmbeddingService() {
-  const apiKey = process.env.CLAUDE_API_KEY;
+export function initEmbeddingService(config = null) {
+  // Store the configuration for later use
+  currentConfig = config;
+  
+  // If no configuration provided, try to use the environment variable
+  let apiKey;
+  
+  if (config && config.api_key) {
+    apiKey = config.api_key;
+    console.log(`Initializing embedding service with provided API key from configuration`);
+  } else {
+    apiKey = process.env.LLM_API_KEY;
+    console.log(`Initializing embedding service with API key from environment variable`);
+  }
   
   if (!apiKey) {
-    console.error('CLAUDE_API_KEY is not set in environment variables');
+    console.error('No LLM configuration provided and LLM_API_KEY is not set in environment variables');
     return false;
   }
   
@@ -43,9 +60,13 @@ export function initEmbeddingService() {
  * Generate an embedding vector for the given text
  * 
  * @param {string} text - The text to generate an embedding for
+ * @param {Object} config - The LLM configuration (optional)
  * @returns {Promise<number[]>} The embedding vector
  */
-export async function generateEmbedding(text) {
+export async function generateEmbedding(text, config = null) {
+  // Use the provided config or the current config
+  const effectiveConfig = config || currentConfig;
+  
   if (!anthropic) {
     throw new Error('Embedding service not initialized');
   }
@@ -65,7 +86,8 @@ export async function generateEmbedding(text) {
       if (anthropic.embeddings && typeof anthropic.embeddings.create === 'function') {
         console.log('Using dedicated embeddings.create endpoint');
         const response = await anthropic.embeddings.create({
-          model: "claude-3-opus-20240229",
+          // Use the model from the configuration if available, otherwise use the default
+          model: effectiveConfig?.model || "claude-3-opus-20240229",
           input: text
         });
         
@@ -365,7 +387,7 @@ export async function findRelevantContext(prompt, embeddingDatabase, options = {
   const embeddings = [];
   for (const variant of queryVariants) {
     try {
-      const embedding = await generateEmbedding(variant);
+      const embedding = await generateEmbedding(variant, options.config);
       embeddings.push({
         variant,
         embedding

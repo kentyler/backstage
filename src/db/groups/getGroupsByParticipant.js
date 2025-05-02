@@ -12,7 +12,7 @@ import { pool as defaultPool } from '../connection.js';
  * Retrieves all groups that a specific participant belongs to
  * @param {number} participantId - The ID of the participant
  * @param {object} [pool=defaultPool] - Database connection pool (for testing)
- * @returns {Promise<object[]>} Array of group records
+ * @returns {Promise<Array<{id: number, name: string, created_at: string, role: string}>>} Array of group records
  * @throws {Error} If a database error occurs
  */
 export async function getGroupsByParticipant(participantId, pool = defaultPool) {

@@ -46,6 +46,15 @@ export async function loginHandler(req, res) {
       maxAge: 60 * 60 * 1000 // 1 hour
     });
 
+    // Initialize the LLM service with the participant's LLM configuration
+    try {
+      const { initLLMService } = await import('../../services/llmService.js');
+      await initLLMService(participant.id);
+    } catch (llmError) {
+      console.warn(`Failed to initialize LLM service for participant ${participant.id}: ${llmError.message}`);
+      // Continue with login even if LLM initialization fails
+    }
+
     // Send back participant (token is in cookie)
     res.json({ participant: participantData });
   } catch (error) {

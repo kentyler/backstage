@@ -32,7 +32,15 @@ router
     }
   })
   .get(    '/:id',   (req, res, next) => groupCtrl.getGroupById(+req.params.id).then(r => r ? res.json(r) : res.sendStatus(404)).catch(next))
-  .put(    '/:id',   (req, res, next) => groupCtrl.updateGroup(+req.params.id, req.body.name).then(r => r ? res.json(r) : res.sendStatus(404)).catch(next))
+  .put(    '/:id',   (req, res, next) => {
+    // Create updates object with properties from request body
+    const updates = {};
+    if (req.body.name !== undefined) updates.name = req.body.name;
+    
+    return groupCtrl.updateGroup(+req.params.id, updates)
+      .then(r => r ? res.json(r) : res.sendStatus(404))
+      .catch(next);
+  })
   .delete( '/:id',   (req, res, next) => groupCtrl.deleteGroup(+req.params.id).then(ok => res.json({ success: ok })).catch(next));
 
 export default router;

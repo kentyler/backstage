@@ -17,6 +17,7 @@ import { createParticipantAvatar } from '../participantAvatars/createParticipant
  * @param {string} [updates.email] - Updated email
  * @param {string} [updates.password] - Updated password (should be hashed)
  * @param {number} [updates.current_avatar_id] - Updated avatar ID
+ * @param {number} [updates.llm_id] - Updated LLM configuration ID
  * @param {number} [createdByParticipantId=null] - ID of participant making the change (for logging)
  * @param {object} [pool=defaultPool] - Database connection pool (for testing)
  * @returns {Promise<object|null>} The updated participant record, or null if not found
@@ -70,6 +71,11 @@ export async function updateParticipant(id, updates, createdByParticipantId = nu
     if (updates.current_avatar_id !== undefined) {
       setStatements.push(`current_avatar_id = $${paramCount++}`);
       values.push(updates.current_avatar_id);
+    }
+
+    if (updates.llm_id !== undefined) {
+      setStatements.push(`llm_id = $${paramCount++}`);
+      values.push(updates.llm_id);
     }
 
     // Return if no fields to update
