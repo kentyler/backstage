@@ -186,7 +186,8 @@ CREATE TABLE public.avatars (
     name text NOT NULL,
     instruction_set text,
     created_at timestamp with time zone DEFAULT now(),
-    avatar_scope_id integer DEFAULT 1 NOT NULL
+    avatar_scope_id integer DEFAULT 1 NOT NULL,
+    llm_config jsonb
 );
 
 
@@ -472,6 +473,44 @@ CREATE TABLE public.grp_cons (
 
 
 --
+-- Name: llms; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.llms (
+    id integer NOT NULL,
+    name character varying(255) NOT NULL,
+    provider character varying(50) NOT NULL,
+    model character varying(100) NOT NULL,
+    api_key character varying(255),
+    temperature double precision DEFAULT 0.3,
+    max_tokens integer DEFAULT 1000,
+    additional_config jsonb DEFAULT '{}'::jsonb,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+--
+-- Name: llms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.llms_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: llms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.llms_id_seq OWNED BY public.llms.id;
+
+
+--
 -- Name: participant_avatars; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -526,6 +565,13 @@ CREATE TABLE public.participant_events (
     details jsonb,
     created_at timestamp with time zone DEFAULT now() NOT NULL
 );
+
+
+--
+-- Name: COLUMN participant_events.participant_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.participant_events.participant_id IS 'The ID of the participant (can be null for events not associated with a specific participant, e.g., login attempts with non-existent emails)';
 
 
 --
@@ -608,7 +654,9 @@ CREATE TABLE public.participants (
     email text NOT NULL,
     password text NOT NULL,
     current_avatar_id bigint,
-    created_at timestamp with time zone DEFAULT now()
+    created_at timestamp with time zone DEFAULT now(),
+    current_group_id integer,
+    llm_id integer
 );
 
 
@@ -760,6 +808,13 @@ ALTER TABLE ONLY public.grp_con_upload_vectors ALTER COLUMN id SET DEFAULT nextv
 --
 
 ALTER TABLE ONLY public.grp_con_uploads ALTER COLUMN id SET DEFAULT nextval('public.group_conversation_uploads_id_seq'::regclass);
+
+
+--
+-- Name: llms id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.llms ALTER COLUMN id SET DEFAULT nextval('public.llms_id_seq'::regclass);
 
 
 --
@@ -925,6 +980,14 @@ ALTER TABLE ONLY public.groups
 
 
 --
+-- Name: llms llms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.llms
+    ADD CONSTRAINT llms_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: participant_avatars participant_avatars_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1049,6 +1112,14 @@ ALTER TABLE ONLY public.grp_con_avatar_turn_relationships
 
 ALTER TABLE ONLY public.grp_con_avatar_turns
     ADD CONSTRAINT group_conversation_avatar_turns_turn_kind_id_fkey FOREIGN KEY (turn_kind_id) REFERENCES public.turn_kinds(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: participant_events participant_events_participant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.participant_events
+    ADD CONSTRAINT participant_events_participant_id_fkey FOREIGN KEY (participant_id) REFERENCES public.participants(id) ON DELETE CASCADE;
 
 
 --
