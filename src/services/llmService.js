@@ -4,8 +4,8 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-// Uncomment this line after installing the OpenAI SDK with: npm install openai
-// import OpenAI from 'openai';
+// OpenAI SDK is already installed
+import OpenAI from 'openai';
 import { pool } from '../db/connection.js';
 import { getPreferenceWithFallback } from '../db/preferences/getPreferenceWithFallback.js';
 import { getParticipantById } from '../db/participants/getParticipantById.js';
@@ -73,7 +73,7 @@ export async function getLLMConfig(llmId) {
         model: llm.model,
         api_key: llm.api_key,
         temperature: llm.temperature,
-        max_tokens: llm.max_tokens,
+        max_tokens: llm.max_tokens, // This field now serves dual purpose: response length limit and context window size
         ...llm.additional_config
       };
       return config;
@@ -249,15 +249,11 @@ export async function initLLMService(configOrParticipantId = null, options = {})
       
       // Add support for other providers here
       case 'openai':
-        // Uncomment this block after installing the OpenAI SDK
-        // llmClient = new OpenAI({
-        //   apiKey: config.api_key,
-        //   organization: config.organization_id || config.additional_config?.organization_id
-        // });
-        // console.log(`Initialized OpenAI client with model ${config.model || 'gpt-4'}`);
-        
-        // Until OpenAI SDK is installed, throw an error
-        throw new Error('OpenAI SDK not installed. Please run: npm install openai');
+        llmClient = new OpenAI({
+          apiKey: config.api_key,
+          organization: config.organization_id || config.additional_config?.organization_id
+        });
+        console.log(`Initialized OpenAI client with model ${config.model || 'gpt-4'}`);
         break;
       
       default:
@@ -344,29 +340,54 @@ export async function getLLMResponse(prompt, options = {}) {
       
       // Add support for other providers here
       case 'openai': {
-        // Uncomment this block after installing the OpenAI SDK
-        // // Set up request parameters for OpenAI
-        // const model = currentConfig.model || 'gpt-4';
-        // const requestParams = {
-        //   model: model,
-        //   messages: [
-        //     { role: 'system', content: systemMessage },
-        //     ...messages
-        //   ],
-        //   max_tokens: options.maxTokens || 1000,
-        //   temperature: options.temperature !== undefined ? options.temperature : 0.3,
-        //   top_p: options.topP !== undefined ? options.topP : 0.7
-        // };
-        // 
-        // const response = await llmClient.chat.completions.create(requestParams);
-        // 
-        // // Log the response for debugging
-        // console.log(`LLM (${currentProvider}) responded with ${response.choices[0].message.content.length} characters`);
-        // 
-        // return response.choices[0].message.content;
+        // Set up request parameters for OpenAI
+        const model = currentConfig.model || 'gpt-4';
         
-        // Until OpenAI SDK is installed, throw an error
-        throw new Error('OpenAI SDK not installed. Please run: npm install openai');
+        // Get the model's context window size from max_tokens, default to 8192 if not set
+        const modelContextSize = currentConfig.max_tokens || 8192;
+        
+        // Estimate token count for input (rough estimate: 1 token ≈ 4 characters for English text)
+        let estimatedInputTokens = 0;
+        
+        // Count system message tokens
+        estimatedInputTokens += Math.ceil(systemMessage.length / 4);
+        
+        // Count message tokens
+        for (const message of messages) {
+          estimatedInputTokens += Math.ceil(message.content.length / 4);
+        }
+        
+        console.log(`Estimated input tokens for OpenAI: ${estimatedInputTokens}`);
+        
+        // Calculate safe max_tokens with a 10% safety margin
+        const safetyMargin = Math.floor(modelContextSize * 0.1);
+        const availableTokens = modelContextSize - estimatedInputTokens - safetyMargin;
+        const safeMaxTokens = Math.max(100, Math.min(availableTokens, options.maxTokens || 1000));
+        
+        console.log(`Using max_tokens=${safeMaxTokens} for OpenAI (model context size: ${modelContextSize}, estimated input: ${estimatedInputTokens})`);
+        
+        // If we're still likely to exceed the context window size, truncate the conversation history
+        if (estimatedInputTokens + safeMaxTokens > modelContextSize) {
+          console.warn(`Even with adjusted max_tokens, we might exceed the model's context window size. Consider implementing conversation history truncation.`);
+        }
+        
+        const requestParams = {
+          model: model,
+          messages: [
+            { role: 'system', content: systemMessage },
+            ...messages
+          ],
+          max_tokens: safeMaxTokens,
+          temperature: options.temperature !== undefined ? options.temperature : 0.3,
+          top_p: options.topP !== undefined ? options.topP : 0.7
+        };
+        
+        const response = await llmClient.chat.completions.create(requestParams);
+        
+        // Log the response for debugging
+        console.log(`LLM (${currentProvider}) responded with ${response.choices[0].message.content.length} characters`);
+        
+        return response.choices[0].message.content;
       }
       
       default:
