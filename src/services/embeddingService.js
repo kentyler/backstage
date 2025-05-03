@@ -5,6 +5,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { getDefaultSchema } from '../config/schema.js';
 
 // Constants for embedding configuration
 const VECTOR_DIM = 1536; // Dimension of the embedding vectors
@@ -22,9 +23,11 @@ let currentConfig = null;
  * Initialize the embedding service with the provided configuration or environment variable
  * 
  * @param {Object} config - The LLM configuration (optional)
+ * @param {Object} options - Additional options
+ * @param {string} options.schema - The schema to use for database operations (optional)
  * @returns {boolean} Whether the initialization was successful
  */
-export function initEmbeddingService(config = null) {
+export function initEmbeddingService(config = null, options = {}) {
   // Store the configuration for later use
   currentConfig = config;
   
@@ -61,9 +64,11 @@ export function initEmbeddingService(config = null) {
  * 
  * @param {string} text - The text to generate an embedding for
  * @param {Object} config - The LLM configuration (optional)
+ * @param {Object} options - Additional options
+ * @param {string} options.schema - The schema to use for database operations (optional)
  * @returns {Promise<number[]>} The embedding vector
  */
-export async function generateEmbedding(text, config = null) {
+export async function generateEmbedding(text, config = null, options = {}) {
   // Use the provided config or the current config
   const effectiveConfig = config || currentConfig;
   
@@ -371,6 +376,8 @@ export function findSimilarTexts(queryEmbedding, embeddingDatabase, options = {}
  * @param {string} prompt - The original prompt
  * @param {Array<{text: string, embedding: number[]}>} embeddingDatabase - Array of objects containing text and embedding
  * @param {Object} options - Optional parameters
+ * @param {Object} options.config - LLM configuration to use for this request (optional)
+ * @param {string} options.schema - The schema to use for database operations (optional)
  * @returns {Promise<Array<{text: string, similarity: number}>>} Array of similar texts with their similarity scores
  */
 export async function findRelevantContext(prompt, embeddingDatabase, options = {}) {
@@ -387,7 +394,9 @@ export async function findRelevantContext(prompt, embeddingDatabase, options = {
   const embeddings = [];
   for (const variant of queryVariants) {
     try {
-      const embedding = await generateEmbedding(variant, options.config);
+      const embedding = await generateEmbedding(variant, options.config, { 
+        schema: options.schema || getDefaultSchema() 
+      });
       embeddings.push({
         variant,
         embedding

@@ -8,21 +8,35 @@ import app from './app.js';
 import { initLLMService, getLLMId, getLLMConfig, getDefaultLLMConfig } from './src/services/llmService.js';
 import { initEmbeddingService } from './src/services/embeddingService.js';
 import { getGrpConAvatarTurnsByConversation } from './src/db/grpConAvatarTurns/index.js';
+import { getDefaultSchema, setDefaultSchema } from './src/config/schema.js';
 
 // Load environment variables
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 
+// Set default schema from environment variable
+if (process.env.DB_SCHEMA) {
+  setDefaultSchema(process.env.DB_SCHEMA);
+} else {
+  // Default to 'dev' schema if not specified
+  setDefaultSchema('dev');
+}
+
+console.log(`Default database schema: ${getDefaultSchema()} (can be overridden with ?schema=name)`);
+
 // Initialize LLM and Embedding services with configuration from avatar
 (async () => {
   try {
+    // Get the default schema
+    const schema = getDefaultSchema();
+    
     // Get the LLM ID and configuration using the preference cascade
-    const llmId = await getLLMId();
-    const config = await getDefaultLLMConfig();
+    const llmId = await getLLMId(null, null, schema);
+    const config = await getDefaultLLMConfig(schema);
     
     // Initialize the LLM service with the configuration
-    const llmInitialized = initLLMService(config);
+    const llmInitialized = initLLMService(config, { schema });
     
     if (llmInitialized) {
       console.log(`LLM service initialized with configuration from LLM ID ${llmId}`);
@@ -35,7 +49,7 @@ const PORT = process.env.PORT || 3000;
     }
     
     // Initialize Embedding service with the same configuration
-    const embeddingInitialized = initEmbeddingService(config);
+    const embeddingInitialized = initEmbeddingService(config, { schema });
     if (embeddingInitialized) {
       console.log('Embedding service initialized successfully with the same configuration');
     } else {

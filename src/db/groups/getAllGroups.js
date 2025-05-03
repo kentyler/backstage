@@ -4,19 +4,25 @@
  * @description Retrieves all group records from the database.
  */
 
-import { pool } from '../connection.js';
+import { pool, createPool } from '../connection.js';
+import { getDefaultSchema } from '../../config/schema.js';
 
 /**
  * Retrieves all groups from the database.
  *
+ * @param {string} [schema=null] - The schema to use for database operations (optional)
  * @returns {Promise<Array<{id: number, name: string, created_at: string}>>} Array of group records.
  */
-export async function getAllGroups() {
+export async function getAllGroups(schema = null) {
+  // Use a schema-specific pool if a schema is provided
+  const schemaPool = schema ? createPool(schema) : pool;
+  
   const query = `
     SELECT id, name, created_at
-    FROM public.groups
+    FROM groups
     ORDER BY id
   `;
-  const result = await pool.query(query);
+  
+  const result = await schemaPool.query(query);
   return result.rows;
 }

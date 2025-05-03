@@ -1,5 +1,6 @@
-// src/db/grConAvatarTurn/getAvatarTurnsByConversation.js
-import { pool } from '../connection.js';
+// src/db/grpConAvatarTurns/getGrpConAvatarTurnsByConversation.js
+import { pool, createPool } from '../connection.js';
+import { getDefaultSchema } from '../../config/schema.js';
 
 /**
  * Parse a vector string from the database into an array of numbers
@@ -20,16 +21,39 @@ function parseVectorString(vectorStr) {
   }
 }
 
-export async function getGrpConAvatarTurnsByConversation(conversationId) {
+/**
+ * Get all avatar turns for a specific conversation
+ * 
+ * @param {number} conversationId - The ID of the conversation
+ * @param {string|object} [schemaOrPool=null] - Schema name or custom pool
+ * @returns {Promise<Array>} List of avatar turns for the conversation
+ */
+export async function getGrpConAvatarTurnsByConversation(conversationId, schemaOrPool = null) {
+  // Determine which pool to use
+  let customPool = pool;
+  
+  if (schemaOrPool) {
+    if (typeof schemaOrPool === 'string') {
+      // If a schema name is provided, create a pool for that schema
+      customPool = createPool(schemaOrPool);
+    } else {
+      // If a pool object is provided, use it
+      customPool = schemaOrPool;
+    }
+  } else if (getDefaultSchema) {
+    // If no schema or pool is provided, use the default schema
+    customPool = createPool(getDefaultSchema());
+  }
+  
   const query = `
     SELECT id, grp_con_id, avatar_id, turn_index, content_text, content_vector, created_at
-      FROM public.grp_con_avatar_turns
+      FROM grp_con_avatar_turns
      WHERE grp_con_id = $1
   ORDER BY turn_index
   `;
   
   try {
-    const { rows } = await pool.query(query, [conversationId]);
+    const { rows } = await customPool.query(query, [conversationId]);
     
     // Process each row to convert content_vector from string to array
     return rows.map(row => {

@@ -6,9 +6,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 // OpenAI SDK is already installed
 import OpenAI from 'openai';
-import { pool } from '../db/connection.js';
+import { pool, createPool } from '../db/connection.js';
 import { getPreferenceWithFallback } from '../db/preferences/getPreferenceWithFallback.js';
 import { getParticipantById } from '../db/participants/getParticipantById.js';
+import { getDefaultSchema } from '../config/schema.js';
 
 // Initialize the LLM client
 let llmClient = null;
@@ -23,12 +24,13 @@ let currentConfig = null;
  * @returns {Promise<number>} The ID of the preferred LLM
  * @throws {Error} If no LLM ID is found in the preference cascade
  */
-export async function getLLMId(participantId = null, groupId = null) {
+export async function getLLMId(participantId = null, groupId = null, schema = null) {
   try {
     // Use the preference cascade: participant > group > site
     const preference = await getPreferenceWithFallback('llm_selection', {
       participantId: participantId,
-      groupId: groupId
+      groupId: groupId,
+      schema: schema || getDefaultSchema()
     });
     
     // Get the LLM ID from the preference (assuming it's stored as a number)
@@ -53,18 +55,21 @@ export async function getLLMId(participantId = null, groupId = null) {
  * Get the LLM configuration for a specific LLM ID
  * 
  * @param {number} llmId - The LLM ID to get the configuration for
+ * @param {string} [schema=null] - The schema to use for database operations (optional)
  * @returns {Promise<Object|null>} The LLM configuration or null if not found
  */
-export async function getLLMConfig(llmId) {
+export async function getLLMConfig(llmId, schema = null) {
   try {
     const query = `
       SELECT l.*, t.name as type_name, t.api_handler
-      FROM public.llms l
-      JOIN public.llm_types t ON l.type_id = t.id
+      FROM llms l
+      JOIN llm_types t ON l.type_id = t.id
       WHERE l.id = $1
     `;
     
-    const { rows } = await pool.query(query, [llmId]);
+    // Use a schema-specific pool if a schema is provided
+    const schemaPool = schema ? createPool(schema) : pool;
+    const { rows } = await schemaPool.query(query, [llmId]);
     
     if (rows.length > 0) {
       const llm = rows[0];
@@ -146,12 +151,13 @@ export async function getLLMConfig(llmId) {
  * Get the LLM configuration for a specific participant using the preference hierarchy
  * 
  * @param {number} participantId - The participant ID to get the LLM configuration for
+ * @param {string} [schema=null] - The schema to use for database operations (optional)
  * @returns {Promise<Object|null>} The LLM configuration or null if not found
  */
-export async function getLLMConfigByParticipantId(participantId) {
+export async function getLLMConfigByParticipantId(participantId, schema = null) {
   try {
     // Get the LLM ID from preferences
-    const llmId = await getLLMId(participantId);
+    const llmId = await getLLMId(participantId, null, schema);
     
     // Get the LLM configuration based on the LLM ID
     const llmConfig = await getLLMConfig(llmId);
@@ -163,23 +169,24 @@ export async function getLLMConfigByParticipantId(participantId) {
     
     // If no configuration found, get the default LLM configuration
     console.warn(`No LLM configuration found for LLM ID ${llmId}, using default LLM`);
-    return await getDefaultLLMConfig();
+    return await getDefaultLLMConfig(schema);
   } catch (error) {
     console.error(`Error getting LLM configuration for participant ID ${participantId}:`, error);
-    return await getDefaultLLMConfig();
+    return await getDefaultLLMConfig(schema);
   }
 }
 
 /**
  * Get the default LLM configuration from site preferences
  * 
+ * @param {string} [schema=null] - The schema to use for database operations
  * @returns {Promise<Object>} The default LLM configuration
  * @throws {Error} If no default LLM configuration is found
  */
-export async function getDefaultLLMConfig() {
+export async function getDefaultLLMConfig(schema = null) {
   try {
     // Get the default LLM ID from site preferences
-    const defaultLLMId = await getLLMId();
+    const defaultLLMId = await getLLMId(null, null, schema);
     
     // Get the LLM configuration for the default LLM ID
     const config = await getLLMConfig(defaultLLMId);
@@ -200,14 +207,16 @@ export async function getDefaultLLMConfig() {
  * 
  * @param {number} [participantId=null] - The participant ID to get the LLM name for (optional)
  * @param {number} [groupId=null] - The group ID to get the LLM name for (optional)
+ * @param {string} [schema=null] - The schema to use for database operations (optional)
  * @returns {Promise<string>} The name of the LLM or default name ('Anthropic Claude-3-Opus')
  */
-export async function getLLMName(participantId = null, groupId = null) {
+export async function getLLMName(participantId = null, groupId = null, schema = null) {
   try {
     // Get the LLM ID from the preference system
     const preference = await getPreferenceWithFallback('llm_selection', {
       participantId,
-      groupId
+      groupId,
+      schema: schema || getDefaultSchema()
     });
     
     // Get the LLM ID from the preference (assuming it's stored as a number)
@@ -215,11 +224,13 @@ export async function getLLMName(participantId = null, groupId = null) {
     
     // Get the LLM name from the database
     const query = `
-      SELECT name FROM public.llms
+      SELECT name FROM llms
       WHERE id = $1
     `;
     
-    const { rows } = await pool.query(query, [llmId]);
+    // Use a schema-specific pool if a schema is provided
+    const schemaPool = schema ? createPool(schema) : pool;
+    const { rows } = await schemaPool.query(query, [llmId]);
     
     if (rows.length > 0 && rows[0].name) {
       console.log(`Using LLM name from database: "${rows[0].name}" (ID: ${llmId}, source: ${preference?.source || 'default'})`);
@@ -242,14 +253,16 @@ export async function getLLMName(participantId = null, groupId = null) {
  * @param {Object|number} configOrParticipantId - The LLM configuration or participant ID (optional)
  * @param {Object} [options={}] - Additional options
  * @param {number} [options.groupId] - The group ID to use for preference lookup (optional)
+ * @param {string} [options.schema=null] - The schema to use for database operations (optional)
  * @returns {Promise<boolean>} Whether the initialization was successful
  */
 export async function initLLMService(configOrParticipantId = null, options = {}) {
   let config = null;
+  const schema = options.schema || getDefaultSchema();
   
   // If a number is provided, treat it as a participant ID
   if (typeof configOrParticipantId === 'number') {
-    config = await getLLMConfigByParticipantId(configOrParticipantId);
+    config = await getLLMConfigByParticipantId(configOrParticipantId, schema);
   } 
   // If an object is provided, treat it as a configuration
   else if (configOrParticipantId && typeof configOrParticipantId === 'object') {
@@ -261,7 +274,8 @@ export async function initLLMService(configOrParticipantId = null, options = {})
     if (options.groupId) {
       try {
         const preference = await getPreferenceWithFallback('llm_selection', {
-          groupId: options.groupId
+          groupId: options.groupId,
+          schema
         });
         
         if (preference && preference.value) {
@@ -275,7 +289,7 @@ export async function initLLMService(configOrParticipantId = null, options = {})
     
     // If no config was found from group preference, use default
     if (!config) {
-      config = await getDefaultLLMConfig();
+      config = await getDefaultLLMConfig(schema);
     }
   }
   
@@ -574,6 +588,7 @@ async function handleOpenAIAssistantRequest(prompt, config, options) {
  * @param {number} options.topP - Controls diversity of responses (0.0-1.0) (optional)
  * @param {number} options.maxTokens - Maximum number of tokens in the response (optional)
  * @param {Object} options.config - LLM configuration to use for this request (optional)
+ * @param {string} options.schema - The schema to use for database operations (optional)
  * @returns {Promise<string>} LLM's response
  */
 export async function getLLMResponse(prompt, options = {}) {
@@ -581,7 +596,7 @@ export async function getLLMResponse(prompt, options = {}) {
   if (options.config && (!currentConfig || 
       options.config.provider !== currentProvider || 
       options.config.api_key !== currentConfig.api_key)) {
-    const initialized = initLLMService(options.config);
+    const initialized = initLLMService(options.config, { schema: options.schema });
     if (!initialized) {
       throw new Error(`Failed to initialize LLM service with provided configuration`);
     }

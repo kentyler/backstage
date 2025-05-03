@@ -26,7 +26,7 @@ router.post('/', async (req, res, next) => {
     if (!vectorToUse && contentText) {
       try {
         console.log('Generating embedding for content text...');
-        vectorToUse = await generateEmbedding(contentText);
+        vectorToUse = await generateEmbedding(contentText, { schema: req.clientSchema });
         console.log('Successfully generated embedding for content text');
       } catch (error) {
         console.error('Error generating embedding for content text:', error);
@@ -40,7 +40,8 @@ router.post('/', async (req, res, next) => {
       turnIndex,
       contentText,
       vectorToUse || [],
-      turnKindId
+      turnKindId,
+      req.clientSchema // Pass the client schema
     )
     res.status(201).json(turn)
   } catch (err) {
@@ -63,13 +64,13 @@ router.post('/comment', async (req, res, next) => {
     }
     
     // Get the parent turn to determine its index
-    const parentTurn = await avatarTurns.getGrpConAvatarTurnById(Number(parentTurnId));
+    const parentTurn = await avatarTurns.getGrpConAvatarTurnById(Number(parentTurnId), req.clientSchema);
     if (!parentTurn) {
       return res.status(404).json({ error: 'Parent turn not found' });
     }
     
     // Get all turns in the conversation to find the next turn below the parent
-    const allTurns = await avatarTurns.getGrpConAvatarTurnsByConversation(conversationId);
+    const allTurns = await avatarTurns.getGrpConAvatarTurnsByConversation(conversationId, req.clientSchema);
     
     // Sort turns by index in descending order (highest index first)
     const sortedTurns = allTurns.sort((a, b) => Number(b.turn_index) - Number(a.turn_index));
@@ -105,7 +106,7 @@ router.post('/comment', async (req, res, next) => {
     if (!vectorToUse && contentText) {
       try {
         console.log('Generating embedding for comment text...');
-        vectorToUse = await generateEmbedding(contentText);
+        vectorToUse = await generateEmbedding(contentText, { schema: req.clientSchema });
         console.log('Successfully generated embedding for comment text');
       } catch (error) {
         console.error('Error generating embedding for comment text:', error);
@@ -120,7 +121,8 @@ router.post('/comment', async (req, res, next) => {
       commentIndex,
       contentText,
       vectorToUse || [],
-      TURN_KIND.COMMENT
+      TURN_KIND.COMMENT,
+      req.clientSchema // Pass the client schema
     );
     
     res.status(201).json(turn);
@@ -135,7 +137,7 @@ router.post('/comment', async (req, res, next) => {
  */
 router.get('/:id', async (req, res, next) => {
   try {
-    const turn = await avatarTurns.getGrpConAvatarTurnById(Number(req.params.id))
+    const turn = await avatarTurns.getGrpConAvatarTurnById(Number(req.params.id), req.clientSchema)
     if (!turn) return res.status(404).json({ error: 'Not found' })
     res.json(turn)
   } catch (err) {
@@ -150,7 +152,8 @@ router.get('/:id', async (req, res, next) => {
 router.get('/by-conversation/:conversationId', async (req, res, next) => {
   try {
     const list = await avatarTurns.getGrpConAvatarTurnsByConversation(
-      Number(req.params.conversationId)
+      Number(req.params.conversationId),
+      req.clientSchema
     )
     res.json(list)
   } catch (err) {
@@ -173,7 +176,7 @@ router.put('/:id', async (req, res, next) => {
     if (!vectorToUse && contentText) {
       try {
         console.log('Generating embedding for updated content text...');
-        vectorToUse = await generateEmbedding(contentText);
+        vectorToUse = await generateEmbedding(contentText, { schema: req.clientSchema });
         console.log('Successfully generated embedding for updated content text');
       } catch (error) {
         console.error('Error generating embedding for updated content text:', error);
@@ -184,7 +187,8 @@ router.put('/:id', async (req, res, next) => {
     const updated = await avatarTurns.updateGrpConAvatarTurn(
       Number(req.params.id),
       contentText,
-      vectorToUse || []
+      vectorToUse || [],
+      req.clientSchema
     )
     if (!updated) return res.status(404).json({ error: 'Not found' })
     res.json(updated)
@@ -199,7 +203,7 @@ router.put('/:id', async (req, res, next) => {
  */
 router.delete('/:id', async (req, res, next) => {
   try {
-    const success = await avatarTurns.deleteGrpConAvatarTurn(Number(req.params.id))
+    const success = await avatarTurns.deleteGrpConAvatarTurn(Number(req.params.id), req.clientSchema)
     res.json({ success })
   } catch (err) {
     next(err)

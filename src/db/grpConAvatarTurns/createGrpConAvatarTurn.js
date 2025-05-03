@@ -1,5 +1,6 @@
-// src/db/grpConAvatarTurn/createAvatarTurn.js
-import { pool } from '../connection.js';
+// src/db/grpConAvatarTurns/createGrpConAvatarTurn.js
+import { pool, createPool } from '../connection.js';
+import { getDefaultSchema } from '../../config/schema.js';
 
 const VECTOR_DIM = 1536;
 
@@ -29,6 +30,7 @@ function toVectorLiteral(arr) {
  * @param {string} contentText - The text content of the turn
  * @param {Array} contentVector - The vector representation of the content
  * @param {number} [turnKindId=TURN_KIND.REGULAR] - The kind of turn (regular or comment)
+ * @param {string|object} schemaOrPool - Either a schema name or a pool object
  * @returns {Promise<Object>} The created turn
  */
 export async function createGrpConAvatarTurn(
@@ -37,18 +39,34 @@ export async function createGrpConAvatarTurn(
   turnIndex, 
   contentText, 
   contentVector, 
-  turnKindId = TURN_KIND.REGULAR
+  turnKindId = TURN_KIND.REGULAR,
+  schemaOrPool = null
 ) {
+  // Determine which pool to use
+  let customPool = pool;
+  if (schemaOrPool) {
+    if (typeof schemaOrPool === 'string') {
+      // If a schema name is provided, create a pool for that schema
+      customPool = createPool(schemaOrPool);
+    } else {
+      // If a pool object is provided, use it
+      customPool = schemaOrPool;
+    }
+  } else {
+    // If no schema or pool is provided, use the default schema
+    customPool = createPool(getDefaultSchema());
+  }
+
   const normalized = normalizeVector(contentVector);
   const vecLit     = toVectorLiteral(normalized);
 
   const query = `
-    INSERT INTO public.grp_con_avatar_turns
+    INSERT INTO grp_con_avatar_turns
       (grp_con_id, turn_kind_id, avatar_id, turn_index, content_text, content_vector)
     VALUES ($1, $2, $3, $4, $5, $6::vector)
     RETURNING id, grp_con_id, avatar_id, turn_index, content_text, content_vector, created_at, turn_kind_id
   `;
-  const { rows } = await pool.query(query, [
+  const { rows } = await customPool.query(query, [
     conversationId,
     turnKindId,
     avatarId,

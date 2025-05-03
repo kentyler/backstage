@@ -19,7 +19,8 @@ router.post('/', async (req, res, next) => {
     const rel = await relController.createGrpConAvatarTurnRelationship(
       Number(turnId),
       Number(targetTurnId),
-      relationshipTypeId != null ? Number(relationshipTypeId) : undefined
+      relationshipTypeId != null ? Number(relationshipTypeId) : undefined,
+      req.clientSchema // Pass the client schema
     );
     res.status(201).json(rel);
   } catch (err) {
@@ -33,7 +34,7 @@ router.post('/', async (req, res, next) => {
  */
 router.get('/:id', async (req, res, next) => {
   try {
-    const rel = await relController.getGrpConAvatarTurnRelationshipById(Number(req.params.id));
+    const rel = await relController.getGrpConAvatarTurnRelationshipById(Number(req.params.id), req.clientSchema);
     if (!rel) return res.status(404).json({ error: 'Not found' });
     res.json(rel);
   } catch (err) {
@@ -47,7 +48,7 @@ router.get('/:id', async (req, res, next) => {
  */
 router.get('/by-turn/:turnId', async (req, res, next) => {
   try {
-    const list = await relController.getGrpConAvatarTurnRelationshipsByTurn(Number(req.params.turnId));
+    const list = await relController.getGrpConAvatarTurnRelationshipsByTurn(Number(req.params.turnId), req.clientSchema);
     res.json(list);
   } catch (err) {
     next(err);
@@ -64,7 +65,8 @@ router.put('/:id', async (req, res, next) => {
     const { newTypeId } = req.body;
     const updated = await relController.updateGrpConAvatarTurnRelationship(
       Number(req.params.id),
-      Number(newTypeId)
+      Number(newTypeId),
+      req.clientSchema // Pass the client schema
     );
     if (!updated) return res.status(404).json({ error: 'Not found' });
     res.json(updated);
@@ -79,7 +81,7 @@ router.put('/:id', async (req, res, next) => {
  */
 router.delete('/:id', async (req, res, next) => {
   try {
-    const success = await relController.deleteGrpConAvatarTurnRelationship(Number(req.params.id));
+    const success = await relController.deleteGrpConAvatarTurnRelationship(Number(req.params.id), req.clientSchema);
     res.json({ success });
   } catch (err) {
     next(err);

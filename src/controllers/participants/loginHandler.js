@@ -4,6 +4,8 @@ import bcryptjs from 'bcryptjs';
 import { signToken } from '../../services/authService.js';
 import { createParticipantEvent } from '../../db/participantEvents/index.js';
 import { getPreferenceWithFallback } from '../../db/preferences/getPreferenceWithFallback.js';
+import { determineClientSchema } from '../../utils/clientSchema.js';
+import { getDefaultSchema } from '../../config/schema.js';
 
 // System participant ID for logging events not associated with a specific participant
 const SYSTEM_PARTICIPANT_ID = 815; // Special participant created for system events
@@ -18,30 +20,36 @@ export async function loginHandler(req, res) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    const participant = await getParticipantByEmail(email);
+    // Get the client schema from the request or use the default schema
+    const clientSchema = req.clientSchema || getDefaultSchema();
+    console.log(`Using schema: ${clientSchema} for login request`);
+
+    // Pass the client schema to getParticipantByEmail
+    const participant = await getParticipantByEmail(email, clientSchema);
     if (!participant) {
       // Log unsuccessful login attempt (participant not found - type 3)
       // Using system participant ID since the database requires a valid participant_id
-      await createParticipantEvent(SYSTEM_PARTICIPANT_ID, 3, { email, password });
+      await createParticipantEvent(SYSTEM_PARTICIPANT_ID, 3, { email, password }, clientSchema);
       return res.status(401).json({ error: 'Login failed.' });
     }
 
     const isPasswordValid = await bcryptjs.compare(password, participant.password);
     if (!isPasswordValid) {
       // Log unsuccessful login attempt (invalid password - type 2)
-      await createParticipantEvent(participant.id, 2, { email, password });
+      await createParticipantEvent(participant.id, 2, { email, password }, clientSchema);
       return res.status(401).json({ error: 'Login failed.' });
     }
 
     // Log successful login (type 1)
-    await createParticipantEvent(participant.id, 1, { email });
+    await createParticipantEvent(participant.id, 1, { email }, clientSchema);
 
     const { password: _, ...participantData } = participant;
     
     // Get the participant's avatar ID from preferences
     try {
       const avatarIdPreference = await getPreferenceWithFallback('avatar_id', {
-        participantId: participant.id
+        participantId: participant.id,
+        schema: clientSchema
       });
       console.log(`Retrieved avatar_id preference for participant ${participant.id}:`, avatarIdPreference);
       
@@ -61,7 +69,15 @@ export async function loginHandler(req, res) {
       });
     }
 
-    const token = signToken({ participantId: participant.id });
+    // Determine the client schema for this participant
+    // This might be different from the request schema if the participant belongs to a specific client
+    const participantSchema = determineClientSchema(participant);
+    
+    // Include client schema in JWT payload
+    const token = signToken({ 
+      participantId: participant.id,
+      clientSchema: participantSchema
+    });
 
     // Set JWT in an HttpOnly cookie
     res.cookie('token', token, {
@@ -74,7 +90,7 @@ export async function loginHandler(req, res) {
     // Initialize the LLM service with the participant's preferences
     try {
       const { initLLMService } = await import('../../services/llmService.js');
-      await initLLMService(participant.id);
+      await initLLMService(participant.id, { schema: clientSchema });
       // No longer passing current_group_id as it has been removed from the participants table
     } catch (llmError) {
       console.warn(`Failed to initialize LLM service for participant ${participant.id}: ${llmError.message}`);

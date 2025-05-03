@@ -3,7 +3,7 @@
  * @description Retrieves a preference with fallback hierarchy (participant -> group -> site -> default).
  */
 
-import { pool } from '../connection.js';
+import { pool as defaultPool, createPool } from '../connection.js';
 import { getPreferenceTypeByName } from './getPreferenceTypeByName.js';
 
 /**
@@ -12,17 +12,21 @@ import { getPreferenceTypeByName } from './getPreferenceTypeByName.js';
  * @param {object} options - Options for preference retrieval
  * @param {number} [options.participantId] - The ID of the participant (optional)
  * @param {number} [options.groupId] - The ID of the group (optional)
- * @param {object} [options.customPool=pool] - Database connection pool (for testing)
+ * @param {string} [options.schema='public'] - The database schema to use
+ * @param {object} [options.customPool=null] - Database connection pool (for testing)
  * @returns {Promise<object>} The preference value with source information
  * @throws {Error} If an error occurs during retrieval or preference type doesn't exist
  */
-export async function getPreferenceWithFallback(preferenceName, options, customPool = pool) {
-  const { participantId, groupId } = options;
-  const customPoolToUse = options.customPool || pool;
+export async function getPreferenceWithFallback(preferenceName, options, customPool = null) {
+  const { participantId, groupId, schema = 'public' } = options;
+  
+  // If no pool is provided, create one for the specified schema
+  const clientPool = customPool || options.customPool || 
+    (schema === 'public' ? defaultPool : createPool(schema));
   
   try {
     // Get the preference type
-    const preferenceType = await getPreferenceTypeByName(preferenceName, customPoolToUse);
+    const preferenceType = await getPreferenceTypeByName(preferenceName, schema);
     if (!preferenceType) {
       throw new Error(`Preference type '${preferenceName}' not found`);
     }
@@ -31,13 +35,13 @@ export async function getPreferenceWithFallback(preferenceName, options, customP
     if (participantId) {
       const participantPreferenceQuery = `
         SELECT value
-        FROM public.participant_preferences
+        FROM participant_preferences
         WHERE participant_id = $1 AND preference_type_id = $2
         ORDER BY updated_at DESC
         LIMIT 1
       `;
       const participantPreferenceValues = [participantId, preferenceType.id];
-      const participantPreferenceResult = await customPoolToUse.query(
+      const participantPreferenceResult = await clientPool.query(
         participantPreferenceQuery, 
         participantPreferenceValues
       );
@@ -55,11 +59,11 @@ export async function getPreferenceWithFallback(preferenceName, options, customP
     if (groupId) {
       const groupPreferenceQuery = `
         SELECT value
-        FROM public.group_preferences
+        FROM group_preferences
         WHERE group_id = $1 AND preference_type_id = $2
       `;
       const groupPreferenceValues = [groupId, preferenceType.id];
-      const groupPreferenceResult = await customPoolToUse.query(
+      const groupPreferenceResult = await clientPool.query(
         groupPreferenceQuery, 
         groupPreferenceValues
       );
@@ -76,11 +80,11 @@ export async function getPreferenceWithFallback(preferenceName, options, customP
     // Check for site preference
     const sitePreferenceQuery = `
       SELECT value
-      FROM public.site_preferences
+      FROM site_preferences
       WHERE preference_type_id = $1
     `;
     const sitePreferenceValues = [preferenceType.id];
-    const sitePreferenceResult = await customPoolToUse.query(
+    const sitePreferenceResult = await clientPool.query(
       sitePreferenceQuery, 
       sitePreferenceValues
     );

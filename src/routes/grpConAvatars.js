@@ -11,7 +11,12 @@ const router = express.Router();
 router.post('/', async (req, res, next) => {
   try {
     const { conversationId, avatarId } = req.body;
-    const link = await avatarsCtrl.createGrpConAvatar(conversationId, avatarId);
+    // Pass the client schema from the request object
+    const link = await avatarsCtrl.createGrpConAvatar(
+      conversationId, 
+      avatarId,
+      req.clientSchema
+    );
     res.status(201).json(link);
   } catch (err) {
     next(err);
@@ -23,7 +28,11 @@ router.post('/', async (req, res, next) => {
  */
 router.get('/by-conversation/:conversationId', async (req, res, next) => {
   try {
-    const list = await avatarsCtrl.getGrpConAvatarsByConversation(Number(req.params.conversationId));
+    // Pass the client schema from the request object
+    const list = await avatarsCtrl.getGrpConAvatarsByConversation(
+      Number(req.params.conversationId),
+      req.clientSchema
+    );
     res.json(list);
   } catch (err) {
     next(err);
@@ -35,7 +44,11 @@ router.get('/by-conversation/:conversationId', async (req, res, next) => {
  */
 router.get('/by-avatar/:avatarId', async (req, res, next) => {
   try {
-    const list = await avatarsCtrl.getGrpConsByAvatar(Number(req.params.avatarId));
+    // Pass the client schema from the request object
+    const list = await avatarsCtrl.getGrpConsByAvatar(
+      Number(req.params.avatarId),
+      req.clientSchema
+    );
     res.json(list);
   } catch (err) {
     next(err);
@@ -47,9 +60,11 @@ router.get('/by-avatar/:avatarId', async (req, res, next) => {
  */
 router.delete('/:conversationId/:avatarId', async (req, res, next) => {
   try {
+    // Pass the client schema from the request object
     const ok = await avatarsCtrl.deleteGrpConAvatar(
       Number(req.params.conversationId),
-      Number(req.params.avatarId)
+      Number(req.params.avatarId),
+      req.clientSchema
     );
     res.json({ success: ok });
   } catch (err) {

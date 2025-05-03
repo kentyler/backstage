@@ -22,7 +22,7 @@ let eventId;
 async function cleanupEvents() {
   if (eventId) {
     await pool.query(
-      `DELETE FROM public.participant_events
+      `DELETE FROM participant_events
        WHERE id = $1`,
       [eventId]
     );

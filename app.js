@@ -17,6 +17,7 @@ import conversationsRoutes              from './src/routes/conversations.js';
 import preferencesRoutes                from './src/routes/preferences.js';
 import meRouter                         from './src/routes/me.js';
 import { loginHandler }                 from './src/controllers/participants/loginHandler.js';
+import { setClientSchema }              from './src/middleware/setClientSchema.js';
 
 const app = express();
 app.use(express.json());
@@ -29,8 +30,10 @@ const __dirname  = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, 'public')));
 
 // use cookies
-
 app.use(cookieParser());
+
+// Apply setClientSchema middleware globally
+app.use(setClientSchema);
 
 // API mounts
 app.use('/api/groups', groupRoutes);

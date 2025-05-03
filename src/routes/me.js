@@ -5,7 +5,7 @@
  * @module routes/me
  */
 import express from 'express';
-import { requireAuth } from '../middleware/auth.js';
+import { authWithSchema } from '../middleware/authWithSchema.js';
 import { getParticipantById } from '../db/participants/index.js';
 import { getPreferenceWithFallback } from '../db/preferences/getPreferenceWithFallback.js';
 
@@ -22,7 +22,7 @@ const router = express.Router();
  * @middleware requireAuth
  * @returns {Object} 200 - User object with participant details
  */
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', authWithSchema, async (req, res) => {
   try {
     // Get participant ID from the JWT payload
     const { participantId } = req.user;
@@ -31,8 +31,11 @@ router.get('/', requireAuth, async (req, res) => {
       return res.json({ user: req.user });
     }
     
-    // Fetch participant details from the database
-    const participant = await getParticipantById(participantId);
+    // Get client schema from the request (set by setClientSchema middleware)
+    const schema = req.clientSchema || 'public';
+    
+    // Fetch participant details from the database using the client schema
+    const participant = await getParticipantById(participantId, schema);
     
     if (!participant) {
       return res.json({ user: req.user });
@@ -44,7 +47,8 @@ router.get('/', requireAuth, async (req, res) => {
     // Get the participant's avatar ID from preferences
     try {
       const avatarIdPreference = await getPreferenceWithFallback('avatar_id', {
-        participantId: participantId
+        participantId: participantId,
+        schema: schema // Pass the client schema to getPreferenceWithFallback
       });
       console.log(`Retrieved avatar_id preference for participant ${participantId}:`, avatarIdPreference);
       
