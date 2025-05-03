@@ -33,6 +33,8 @@ export async function getPreferenceWithFallback(preferenceName, options, customP
         SELECT value
         FROM public.participant_preferences
         WHERE participant_id = $1 AND preference_type_id = $2
+        ORDER BY updated_at DESC
+        LIMIT 1
       `;
       const participantPreferenceValues = [participantId, preferenceType.id];
       const participantPreferenceResult = await customPoolToUse.query(
@@ -90,9 +92,21 @@ export async function getPreferenceWithFallback(preferenceName, options, customP
       };
     }
 
-    // Fall back to default value from preference type
+    // Since there's no default_value column in preference_types table,
+    // return a hardcoded default value based on preference name
+    let defaultValue = null;
+    
+    // Set default values for known preference types
+    if (preferenceName === 'llm_selection') {
+      defaultValue = 1; // Default to LLM ID 1
+    } else if (preferenceName === 'avatar_id') {
+      defaultValue = 1; // Default to avatar ID 1
+    } else if (preferenceName === 'group_id') {
+      defaultValue = null; // No default group
+    }
+    
     return {
-      value: preferenceType.default_value,
+      value: defaultValue,
       source: 'default'
     };
   } catch (error) {

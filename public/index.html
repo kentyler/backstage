@@ -405,8 +405,39 @@
             console.log('Added group to dropdown:', group.name);
           });
           
-          // Select the first group by default if available
+          // Try to load the last selected group from preferences
           if (groups.length > 0) {
+            try {
+              // Fetch the 'group_id' preference
+              const prefRes = await fetch('/api/preferences/participant/by-name/group_id', {
+                method: 'GET',
+                credentials: 'include'  // send cookies
+              });
+              
+              if (prefRes.ok) {
+                const preference = await prefRes.json();
+                console.log('Fetched group_id preference:', preference);
+                
+                if (preference && preference.value) {
+                  // Find the group with the matching ID
+                  const lastGroup = groups.find(g => g.id === preference.value);
+                  
+                  if (lastGroup) {
+                    console.log(`Selecting last used group: ${lastGroup.name} (ID: ${lastGroup.id})`);
+                    selectGroup(lastGroup);
+                    return; // Exit early since we've selected a group
+                  } else {
+                    console.log(`Last group ID ${preference.value} not found in available groups`);
+                  }
+                }
+              } else {
+                console.log('No group_id preference found, selecting first group');
+              }
+            } catch (prefErr) {
+              console.error('Error fetching group_id preference:', prefErr);
+            }
+            
+            // Fallback to selecting the first group if no preference exists or there was an error
             console.log('Selecting first group by default:', groups[0].name);
             selectGroup(groups[0]);
           }
@@ -515,6 +546,19 @@
           // Refresh conversations list
           const conversations = await fetchConversations(selectedGroup.id);
           displayConversations(conversations);
+          
+          // Auto-select the newly created conversation
+          const conversationItem = document.querySelector(`.conversation-item[data-conversation-id="${newConversation.id}"]`);
+          if (conversationItem) {
+            // Update visual selection
+            document.querySelectorAll('.conversation-item').forEach(item => {
+              item.classList.remove('selected');
+            });
+            conversationItem.classList.add('selected');
+            
+            // Call the selectConversation function to update the UI
+            selectConversation(newConversation);
+          }
         } else {
           console.error('Failed to create conversation');
         }
@@ -562,6 +606,30 @@
         console.log(`Added selected class to group: ${group.name}`);
       } else {
         console.error(`Could not find group item with ID: ${group.id}`);
+      }
+      
+      // Save the selected group ID as a participant preference
+      // This will allow the application to return to this group when reopened
+      try {
+        const res = await fetch('/api/preferences/participant', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            preferenceName: 'group_id',
+            value: group.id
+          }),
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          console.log(`Saved group ID ${group.id} as participant preference`);
+        } else {
+          console.error('Failed to save group ID as participant preference');
+        }
+      } catch (err) {
+        console.error('Error saving group ID as participant preference:', err);
       }
     }
     

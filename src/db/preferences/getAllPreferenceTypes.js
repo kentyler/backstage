@@ -14,7 +14,7 @@ import { pool } from '../connection.js';
 export async function getAllPreferenceTypes(customPool = pool) {
   try {
     const query = `
-      SELECT id, name, description, default_value, created_at, updated_at
+      SELECT id, name, description, created_at, updated_at
       FROM public.preference_types
       ORDER BY name
     `;

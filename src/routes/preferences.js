@@ -32,6 +32,31 @@ router.get('/types', requireAuth, async (req, res) => {
 });
 
 /**
+ * @route GET /api/preferences/participant/by-name/:preferenceName
+ * @description Get a participant preference by name
+ * @access Private
+ */
+router.get('/participant/by-name/:preferenceName', requireAuth, async (req, res) => {
+  try {
+    const { preferenceName } = req.params;
+    const { participantId } = req.user;
+    
+    if (!participantId) {
+      return res.status(400).json({ error: 'Participant ID is required' });
+    }
+    
+    const preference = await getPreferenceWithFallback(preferenceName, {
+      participantId
+    });
+    
+    res.json(preference);
+  } catch (error) {
+    console.error(`Error getting participant preference ${req.params.preferenceName}:`, error);
+    res.status(500).json({ error: `Failed to get preference: ${error.message}` });
+  }
+});
+
+/**
  * @route GET /api/preferences/:preferenceName
  * @description Get a preference with fallback hierarchy
  * @access Private
