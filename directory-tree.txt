@@ -69,6 +69,7 @@
     📄 app_20250429211011.js
     📄 app_20250430084002.js
     📄 app_20250501094537.js
+    📄 app_20250502094940.js
     📄 build-tree_20250418125243.js
     📄 build-tree_20250418125456.js
     📄 cli_20250425095025.js
@@ -103,6 +104,8 @@
       📄 conversation-test_20250501091237.html
       📄 conversation-test_20250501094638.html
       📄 conversation-test_20250501130810.html
+      📄 conversation-test_20250502100802.html
+      📄 conversation-test_20250502100822.html
       📄 forgot-password_20250428130813.html
       📄 forgot-password_20250428143806.html
       📄 index_20250428144600.html
@@ -144,6 +147,11 @@
       📄 index_20250501214614.html
       📄 index_20250501214658.html
       📄 index_20250501214722.html
+      📄 index_20250502102316.html
+      📄 index_20250502170326.html
+      📄 index_20250502172557.html
+      📄 index_20250502172828.html
+      📄 index_20250502172907.html
       📄 login_20250428130803.html
       📄 login_20250428143715.html
       📄 login_20250428151559.html
@@ -186,19 +194,26 @@
     📄 server_20250501184722.js
     📄 server_20250501184850.js
     📄 server_20250501184918.js
+    📄 server_20250502121652.js
     📁 sql-scripts/
       📄 add-avatar-scopes-fk-in-avatar_20250417152703
       📄 add-avatar-scopes-fk-in-avatar_20250417152712
       📄 add-avatar-scopes-fk-in-avatar_20250417153711
       📄 add-foreign-keys-to-initial-tables_20250417085508
       📄 add-foreign-keys-to-initial-tables_20250417151141
+      📄 add-llm-types-table_20250502144048.sql
+      📄 add-llm-types-table_20250502144830.sql
       📄 add-llms-table_20250501181424.sql
       📄 add-llms-table_20250501182107.sql
       📄 add-llms-table_20250501182652.sql
       📄 add-participant-avatar-table_20250429121639.txt
       📄 add-participant-avatar-table_20250429121640.txt
+      📄 change-preference-value-to-bigint_20250502122452.sql
+      📄 change-preference-value-to-bigint_20250502171331.sql
       📄 initial-tables_20250417085027
       📄 initial-tables_20250418163452
+      📄 remove-participant-columns_20250502112650.sql
+      📄 remove-participant-columns_20250502113116.sql
     📁 src/
       📁 controllers/
         📁 participants/
@@ -216,6 +231,8 @@
           📄 loginHandler_20250430103740.js
           📄 loginHandler_20250430103813.js
           📄 loginHandler_20250501182847.js
+          📄 loginHandler_20250502094818.js
+          📄 loginHandler_20250502113227.js
       📁 db/
         📄 connection_20250415150849.js
         📄 connection_20250415150951.js
@@ -499,15 +516,38 @@
           📄 getParticipantEventsByParticipant_20250430083813.js
           📄 getParticipantEventsByParticipant_20250430090421.js
         📁 participants/
+          📄 getParticipantsByGroup_20250418162031.js
+          📄 getParticipantsByGroup_20250502113421.js
           📄 index_20250418145544.js
           📄 index_20250423131106.js
           📄 LogInHandler_20250418145917.js
           📄 LogInHandler_20250424104047.js
           📄 LogInHandler_20250425112357.js
+          📄 updateParticipantHandler_20250429122702.js
+          📄 updateParticipantHandler_20250502113337.js
           📄 updateParticipant_20250418161925.js
           📄 updateParticipant_20250429122601.js
           📄 updateParticipant_20250501182907.js
           📄 updateParticipant_20250501182928.js
+          📄 updateParticipant_20250502113403.js
+        📁 preferences/
+          📄 createParticipantPreference_20250502094554.js
+          📄 createParticipantPreference_20250502172356.js
+          📄 getAllPreferenceTypes_20250502094537.js
+          📄 getAllPreferenceTypes_20250502173601.js
+          📄 getAllPreferenceTypes_20250502174856.js
+          📄 getAllPreferenceTypes_20250502175608.js
+          📄 getPreferenceTypeByName_20250502094524.js
+          📄 getPreferenceTypeByName_20250502173519.js
+          📄 getPreferenceTypeByName_20250502173543.js
+          📄 getPreferenceTypeByName_20250502174305.js
+          📄 getPreferenceTypeByName_20250502174702.js
+          📄 getPreferenceTypeByName_20250502174832.js
+          📄 getPreferenceTypeByName_20250502175551.js
+          📄 getPreferenceWithFallback_20250502094654.js
+          📄 getPreferenceWithFallback_20250502173820.js
+          📄 getPreferenceWithFallback_20250502174935.js
+          📄 getPreferenceWithFallback_20250502175533.js
       📁 middleware/
         📄 auth_20250424103749.js
         📄 auth_20250424103802.js
@@ -548,6 +588,14 @@
         📄 conversations_20250501185358.js
         📄 conversations_20250501185424.js
         📄 conversations_20250501185442.js
+        📄 conversations_20250502101929.js
+        📄 conversations_20250502113252.js
+        📄 conversations_20250502120228.js
+        📄 conversations_20250502120639.js
+        📄 conversations_20250502121200.js
+        📄 conversations_20250502121313.js
+        📄 conversations_20250502121505.js
+        📄 conversations_20250502123234.js
         📄 GroupConversationAvatars_20250423124957.js
         📄 GroupConversationAvatars_20250423124958.js
         📄 GroupConversationAvatars_20250423144059.js
@@ -606,6 +654,10 @@
         📄 participants_20250428154626.js
         📄 participants_20250428160040.js
         📄 participants_20250430104639.js
+        📄 participants_20250502113437.js
+        📄 preferences_20250502094903.js
+        📄 preferences_20250502095425.js
+        📄 preferences_20250502173920.js
       📁 services/
         📄 authService_20250426101629.js
         📄 authService_20250426101630.js
@@ -632,6 +684,36 @@
         📄 llmService_20250501162942.js
         📄 llmService_20250501182824.js
         📄 llmService_20250501190036.js
+        📄 llmService_20250502094759.js
+        📄 llmService_20250502101144.js
+        📄 llmService_20250502101216.js
+        📄 llmService_20250502101806.js
+        📄 llmService_20250502101909.js
+        📄 llmService_20250502112956.js
+        📄 llmService_20250502113210.js
+        📄 llmService_20250502115642.js
+        📄 llmService_20250502115725.js
+        📄 llmService_20250502121346.js
+        📄 llmService_20250502122029.js
+        📄 llmService_20250502122134.js
+        📄 llmService_20250502122208.js
+        📄 llmService_20250502122229.js
+        📄 llmService_20250502122321.js
+        📄 llmService_20250502123359.js
+        📄 llmService_20250502125939.js
+        📄 llmService_20250502130241.js
+        📄 llmService_20250502130443.js
+        📄 llmService_20250502144420.js
+        📄 llmService_20250502144445.js
+        📄 llmService_20250502144551.js
+        📄 llmService_20250502145146.js
+        📄 llmService_20250502145729.js
+        📄 llmService_20250502151550.js
+        📄 llmService_20250502151940.js
+        📄 llmService_20250502152057.js
+        📄 llmService_20250502152325.js
+        📄 llmService_20250502152434.js
+        📄 llmService_20250502152518.js
     📁 test/
       📄 group.test_20250415133948.js
       📄 group.test_20250415133954.js
@@ -736,26 +818,21 @@
   📁 scripts/
     📄 add-llm-avatar-id-to-groups.js
     📄 add-llm-config-to-avatars.js
+    📄 add-preference-tables.js
+    📄 add-token-limit-to-llms.js
     📄 allow-null-participant-id.js
+    📄 change-preference-value-to-bigint.js
     📄 check-env.js
     📄 fix-participant-events-sequence.js
     📄 neontest.js
+    📄 remove-participant-columns.js
     📄 rename-group-conversation-to-grp-con.js
     📄 test-db-connection.js
     📄 testConnection.mjs
+    📄 update-max-tokens-in-llms.js
+    📄 verify-preference-types.js
   📄 server.js
   📁 sql-scripts/
-    📄 add-avatar-scopes-fk-in-avatar
-    📄 add-foreign-keys-to-initial-tables
-    📄 add-llm-avatar-id-to-groups.sql
-    📄 add-llm-config-to-avatars.sql
-    📄 add-llms-table.sql
-    📄 add-participant-avatar-table.txt
-    📄 add-participant-events-tables.sql
-    📄 allow-null-participant-id.sql
-    📄 fix-participant-events-sequence.sql
-    📄 initial-tables
-    📄 rename-group-conversation-tables.sql
   📁 src/
     📁 controllers/
       📁 participants/
@@ -827,6 +904,14 @@
         📄 index.js
         📄 updateParticipant.js
         📄 updateParticipantHandler.js
+      📁 preferences/
+        📄 createGroupPreference.js
+        📄 createParticipantPreference.js
+        📄 createSitePreference.js
+        📄 getAllPreferenceTypes.js
+        📄 getPreferenceTypeByName.js
+        📄 getPreferenceWithFallback.js
+        📄 index.js
     📁 middleware/
       📄 auth.js
     📁 routes/
@@ -840,6 +925,7 @@
       📄 participantAvatars.js
       📄 participantEvents.js
       📄 participants.js
+      📄 preferences.js
     📁 services/
       📄 authService.js
       📄 embeddingService.js

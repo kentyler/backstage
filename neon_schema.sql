@@ -436,6 +436,47 @@ CREATE SEQUENCE public.group_conversations_id_seq
 
 
 --
+-- Name: group_preferences; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.group_preferences (
+    id integer NOT NULL,
+    group_id bigint NOT NULL,
+    preference_type_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    value bigint
+);
+
+
+--
+-- Name: TABLE group_preferences; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.group_preferences IS 'Stores preferences set at the group level';
+
+
+--
+-- Name: group_preferences_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.group_preferences_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: group_preferences_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.group_preferences_id_seq OWNED BY public.group_preferences.id;
+
+
+--
 -- Name: groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -606,6 +647,68 @@ ALTER SEQUENCE public.grp_cons_id_seq OWNED BY public.grp_cons.id;
 
 
 --
+-- Name: llm_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.llm_types (
+    id integer NOT NULL,
+    name character varying(50) NOT NULL,
+    description text,
+    api_handler character varying(100) NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+--
+-- Name: TABLE llm_types; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.llm_types IS 'Lookup table for different LLM API types';
+
+
+--
+-- Name: COLUMN llm_types.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.llm_types.name IS 'Unique name for this LLM type';
+
+
+--
+-- Name: COLUMN llm_types.description; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.llm_types.description IS 'Description of this LLM type and its capabilities';
+
+
+--
+-- Name: COLUMN llm_types.api_handler; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.llm_types.api_handler IS 'The function or method that handles API calls for this type';
+
+
+--
+-- Name: llm_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.llm_types_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: llm_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.llm_types_id_seq OWNED BY public.llm_types.id;
+
+
+--
 -- Name: llms; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -619,8 +722,16 @@ CREATE TABLE public.llms (
     max_tokens integer DEFAULT 1000,
     additional_config jsonb DEFAULT '{}'::jsonb,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    type_id integer
 );
+
+
+--
+-- Name: COLUMN llms.type_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.llms.type_id IS 'The ID of the LLM type (references llm_types.id)';
 
 
 --
@@ -835,6 +946,47 @@ ALTER SEQUENCE public.participant_llms_id_seq OWNED BY public.participant_llms.i
 
 
 --
+-- Name: participant_preferences; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.participant_preferences (
+    id integer NOT NULL,
+    participant_id bigint NOT NULL,
+    preference_type_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    value bigint
+);
+
+
+--
+-- Name: TABLE participant_preferences; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.participant_preferences IS 'Stores preferences set at the participant level';
+
+
+--
+-- Name: participant_preferences_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.participant_preferences_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: participant_preferences_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.participant_preferences_id_seq OWNED BY public.participant_preferences.id;
+
+
+--
 -- Name: participants; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -843,10 +995,7 @@ CREATE TABLE public.participants (
     name text NOT NULL,
     email text NOT NULL,
     password text NOT NULL,
-    current_avatar_id bigint,
-    created_at timestamp with time zone DEFAULT now(),
-    current_group_id integer,
-    llm_id integer
+    created_at timestamp with time zone DEFAULT now()
 );
 
 
@@ -867,6 +1016,60 @@ CREATE SEQUENCE public.participants_id_seq
 --
 
 ALTER SEQUENCE public.participants_id_seq OWNED BY public.participants.id;
+
+
+--
+-- Name: preference_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.preference_types (
+    id integer NOT NULL,
+    name character varying(255) NOT NULL,
+    description text,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+--
+-- Name: TABLE preference_types; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.preference_types IS 'Defines types of preferences that can be set at participant, group, or site level';
+
+
+--
+-- Name: COLUMN preference_types.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.preference_types.name IS 'Unique identifier for the preference type';
+
+
+--
+-- Name: COLUMN preference_types.description; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.preference_types.description IS 'Human-readable description of what this preference controls';
+
+
+--
+-- Name: preference_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.preference_types_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: preference_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.preference_types_id_seq OWNED BY public.preference_types.id;
 
 
 --
@@ -897,6 +1100,46 @@ CREATE SEQUENCE public.relationship_types_id_seq
 --
 
 ALTER SEQUENCE public.relationship_types_id_seq OWNED BY public.turn_relationship_types.id;
+
+
+--
+-- Name: site_preferences; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.site_preferences (
+    id integer NOT NULL,
+    preference_type_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    value bigint
+);
+
+
+--
+-- Name: TABLE site_preferences; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.site_preferences IS 'Stores preferences set at the site level (global defaults)';
+
+
+--
+-- Name: site_preferences_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.site_preferences_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: site_preferences_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.site_preferences_id_seq OWNED BY public.site_preferences.id;
 
 
 --
@@ -978,6 +1221,13 @@ ALTER TABLE ONLY public.file_types ALTER COLUMN id SET DEFAULT nextval('public.f
 
 
 --
+-- Name: group_preferences id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.group_preferences ALTER COLUMN id SET DEFAULT nextval('public.group_preferences_id_seq'::regclass);
+
+
+--
 -- Name: grp_con_avatar_turn_relationships id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1027,6 +1277,13 @@ ALTER TABLE ONLY public.grp_cons ALTER COLUMN id SET DEFAULT nextval('public.grp
 
 
 --
+-- Name: llm_types id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.llm_types ALTER COLUMN id SET DEFAULT nextval('public.llm_types_id_seq'::regclass);
+
+
+--
 -- Name: llms id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1069,10 +1326,31 @@ ALTER TABLE ONLY public.participant_llms ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: participant_preferences id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.participant_preferences ALTER COLUMN id SET DEFAULT nextval('public.participant_preferences_id_seq'::regclass);
+
+
+--
 -- Name: participants id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.participants ALTER COLUMN id SET DEFAULT nextval('public.participants_id_seq'::regclass);
+
+
+--
+-- Name: preference_types id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.preference_types ALTER COLUMN id SET DEFAULT nextval('public.preference_types_id_seq'::regclass);
+
+
+--
+-- Name: site_preferences id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_preferences ALTER COLUMN id SET DEFAULT nextval('public.site_preferences_id_seq'::regclass);
 
 
 --
@@ -1202,11 +1480,35 @@ ALTER TABLE ONLY public.grp_cons
 
 
 --
+-- Name: group_preferences group_preferences_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.group_preferences
+    ADD CONSTRAINT group_preferences_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: groups groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.groups
     ADD CONSTRAINT groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: llm_types llm_types_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.llm_types
+    ADD CONSTRAINT llm_types_name_key UNIQUE (name);
+
+
+--
+-- Name: llm_types llm_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.llm_types
+    ADD CONSTRAINT llm_types_pkey PRIMARY KEY (id);
 
 
 --
@@ -1266,6 +1568,14 @@ ALTER TABLE ONLY public.participant_llms
 
 
 --
+-- Name: participant_preferences participant_preferences_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.participant_preferences
+    ADD CONSTRAINT participant_preferences_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: participants participants_email_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1279,6 +1589,22 @@ ALTER TABLE ONLY public.participants
 
 ALTER TABLE ONLY public.participants
     ADD CONSTRAINT participants_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: preference_types preference_types_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.preference_types
+    ADD CONSTRAINT preference_types_name_key UNIQUE (name);
+
+
+--
+-- Name: preference_types preference_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.preference_types
+    ADD CONSTRAINT preference_types_pkey PRIMARY KEY (id);
 
 
 --
@@ -1298,6 +1624,14 @@ ALTER TABLE ONLY public.turn_relationship_types
 
 
 --
+-- Name: site_preferences site_preferences_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_preferences
+    ADD CONSTRAINT site_preferences_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: turn_kinds turn_kinds_name_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1314,6 +1648,30 @@ ALTER TABLE ONLY public.turn_kinds
 
 
 --
+-- Name: group_preferences unique_group_preference; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.group_preferences
+    ADD CONSTRAINT unique_group_preference UNIQUE (group_id, preference_type_id);
+
+
+--
+-- Name: participant_preferences unique_participant_preference; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.participant_preferences
+    ADD CONSTRAINT unique_participant_preference UNIQUE (participant_id, preference_type_id);
+
+
+--
+-- Name: site_preferences unique_site_preference; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_preferences
+    ADD CONSTRAINT unique_site_preference UNIQUE (preference_type_id);
+
+
+--
 -- Name: idx_gcavtr_target; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1326,6 +1684,22 @@ CREATE INDEX idx_gcavtr_target ON public.grp_con_avatar_turn_relationships USING
 
 ALTER TABLE ONLY public.avatars
     ADD CONSTRAINT fk_avatars_scope FOREIGN KEY (avatar_scope_id) REFERENCES public.avatar_scopes(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: group_preferences fk_group_preferences_group; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.group_preferences
+    ADD CONSTRAINT fk_group_preferences_group FOREIGN KEY (group_id) REFERENCES public.groups(id) ON DELETE CASCADE;
+
+
+--
+-- Name: group_preferences fk_group_preferences_type; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.group_preferences
+    ADD CONSTRAINT fk_group_preferences_type FOREIGN KEY (preference_type_id) REFERENCES public.preference_types(id) ON DELETE CASCADE;
 
 
 --
@@ -1345,11 +1719,27 @@ ALTER TABLE ONLY public.participant_llms
 
 
 --
--- Name: participants fk_participants_current_avatar; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: participant_preferences fk_participant_preferences_participant; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.participants
-    ADD CONSTRAINT fk_participants_current_avatar FOREIGN KEY (current_avatar_id) REFERENCES public.avatars(id);
+ALTER TABLE ONLY public.participant_preferences
+    ADD CONSTRAINT fk_participant_preferences_participant FOREIGN KEY (participant_id) REFERENCES public.participants(id) ON DELETE CASCADE;
+
+
+--
+-- Name: participant_preferences fk_participant_preferences_type; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.participant_preferences
+    ADD CONSTRAINT fk_participant_preferences_type FOREIGN KEY (preference_type_id) REFERENCES public.preference_types(id) ON DELETE CASCADE;
+
+
+--
+-- Name: site_preferences fk_site_preferences_type; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_preferences
+    ADD CONSTRAINT fk_site_preferences_type FOREIGN KEY (preference_type_id) REFERENCES public.preference_types(id) ON DELETE CASCADE;
 
 
 --
@@ -1374,6 +1764,14 @@ ALTER TABLE ONLY public.grp_con_avatar_turn_relationships
 
 ALTER TABLE ONLY public.grp_con_avatar_turns
     ADD CONSTRAINT group_conversation_avatar_turns_turn_kind_id_fkey FOREIGN KEY (turn_kind_id) REFERENCES public.turn_kinds(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: llms llms_type_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.llms
+    ADD CONSTRAINT llms_type_id_fkey FOREIGN KEY (type_id) REFERENCES public.llm_types(id);
 
 
 --

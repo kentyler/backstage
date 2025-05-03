@@ -24,6 +24,29 @@ Boot the HTTP server on the specified port.
 @description Script to add llm_config JSON field to avatars table
 ```
 
+## C:\Users\Ken\Desktop\back-stage\scripts\add-preference-tables.js
+
+```
+@file scripts/add-preference-tables.js
+@description Script to add preference tables to the database
+```
+
+## C:\Users\Ken\Desktop\back-stage\scripts\add-token-limit-to-llms.js
+
+```
+Script to add token_limit column to llms table
+This script adds a token_limit column to the llms table and updates existing records
+with appropriate token limits for different models.
+```
+
+## C:\Users\Ken\Desktop\back-stage\scripts\change-preference-value-to-bigint.js
+
+```
+Script to change site_preferences.value from JSONB to BIGINT
+This script executes the SQL in sql-scripts/change-preference-value-to-bigint.sql
+which extracts the LLM ID from the JSON object and stores it directly as a number.
+```
+
 ## C:\Users\Ken\Desktop\back-stage\scripts\check-env.js
 
 ```
@@ -67,6 +90,21 @@ Run this script to verify that your database configuration works
 
 ```
 Test database connection and basic queries
+```
+
+## C:\Users\Ken\Desktop\back-stage\scripts\update-max-tokens-in-llms.js
+
+```
+Script to update max_tokens in llms table with appropriate values for different models
+This script executes the SQL in sql-scripts/add-token-limit-to-llms.sql
+which updates the max_tokens field to represent the model's context window size
+```
+
+## C:\Users\Ken\Desktop\back-stage\scripts\verify-preference-types.js
+
+```
+Script to verify preference types in the database
+This script checks if specific preference types exist and logs their properties
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\src\controllers\participants\loginHandler.js
@@ -723,8 +761,6 @@ Updates a participant's information
 @param {string} [updates.name] - Updated name
 @param {string} [updates.email] - Updated email
 @param {string} [updates.password] - Updated password (should be hashed)
-@param {number} [updates.current_avatar_id] - Updated avatar ID
-@param {number} [updates.llm_id] - Updated LLM configuration ID
 @param {number} [createdByParticipantId=null] - ID of participant making the change (for logging)
 @param {object} [pool=defaultPool] - Database connection pool (for testing)
 @returns {Promise<object|null>} The updated participant record, or null if not found
@@ -747,11 +783,114 @@ Handles request to update a participant
 @param {string} [req.body.name] - Updated name
 @param {string} [req.body.email] - Updated email
 @param {string} [req.body.password] - Updated password (will be hashed)
-@param {number} [req.body.current_avatar_id] - Updated avatar ID
 @param {object} req.user - Authenticated user information
 @param {number} req.user.participantId - ID of the authenticated participant
 @param {object} res - Express response object
 @returns {Promise<void>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\preferences\createGroupPreference.js
+
+```
+@file src/db/preferences/createGroupPreference.js
+@description Creates or updates a group preference in the database.
+```
+
+```
+Creates or updates a group preference
+@param {number} groupId - The ID of the group
+@param {number} preferenceTypeId - The ID of the preference type
+@param {object} value - The JSON value for the preference
+@param {object} [customPool=pool] - Database connection pool (for testing)
+@returns {Promise<object>} The newly created or updated group preference
+@throws {Error} If an error occurs during creation/update
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\preferences\createParticipantPreference.js
+
+```
+@file src/db/preferences/createParticipantPreference.js
+@description Creates or updates a participant preference in the database.
+```
+
+```
+Creates or updates a participant preference
+@param {number} participantId - The ID of the participant
+@param {number} preferenceTypeId - The ID of the preference type
+@param {object} value - The JSON value for the preference
+@param {object} [customPool=pool] - Database connection pool (for testing)
+@returns {Promise<object>} The newly created or updated participant preference
+@throws {Error} If an error occurs during creation/update
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\preferences\createSitePreference.js
+
+```
+@file src/db/preferences/createSitePreference.js
+@description Creates or updates a site-wide preference in the database.
+```
+
+```
+Creates or updates a site-wide preference
+@param {number} preferenceTypeId - The ID of the preference type
+@param {object} value - The JSON value for the preference
+@param {object} [customPool=pool] - Database connection pool (for testing)
+@returns {Promise<object>} The newly created or updated site preference
+@throws {Error} If an error occurs during creation/update
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\preferences\getAllPreferenceTypes.js
+
+```
+@file src/db/preferences/getAllPreferenceTypes.js
+@description Retrieves all preference types from the database.
+```
+
+```
+Retrieves all preference types
+@param {object} [customPool=pool] - Database connection pool (for testing)
+@returns {Promise<Array>} Array of preference types
+@throws {Error} If an error occurs during retrieval
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\preferences\getPreferenceTypeByName.js
+
+```
+@file src/db/preferences/getPreferenceTypeByName.js
+@description Retrieves a preference type by its name from the database.
+```
+
+```
+Retrieves a preference type by its name
+@param {string} name - The unique name of the preference type
+@param {object} [customPool=pool] - Database connection pool (for testing)
+@returns {Promise<object|null>} The preference type or null if not found
+@throws {Error} If an error occurs during retrieval
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\preferences\getPreferenceWithFallback.js
+
+```
+@file src/db/preferences/getPreferenceWithFallback.js
+@description Retrieves a preference with fallback hierarchy (participant -> group -> site -> default).
+```
+
+```
+Retrieves a preference with fallback hierarchy
+@param {string} preferenceName - The name of the preference type
+@param {object} options - Options for preference retrieval
+@param {number} [options.participantId] - The ID of the participant (optional)
+@param {number} [options.groupId] - The ID of the group (optional)
+@param {object} [options.customPool=pool] - Database connection pool (for testing)
+@returns {Promise<object>} The preference value with source information
+@throws {Error} If an error occurs during retrieval or preference type doesn't exist
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\preferences\index.js
+
+```
+Preferences database operations
+@module db/preferences
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\src\middleware\auth.js
@@ -1022,12 +1161,56 @@ Retrieve a single participant by ID.
 ```
 PUT /api/participants/:id
 Update a participant's data.
-Body: { name?, email?, password?, current_avatar_id? }
+Body: { name?, email?, password? }
+Note: Avatar preferences are now handled through the preferences system
 ```
 
 ```
 DELETE /api/participants/:id
 Delete a participant by ID.
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\routes\preferences.js
+
+```
+@file src/routes/preferences.js
+@description API routes for managing preferences
+```
+
+```
+@route GET /api/preferences/types
+@description Get all preference types
+@access Private
+```
+
+```
+@route GET /api/preferences/participant/by-name/:preferenceName
+@description Get a participant preference by name
+@access Private
+```
+
+```
+@route GET /api/preferences/:preferenceName
+@description Get a preference with fallback hierarchy
+@access Private
+```
+
+```
+@route POST /api/preferences/participant
+@description Create or update a participant preference
+@access Private
+```
+
+```
+@route POST /api/preferences/group
+@description Create or update a group preference
+@access Private (admin only)
+```
+
+```
+@route POST /api/preferences/site
+@description Create or update a site preference
+@access Private (super admin only)
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\src\services\authService.js
@@ -1126,8 +1309,11 @@ Find similar texts using multiple query variants
 ```
 
 ```
-Get the LLM participant ID
-@returns {Promise<number>} The ID of the LLM participant or default ID (817)
+Get the LLM ID from preferences using the preference cascade
+@param {number} [participantId=null] - The participant ID to get the LLM ID for (optional)
+@param {number} [groupId=null] - The group ID to get the LLM ID for (optional)
+@returns {Promise<number>} The ID of the preferred LLM
+@throws {Error} If no LLM ID is found in the preference cascade
 ```
 
 ```
@@ -1137,26 +1323,54 @@ Get the LLM configuration for a specific LLM ID
 ```
 
 ```
-Get the LLM configuration for a specific participant
+Get the LLM configuration for a specific participant using the preference hierarchy
 @param {number} participantId - The participant ID to get the LLM configuration for
 @returns {Promise<Object|null>} The LLM configuration or null if not found
 ```
 
 ```
-Get the default LLM configuration
-@returns {Promise<Object|null>} The default LLM configuration or null if not found
+Get the default LLM configuration from site preferences
+@returns {Promise<Object>} The default LLM configuration
+@throws {Error} If no default LLM configuration is found
 ```
 
 ```
-Get the LLM name
-@param {number} [llmId=1] - The ID of the LLM to get the name for (defaults to 1)
-@returns {Promise<string>} The name of the LLM or default name ('LLM')
+Get the LLM name based on the preference system
+@param {number} [participantId=null] - The participant ID to get the LLM name for (optional)
+@param {number} [groupId=null] - The group ID to get the LLM name for (optional)
+@returns {Promise<string>} The name of the LLM or default name ('Anthropic Claude-3-Opus')
 ```
 
 ```
-Initialize the LLM service with the provided configuration, participant ID, or environment variable
+Initialize the LLM service with the provided configuration, participant ID, group ID, or environment variable
 @param {Object|number} configOrParticipantId - The LLM configuration or participant ID (optional)
+@param {Object} [options={}] - Additional options
+@param {number} [options.groupId] - The group ID to use for preference lookup (optional)
 @returns {Promise<boolean>} Whether the initialization was successful
+```
+
+```
+Handle a request to the Anthropic API
+@param {string} prompt - The user's message
+@param {Object} config - The LLM configuration
+@param {Object} options - Additional options
+@returns {Promise<string>} The LLM's response
+```
+
+```
+Handle a request to the OpenAI Chat Completions API
+@param {string} prompt - The user's message
+@param {Object} config - The LLM configuration
+@param {Object} options - Additional options
+@returns {Promise<string>} The LLM's response
+```
+
+```
+Handle a request to the OpenAI Assistants API (Custom GPTs)
+@param {string} prompt - The user's message
+@param {Object} config - The LLM configuration
+@param {Object} options - Additional options
+@returns {Promise<string>} The LLM's response
 ```
 
 ```

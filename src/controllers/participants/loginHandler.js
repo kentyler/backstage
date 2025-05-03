@@ -3,6 +3,7 @@ import { getParticipantByEmail } from '../../db/participants/getParticipantByEma
 import bcryptjs from 'bcryptjs';
 import { signToken } from '../../services/authService.js';
 import { createParticipantEvent } from '../../db/participantEvents/index.js';
+import { getPreferenceWithFallback } from '../../db/preferences/getPreferenceWithFallback.js';
 
 // System participant ID for logging events not associated with a specific participant
 const SYSTEM_PARTICIPANT_ID = 815; // Special participant created for system events
@@ -36,6 +37,30 @@ export async function loginHandler(req, res) {
     await createParticipantEvent(participant.id, 1, { email });
 
     const { password: _, ...participantData } = participant;
+    
+    // Get the participant's avatar ID from preferences
+    try {
+      const avatarIdPreference = await getPreferenceWithFallback('avatar_id', {
+        participantId: participant.id
+      });
+      console.log(`Retrieved avatar_id preference for participant ${participant.id}:`, avatarIdPreference);
+      
+      // Add the current_avatar_id to the participant data from preferences
+      if (avatarIdPreference && avatarIdPreference.value) {
+        participantData.current_avatar_id = avatarIdPreference.value;
+        console.log(`Set current_avatar_id to ${participantData.current_avatar_id} for participant ${participant.id}`);
+      } else {
+        // Throw an error if no avatar ID preference is found
+        throw new Error(`No avatar_id preference found for participant ${participant.id}`);
+      }
+    } catch (prefError) {
+      console.error(`Error retrieving avatar_id preference for participant ${participant.id}:`, prefError.message);
+      return res.status(500).json({ 
+        error: 'Failed to retrieve avatar ID preference', 
+        details: prefError.message 
+      });
+    }
+
     const token = signToken({ participantId: participant.id });
 
     // Set JWT in an HttpOnly cookie

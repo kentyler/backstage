@@ -244,14 +244,72 @@
     
     .user-message {
       background-color: #E0FFFF;
-      margin-left: auto;
+      margin-left: 0; /* Align to left edge like responses */
+      margin-right: auto; /* Keep width constrained */
       border-top-right-radius: 0;
     }
     
     .response-message {
       background-color: #f0f0f0;
       margin-right: auto;
+      margin-left: 0; /* Ensure no left margin for response messages */
       border-top-left-radius: 0;
+    }
+    
+    /* Comment styles */
+    .comment-link {
+      font-size: 0.8rem;
+      color: #6c757d;
+      cursor: pointer;
+      margin-top: 5px;
+      display: inline-block;
+    }
+    
+    .comment-link:hover {
+      text-decoration: underline;
+    }
+    
+    .comment-input-area {
+      margin-top: 5px;
+      margin-left: 20px;
+      display: none;
+    }
+    
+    .comment-textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      resize: vertical;
+      min-height: 60px;
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+    
+    .comment-button {
+      margin-top: 5px;
+      padding: 5px 10px;
+      background-color: #E0FFFF;
+      color: #333;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    
+    .comment-button:hover {
+      background-color: #C0EBEB;
+    }
+    
+    .comment-message {
+      margin-left: 25px; /* Consistent indentation for all comments */
+      margin-top: 5px;
+      margin-bottom: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      background-color: #f8f9fa;
+      border-left: 3px solid #dee2e6;
+      max-width: calc(80% - 25px); /* Adjusted to match the new margin-left */
     }
   </style>
 </head>
@@ -679,14 +737,45 @@
           return;
         }
         
-        // Display each turn in the transcript
-        turns.forEach(turn => {
+        // Separate regular turns and comments
+        const regularTurns = turns.filter(turn => turn.turn_kind_id !== 3); // TURN_KIND.COMMENT = 3
+        const commentTurns = turns.filter(turn => turn.turn_kind_id === 3);
+        
+        // Display regular turns first
+        regularTurns.forEach(turn => {
           // Determine if this is a user message or LLM response based on avatar ID
           const isUserMessage = turn.avatar_id === currentUser.participant?.current_avatar_id;
           const messageType = isUserMessage ? 'user' : 'response';
           
-          // Add the message to the transcript
-          addMessageToTranscript(turn.content_text, messageType);
+          // Add the message to the transcript with its turn ID
+          addMessageToTranscript(turn.content_text, messageType, null, turn.id);
+        });
+        
+        // Then display comments
+        commentTurns.forEach(comment => {
+          // Find the parent turn based on the comment's turn_index
+          // Comments have decimal indices (e.g., 21.5) where the integer part matches the parent turn's index
+          const commentIndex = parseFloat(comment.turn_index);
+          const parentIndex = Math.floor(commentIndex);
+          
+          // Find the parent turn with the matching index
+          const parentTurn = regularTurns.find(turn => Math.floor(parseFloat(turn.turn_index)) === parentIndex);
+          
+          if (parentTurn) {
+            // Determine if this is a user comment or LLM comment
+            const isUserComment = comment.avatar_id === currentUser.participant?.current_avatar_id;
+            const commentType = isUserComment ? 'user' : 'response';
+            
+            // Add the comment to the transcript
+            addMessageToTranscript(
+              comment.content_text,
+              commentType,
+              null,
+              comment.id,
+              true, // isComment = true
+              parentTurn.id // parentTurnId
+            );
+          }
         });
       })
       .catch(error => {
@@ -831,11 +920,16 @@
     }
     
     // Function to add a message to the transcript
-    function addMessageToTranscript(text, type, id) {
+    function addMessageToTranscript(text, type, id, turnId, isComment = false, parentTurnId = null) {
       const transcriptArea = document.getElementById('transcript-area');
       const messageDiv = document.createElement('div');
       
-      messageDiv.className = `message ${type}-message`;
+      // Set appropriate classes based on message type and whether it's a comment
+      if (isComment) {
+        messageDiv.className = `message comment-message`;
+      } else {
+        messageDiv.className = `message ${type}-message`;
+      }
       
       // Parse the message to extract the name and content
       const parsedMessage = parseMessage(text);
@@ -882,7 +976,67 @@
         messageDiv.dataset.messageId = id;
       }
       
-      transcriptArea.appendChild(messageDiv);
+      // If a turn ID is provided, set it as a data attribute
+      if (turnId) {
+        messageDiv.dataset.turnId = turnId;
+      }
+      
+      // If this is a comment, set the parent turn ID as a data attribute
+      if (isComment && parentTurnId) {
+        messageDiv.dataset.parentTurnId = parentTurnId;
+      }
+      
+      // If this is not a comment and not a loading message, add a comment link
+      if (!isComment && !id && type !== 'system') {
+        const commentLinkDiv = document.createElement('div');
+        commentLinkDiv.className = 'comment-link';
+        commentLinkDiv.textContent = 'comment';
+        commentLinkDiv.addEventListener('click', () => toggleCommentInput(messageDiv));
+        messageDiv.appendChild(commentLinkDiv);
+        
+        // Add a hidden comment input area
+        const commentInputArea = document.createElement('div');
+        commentInputArea.className = 'comment-input-area';
+        
+        const commentTextarea = document.createElement('textarea');
+        commentTextarea.className = 'comment-textarea';
+        commentTextarea.placeholder = 'Type your comment here...';
+        commentInputArea.appendChild(commentTextarea);
+        
+        const commentButton = document.createElement('button');
+        commentButton.className = 'comment-button';
+        commentButton.textContent = 'Submit';
+        commentButton.addEventListener('click', () => submitComment(messageDiv, commentTextarea));
+        commentInputArea.appendChild(commentButton);
+        
+        messageDiv.appendChild(commentInputArea);
+      }
+      
+      // If this is a comment, append it after its parent message
+      if (isComment && parentTurnId) {
+        const parentMessage = document.querySelector(`.message[data-turn-id="${parentTurnId}"]`);
+        if (parentMessage) {
+          // Find the right position to insert the comment
+          // It should be after the parent and any existing comments on the parent
+          let insertAfter = parentMessage;
+          const existingComments = document.querySelectorAll(`.comment-message[data-parent-turn-id="${parentTurnId}"]`);
+          if (existingComments.length > 0) {
+            insertAfter = existingComments[existingComments.length - 1];
+          }
+          
+          if (insertAfter.nextSibling) {
+            transcriptArea.insertBefore(messageDiv, insertAfter.nextSibling);
+          } else {
+            transcriptArea.appendChild(messageDiv);
+          }
+        } else {
+          // If parent not found, just append to the end
+          transcriptArea.appendChild(messageDiv);
+        }
+      } else {
+        // For regular messages, just append to the end
+        transcriptArea.appendChild(messageDiv);
+      }
       
       // Auto-scroll to the bottom
       transcriptArea.scrollTop = transcriptArea.scrollHeight;
@@ -895,6 +1049,160 @@
       const message = document.querySelector(`.message[data-message-id="${id}"]`);
       if (message) {
         message.remove();
+      }
+    }
+    
+    // Function to toggle the comment input area
+    function toggleCommentInput(messageDiv) {
+      const commentInputArea = messageDiv.querySelector('.comment-input-area');
+      if (commentInputArea) {
+        // Toggle display
+        if (commentInputArea.style.display === 'block') {
+          commentInputArea.style.display = 'none';
+        } else {
+          // Hide all other comment input areas first
+          document.querySelectorAll('.comment-input-area').forEach(area => {
+            area.style.display = 'none';
+          });
+          
+          // Show this comment input area
+          commentInputArea.style.display = 'block';
+          
+          // Focus the textarea
+          const textarea = commentInputArea.querySelector('.comment-textarea');
+          if (textarea) {
+            textarea.focus();
+          }
+        }
+      }
+    }
+    
+    // Function to submit a comment
+    async function submitComment(messageDiv, commentTextarea) {
+      const comment = commentTextarea.value.trim();
+      if (!comment) return; // Don't submit empty comments
+      
+      // Get the conversation ID
+      const selectedConversation = document.querySelector('.conversation-item.selected');
+      if (!selectedConversation) {
+        console.error('No conversation selected');
+        return;
+      }
+      const conversationId = selectedConversation.dataset.conversationId;
+      
+      // Get the parent turn ID
+      const parentTurnId = messageDiv.dataset.turnId;
+      if (!parentTurnId) {
+        console.error('No parent turn ID found');
+        return;
+      }
+      
+      // Check if we have a valid avatar ID
+      if (!currentUser.participant || !currentUser.participant.current_avatar_id) {
+        console.error('Missing avatar ID for comment. Current user:', currentUser);
+        alert('Unable to create comment: No avatar ID available. This may be due to a missing preference setting. Please try logging out and logging back in, or contact an administrator for assistance.');
+        return;
+      }
+      
+      // Format the comment with the participant's name
+      const formattedComment = `<${currentUser.participant.name}>:${comment}`;
+      
+      // Show loading indicator
+      const loadingId = Date.now();
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'comment-message';
+      loadingDiv.dataset.messageId = loadingId;
+      loadingDiv.textContent = 'Saving comment...';
+      
+      // Insert after the message div
+      if (messageDiv.nextSibling) {
+        messageDiv.parentNode.insertBefore(loadingDiv, messageDiv.nextSibling);
+      } else {
+        messageDiv.parentNode.appendChild(loadingDiv);
+      }
+      
+      try {
+        // Log the request data for debugging
+        console.log('Submitting comment with data:', {
+          conversationId: Number(conversationId),
+          avatarId: currentUser.participant.current_avatar_id,
+          parentTurnId: Number(parentTurnId),
+          contentText: formattedComment
+        });
+        
+        // Send the comment to the server
+        const response = await fetch('/api/group-conversation-avatar-turns/comment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            conversationId: Number(conversationId),
+            avatarId: currentUser.participant.current_avatar_id,
+            parentTurnId: Number(parentTurnId),
+            contentText: formattedComment
+          }),
+          credentials: 'include' // send cookies
+        });
+        
+        // Remove loading indicator
+        const loadingIndicator = document.querySelector(`.comment-message[data-message-id="${loadingId}"]`);
+        if (loadingIndicator) {
+          loadingIndicator.remove();
+        }
+        
+        if (response.ok) {
+          const commentData = await response.json();
+          console.log('Comment created:', commentData);
+          
+          // Clear the textarea
+          commentTextarea.value = '';
+          
+          // Hide the comment input area
+          const commentInputArea = messageDiv.querySelector('.comment-input-area');
+          if (commentInputArea) {
+            commentInputArea.style.display = 'none';
+          }
+          
+          // Add the comment to the transcript
+          addMessageToTranscript(
+            formattedComment,
+            'user',
+            null,
+            commentData.id,
+            true, // isComment = true
+            parentTurnId // parentTurnId
+          );
+          
+          // Scroll to the newly added comment
+          setTimeout(() => {
+            const newComment = document.querySelector(`.comment-message[data-turn-id="${commentData.id}"]`);
+            if (newComment) {
+              // Scroll the comment into view with some padding
+              newComment.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              
+              // Add a highlight effect to make it more visible
+              newComment.style.transition = 'background-color 0.5s ease';
+              newComment.style.backgroundColor = '#ffffd0'; // Light yellow highlight
+              setTimeout(() => {
+                newComment.style.backgroundColor = ''; // Return to original color
+              }, 1500);
+            }
+          }, 100); // Small delay to ensure the DOM is updated
+        } else {
+          console.error('Failed to create comment:', await response.text());
+          alert('Failed to create comment. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error creating comment:', error);
+        
+        // Remove loading indicator
+        const loadingIndicator = document.querySelector(`.comment-message[data-message-id="${loadingId}"]`);
+        if (loadingIndicator) {
+          loadingIndicator.remove();
+        }
+        
+        alert('Error creating comment. Please try again.');
       }
     }
     
