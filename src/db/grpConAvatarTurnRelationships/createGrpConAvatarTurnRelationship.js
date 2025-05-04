@@ -14,7 +14,7 @@ export async function createGrpConAvatarTurnRelationship(
   relationshipTypeId = 1
 ) {
   const sql = `
-    INSERT INTO public.grp_con_avatar_turn_relationships
+    INSERT INTO grp_con_avatar_turn_relationships
       (turn_id, target_turn_id, turn_relationship_type_id)
     VALUES ($1, $2, $3)
     RETURNING id, turn_id, target_turn_id, turn_relationship_type_id, created_at

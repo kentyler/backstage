@@ -31,7 +31,7 @@ export async function createParticipant(name, email, password, pool = defaultPoo
 
     // Insert new participant
     const query = `
-      INSERT INTO public.participants (name, email, password)
+      INSERT INTO participants (name, email, password)
       VALUES ($1, $2, $3)
       RETURNING *
     `;

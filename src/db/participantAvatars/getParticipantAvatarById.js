@@ -23,9 +23,9 @@ export async function getParticipantAvatarById(id, customPool = pool) {
         pa.created_by_participant_id,
         p.name AS participant_name,
         a.name AS avatar_name
-      FROM public.participant_avatars pa
-      JOIN public.participants p ON pa.participant_id = p.id
-      JOIN public.avatars a ON pa.avatar_id = a.id
+      FROM participant_avatars pa
+      JOIN participants p ON pa.participant_id = p.id
+      JOIN avatars a ON pa.avatar_id = a.id
       WHERE pa.id = $1
     `;
     

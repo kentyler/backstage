@@ -15,7 +15,7 @@ import { pool } from '../connection.js';
 export async function deleteParticipantAvatar(id, customPool = pool) {
   try {
     const query = `
-      DELETE FROM public.participant_avatars
+      DELETE FROM participant_avatars
       WHERE id = $1
       RETURNING id, participant_id, avatar_id, created_at, created_by_participant_id
     `;

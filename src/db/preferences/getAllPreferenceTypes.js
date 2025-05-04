@@ -15,7 +15,7 @@ export async function getAllPreferenceTypes(customPool = pool) {
   try {
     const query = `
       SELECT id, name, description, created_at, updated_at
-      FROM public.preference_types
+      FROM preference_types
       ORDER BY name
     `;
 

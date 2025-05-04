@@ -510,7 +510,7 @@
     // Function to fetch conversations for a group
     async function fetchConversations(groupId) {
       try {
-        const url = `/api/group-conversations/by-group/${groupId}`;
+        const url = `/api/grp-cons/by-group/${groupId}`;
         console.log(`Fetching conversations from: ${url}`);
         
         const res = await fetch(url, {
@@ -584,7 +584,7 @@
       if (!name) return; // User cancelled
       
       try {
-        const res = await fetch('/api/group-conversations', {
+        const res = await fetch('/api/grp-cons', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -1131,7 +1131,7 @@
         });
         
         // Send the comment to the server
-        const response = await fetch('/api/group-conversation-avatar-turns/comment', {
+        const response = await fetch('/api/grp-con-avatar-turns/comment', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

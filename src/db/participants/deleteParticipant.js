@@ -23,7 +23,7 @@ export async function deleteParticipant(id, pool = defaultPool) {
     // }
 
     const query = `
-      DELETE FROM public.participants
+      DELETE FROM participants
       WHERE id = $1
     `;
     const values = [id];

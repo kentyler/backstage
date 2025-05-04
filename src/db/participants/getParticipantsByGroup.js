@@ -24,8 +24,8 @@ export async function getParticipantsByGroup(groupId, pool = defaultPool) {
         p.email,
         p.created_at,
         pg.role
-      FROM public.participants p
-      JOIN public.participant_groups pg ON p.id = pg.participant_id
+      FROM participants p
+      JOIN participant_groups pg ON p.id = pg.participant_id
       WHERE pg.group_id = $1
       ORDER BY p.id
     `;

@@ -30,7 +30,7 @@ export async function updateGroup(groupId, updates = {}) {
   }
   
   const query = `
-    UPDATE public.groups
+    UPDATE groups
     SET ${setClauses.join(', ')}
     WHERE id = $1
     RETURNING id, name, created_at

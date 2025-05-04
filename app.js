@@ -39,9 +39,9 @@ app.use(setClientSchema);
 app.use('/api/groups', groupRoutes);
 app.use('/api/participants', participantRoutes);
 app.post('/api/participants/login', loginHandler);
-app.use('/api/group-conversations',                         grpConRoutes);
+app.use('/api/grp-cons',                                    grpConRoutes);
 app.use('/api/grp-con-avatars',                             grpConAvatarRoutes);
-app.use('/api/group-conversation-avatar-turns',             grpConAvatarTurnsRoutes);
+app.use('/api/grp-con-avatar-turns',                        grpConAvatarTurnsRoutes);
 app.use('/api/conversations',                               conversationsRoutes);
 app.use(
   '/api/grp-con-avatar-turn-relationships',

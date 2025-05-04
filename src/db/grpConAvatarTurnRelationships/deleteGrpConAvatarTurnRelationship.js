@@ -8,7 +8,7 @@ import { pool } from '../connection.js';
  */
 export async function deleteGrpConAvatarTurnRelationship(id) {
   const sql = `
-    DELETE FROM public.grp_con_avatar_turn_relationships
+    DELETE FROM grp_con_avatar_turn_relationships
      WHERE id = $1
   `;
   const { rowCount } = await pool.query(sql, [id]);

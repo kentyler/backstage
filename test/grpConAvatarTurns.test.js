@@ -22,7 +22,7 @@ let convId;
 // Clean up leftover turns and conversations
 async function cleanupConversation(id) {
   await pool.query(
-    'DELETE FROM public.grp_con_avatar_turns WHERE grp_con_id = $1',
+    'DELETE FROM grp_con_avatar_turns WHERE grp_con_id = $1',
     [id]
   );
   await deleteGrpCon(id);

@@ -9,7 +9,7 @@ import { pool } from '../connection.js';
 export async function getGrpConAvatarTurnRelationshipsByTurn(turnId) {
   const sql = `
     SELECT id, turn_id, target_turn_id, turn_relationship_type_id, created_at
-      FROM public.grp_con_avatar_turn_relationships
+      FROM grp_con_avatar_turn_relationships
      WHERE turn_id = $1
      ORDER BY id
   `;

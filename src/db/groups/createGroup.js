@@ -14,7 +14,7 @@ import { pool } from '../connection.js';
  */
 export async function createGroup(name) {
   const query = `
-    INSERT INTO public.groups (name)
+    INSERT INTO groups (name)
     VALUES ($1)
     RETURNING id, name, created_at
   `;

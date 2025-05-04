@@ -14,7 +14,7 @@ import { pool } from '../connection.js';
  */
 export async function deleteGroup(groupId) {
   const query = `
-    DELETE FROM public.groups
+    DELETE FROM groups
     WHERE id = $1
   `;
   const result = await pool.query(query, [groupId]);

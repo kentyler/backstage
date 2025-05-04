@@ -87,7 +87,7 @@ describe('Participant Database Integration Tests', () => {
     for (const id of createdParticipantIds) {
       try {
         // Use direct pool query for cleanup to avoid potential issues with the function
-        await testPool.query('DELETE FROM public.participants WHERE id = $1', [id]);
+        await testPool.query('DELETE FROM participants WHERE id = $1', [id]);
         console.log(`Cleaned up test participant ID ${id}`);
       } catch (error) {
         console.error(`Failed to clean up test participant ID ${id}: ${error.message}`);

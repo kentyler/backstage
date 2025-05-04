@@ -15,7 +15,7 @@ import { pool } from '../connection.js';
 export async function getGroupByName(name) {
   const query = `
     SELECT id, name, created_at
-    FROM public.groups
+    FROM groups
     WHERE name = $1
   `;
   const result = await pool.query(query, [name]);

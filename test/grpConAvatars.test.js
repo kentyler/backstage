@@ -21,7 +21,7 @@ let convId;
 async function cleanupConversation(id) {
   // delete all avatar links
   await pool.query(
-    `DELETE FROM public.grp_con_avatars
+    `DELETE FROM grp_con_avatars
        WHERE grp_con_id = $1`,
     [id]
   );

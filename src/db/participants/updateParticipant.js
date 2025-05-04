@@ -24,7 +24,7 @@ export async function updateParticipant(id, updates, createdByParticipantId = nu
   try {
     // Check if the participant exists
     const existingParticipant = await pool.query(
-      'SELECT * FROM public.participants WHERE id = $1',
+      'SELECT * FROM participants WHERE id = $1',
       [id]
     );
 
@@ -35,7 +35,7 @@ export async function updateParticipant(id, updates, createdByParticipantId = nu
     // Check if email exists (if updating email)
     if (updates.email) {
       const existingEmail = await pool.query(
-        'SELECT id FROM public.participants WHERE email = $1 AND id != $2',
+        'SELECT id FROM participants WHERE email = $1 AND id != $2',
         [updates.email, id]
       );
 
@@ -78,7 +78,7 @@ export async function updateParticipant(id, updates, createdByParticipantId = nu
 
     // Construct final query
     const query = `
-      UPDATE public.participants
+      UPDATE participants
       SET ${setStatements.join(', ')}
       WHERE id = $${paramCount}
       RETURNING *

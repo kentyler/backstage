@@ -26,7 +26,7 @@ let convId, turnA, turnB;
  */
 async function cleanup() {
   await pool.query(
-    'DELETE FROM public.grp_con_avatar_turn_relationships WHERE turn_id = $1 OR turn_id = $2',
+    'DELETE FROM grp_con_avatar_turn_relationships WHERE turn_id = $1 OR turn_id = $2',
     [turnA.id, turnB.id]
   );
   await deleteGrpConAvatarTurn(turnA.id);

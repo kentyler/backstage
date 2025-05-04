@@ -22,7 +22,7 @@ export async function createParticipantAvatar(
 ) {
   try {
     const query = `
-      INSERT INTO public.participant_avatars
+      INSERT INTO participant_avatars
         (participant_id, avatar_id, created_by_participant_id)
       VALUES ($1, $2, $3)
       RETURNING id, participant_id, avatar_id, created_at, created_by_participant_id

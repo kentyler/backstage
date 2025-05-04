@@ -15,7 +15,7 @@ describe('Group Functions', () => {
   beforeEach(async () => {
     // Remove any existing test group by name
     await pool.query(
-      'DELETE FROM public.groups WHERE name = $1',
+      'DELETE FROM groups WHERE name = $1',
       [testGroupName]
     );
     // Create new test group
@@ -26,7 +26,7 @@ describe('Group Functions', () => {
   afterEach(async () => {
     // Clean up test group by ID
     await pool.query(
-      'DELETE FROM public.groups WHERE id = $1',
+      'DELETE FROM groups WHERE id = $1',
       [testGroupId]
     );
   });

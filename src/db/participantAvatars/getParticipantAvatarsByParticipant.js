@@ -23,8 +23,8 @@ export async function getParticipantAvatarsByParticipant(participantId, customPo
         pa.created_by_participant_id,
         a.name AS avatar_name,
         a.instruction_set
-      FROM public.participant_avatars pa
-      JOIN public.avatars a ON pa.avatar_id = a.id
+      FROM participant_avatars pa
+      JOIN avatars a ON pa.avatar_id = a.id
       WHERE pa.participant_id = $1
       ORDER BY pa.created_at DESC
     `;

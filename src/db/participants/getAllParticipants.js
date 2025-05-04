@@ -17,7 +17,7 @@ import { pool as defaultPool } from '../connection.js';
 export async function getAllParticipants(pool = defaultPool) {
   try {
     const query = `
-      SELECT * FROM public.participants
+      SELECT * FROM participants
       ORDER BY id
     `;
 
