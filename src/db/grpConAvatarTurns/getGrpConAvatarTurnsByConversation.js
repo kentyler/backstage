@@ -46,7 +46,7 @@ export async function getGrpConAvatarTurnsByConversation(conversationId, schemaO
   }
   
   const query = `
-    SELECT id, grp_con_id, avatar_id, turn_index, content_text, content_vector, created_at
+    SELECT id, grp_con_id, avatar_id, turn_index, content_text, content_vector, created_at, turn_kind_id
       FROM grp_con_avatar_turns
      WHERE grp_con_id = $1
   ORDER BY turn_index

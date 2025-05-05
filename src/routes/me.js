@@ -8,6 +8,7 @@ import express from 'express';
 import { authWithSchema } from '../middleware/authWithSchema.js';
 import { getParticipantById } from '../db/participants/index.js';
 import { getPreferenceWithFallback } from '../db/preferences/getPreferenceWithFallback.js';
+import { getAvailableLLMs, getLLMId } from '../services/llmService.js';
 
 const router = express.Router();
 
@@ -68,12 +69,35 @@ router.get('/', authWithSchema, async (req, res) => {
       });
     }
     
-    // Return both the JWT payload and participant details
+    // Get the participant's current LLM ID from preferences
+    let currentLLMId = null;
+    try {
+      currentLLMId = await getLLMId(participantId, null, schema);
+      console.log(`Retrieved current LLM ID for participant ${participantId}: ${currentLLMId}`);
+      safeParticipant.current_llm_id = currentLLMId;
+    } catch (llmError) {
+      console.error(`Error retrieving current LLM ID for participant ${participantId}:`, llmError.message);
+      // Don't fail the request if we can't get the LLM ID, just log the error
+    }
+    
+    // Get available LLMs for the client schema
+    let availableLLMs = [];
+    try {
+      // Use the schema name as the subdomain for the getAvailableLLMs function
+      availableLLMs = await getAvailableLLMs(schema);
+      console.log(`Retrieved ${availableLLMs.length} available LLMs for schema ${schema}`);
+    } catch (llmsError) {
+      console.error(`Error retrieving available LLMs for schema ${schema}:`, llmsError.message);
+      // Don't fail the request if we can't get the available LLMs, just log the error
+    }
+    
+    // Return the JWT payload, participant details, and available LLMs
     res.json({ 
       user: {
         ...req.user,
         participant: safeParticipant
-      }
+      },
+      availableLLMs: availableLLMs
     });
   } catch (error) {
     console.error('Error fetching participant details:', error);

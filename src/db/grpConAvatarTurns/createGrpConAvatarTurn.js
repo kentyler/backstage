@@ -7,7 +7,7 @@ const VECTOR_DIM = 1536;
 // Turn kind IDs
 export const TURN_KIND = {
   REGULAR: 1,
-  COMMENT: 2
+  COMMENT: 3
 };
 
 function normalizeVector(arr) {

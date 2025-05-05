@@ -70,6 +70,10 @@
     📄 app_20250430084002.js
     📄 app_20250501094537.js
     📄 app_20250502094940.js
+    📄 app_20250503133315.js
+    📄 app_20250503142123.js
+    📄 app_20250503214242.js
+    📄 app_20250504152228.js
     📄 build-tree_20250418125243.js
     📄 build-tree_20250418125456.js
     📄 cli_20250425095025.js
@@ -106,6 +110,7 @@
       📄 conversation-test_20250501130810.html
       📄 conversation-test_20250502100802.html
       📄 conversation-test_20250502100822.html
+      📄 conversation-test_20250503111107.html
       📄 forgot-password_20250428130813.html
       📄 forgot-password_20250428143806.html
       📄 index_20250428144600.html
@@ -152,6 +157,26 @@
       📄 index_20250502172557.html
       📄 index_20250502172828.html
       📄 index_20250502172907.html
+      📄 index_20250503111240.html
+      📄 index_20250503111318.html
+      📄 index_20250503111344.html
+      📄 index_20250503111422.html
+      📄 index_20250503111710.html
+      📄 index_20250503112011.html
+      📄 index_20250503112247.html
+      📄 index_20250503114210.html
+      📄 index_20250503114830.html
+      📄 index_20250503114900.html
+      📄 index_20250503115227.html
+      📄 index_20250503120014.html
+      📄 index_20250503120548.html
+      📄 index_20250503123933.html
+      📄 index_20250503124004.html
+      📄 index_20250504152325.html
+      📄 index_20250504152354.html
+      📄 index_20250504152413.html
+      📄 index_20250505091344.html
+      📄 index_20250505091414.html
       📄 login_20250428130803.html
       📄 login_20250428143715.html
       📄 login_20250428151559.html
@@ -160,6 +185,10 @@
     📁 scripts/
       📄 check-env_20250418163733.js
       📄 check-env_20250418163746.js
+      📄 create-client-schema_20250503134248.js
+      📄 create-client-schema_20250503141342.js
+      📄 fix-sequences_20250503145207.js
+      📄 fix-sequences_20250503145811.js
       📄 neontest_20250416160043.js
       📄 neontest_20250416160044.js
       📄 neontest_20250416160436.js
@@ -195,6 +224,24 @@
     📄 server_20250501184850.js
     📄 server_20250501184918.js
     📄 server_20250502121652.js
+    📄 server_20250503123540.js
+    📄 server_20250503123615.js
+    📄 server_20250503141736.js
+    📄 server_20250503142143.js
+    📄 server_20250503142640.js
+    📄 server_20250504172004.js
+    📄 server_20250504172038.js
+    📄 server_20250504172233.js
+    📄 server_20250504172331.js
+    📄 server_20250504172743.js
+    📄 server_20250504172925.js
+    📄 server_20250504173902.js
+    📄 server_20250504174121.js
+    📄 server_20250504174230.js
+    📄 server_20250504215157.js
+    📄 server_20250504215842.js
+    📄 server_20250504220132.js
+    📄 server_20250504220638.js
     📁 sql-scripts/
       📄 add-avatar-scopes-fk-in-avatar_20250417152703
       📄 add-avatar-scopes-fk-in-avatar_20250417152712
@@ -210,10 +257,22 @@
       📄 add-participant-avatar-table_20250429121640.txt
       📄 change-preference-value-to-bigint_20250502122452.sql
       📄 change-preference-value-to-bigint_20250502171331.sql
+      📄 create-client-schema_20250503133441.sql
+      📄 create-client-schema_20250503141306.sql
+      📄 create-client-schema_20250503145317.sql
+      📄 create-group-types-add-fk-to-groups_20250504124753.sql
+      📄 create-group-types-add-fk-to-groups_20250504124754.sql
+      📄 fix-sequences_20250503145117.sql
+      📄 fix-sequences_20250503145515.sql
+      📄 fix-sequences_20250503145547.sql
+      📄 fix-sequences_20250503145734.sql
       📄 initial-tables_20250417085027
       📄 initial-tables_20250418163452
       📄 remove-participant-columns_20250502112650.sql
       📄 remove-participant-columns_20250502113116.sql
+      📄 setup-multi-tenancy_20250503135108.sql
+      📄 setup-multi-tenancy_20250503135408.sql
+      📄 setup-multi-tenancy_20250503135712.sql
     📁 src/
       📁 controllers/
         📁 participants/
@@ -233,6 +292,15 @@
           📄 loginHandler_20250501182847.js
           📄 loginHandler_20250502094818.js
           📄 loginHandler_20250502113227.js
+          📄 loginHandler_20250503113810.js
+          📄 loginHandler_20250503114110.js
+          📄 loginHandler_20250503133255.js
+          📄 loginHandler_20250503143524.js
+          📄 loginHandler_20250504151618.js
+          📄 loginHandler_20250504151703.js
+          📄 loginHandler_20250504151831.js
+          📄 logoutHandler_20250430104613.js
+          📄 logoutHandler_20250504151903.js
       📁 db/
         📄 connection_20250415150849.js
         📄 connection_20250415150951.js
@@ -262,6 +330,10 @@
         📄 connection_20250419094142.js
         📄 connection_20250422160041.js
         📄 connection_20250422160124.js
+        📄 connection_20250503140048.js
+        📄 connection_20250503142941.js
+        📄 connection_20250503143135.js
+        📄 connection_20250504173957.js
         📁 group/
           📄 createGroup_20250415145537.js
           📄 createGroup_20250419094624.js
@@ -382,43 +454,81 @@
           📄 createGroup_20250419095810.js
           📄 createGroup_20250501153728.js
           📄 createGroup_20250501185134.js
+          📄 createGroup_20250503165348.js
+          📄 deleteGroup_20250419095745.js
+          📄 deleteGroup_20250503165348.js
           📄 getAllGroups_20250419095624.js
           📄 getAllGroups_20250501153552.js
           📄 getAllGroups_20250501185230.js
+          📄 getAllGroups_20250503143359.js
           📄 getGroupById_20250419095657.js
           📄 getGroupById_20250501153509.js
           📄 getGroupById_20250501185213.js
+          📄 getGroupById_20250503165348.js
+          📄 getGroupById_20250504222739.js
+          📄 getGroupById_20250505085826.js
+          📄 getGroupByName_20250419095712.js
+          📄 getGroupByName_20250503165348.js
           📄 getGroupsByParticipant_20250430150731.js
           📄 getGroupsByParticipant_20250501153642.js
           📄 getGroupsByParticipant_20250501185249.js
+          📄 getGroupsByParticipant_20250503150154.js
+          📄 getGroupsByParticipant_20250504222606.js
           📄 index_20250422155221.js
           📄 index_20250422155230.js
           📄 index_20250430150816.js
           📄 updateGroup_20250419095731.js
           📄 updateGroup_20250501153817.js
           📄 updateGroup_20250501185157.js
+          📄 updateGroup_20250503165348.js
+        📁 grpConAvatars/
+          📄 createGrpConAvatar_20250429125745.js
+          📄 createGrpConAvatar_20250503153854.js
+          📄 deleteGrpConAvatar_20250429134554.js
+          📄 deleteGrpConAvatar_20250503154129.js
+          📄 getGrpConAvatarsByConversation_20250429134426.js
+          📄 getGrpConAvatarsByConversation_20250503153930.js
+          📄 getGrpConAvatarsByConversation_20250503153931.js
+          📄 getGrpConsByAvatar_20250429134504.js
+          📄 getGrpConsByAvatar_20250503154008.js
         📁 grpConAvatarTurnRelationships/
           📄 createGroupConversationAvatarTurnRelationship_20250423131825.js
           📄 createGroupConversationAvatarTurnRelationship_20250429155141.js
+          📄 createGrpConAvatarTurnRelationship_20250429155140.js
+          📄 createGrpConAvatarTurnRelationship_20250503165348.js
           📄 deleteGroupConversationAvatarTurnRelationship_20250423131352.js
           📄 deleteGroupConversationAvatarTurnRelationship_20250429155214.js
+          📄 deleteGrpConAvatarTurnRelationship_20250429155213.js
+          📄 deleteGrpConAvatarTurnRelationship_20250503165348.js
           📄 getGroupConversationAvatarTurnRelationshipById_20250423131724.js
           📄 getGroupConversationAvatarTurnRelationshipById_20250429155254.js
           📄 getGroupConversationAvatarTurnRelationshipsByTurn_20250423131619.js
           📄 getGroupConversationAvatarTurnRelationshipsByTurn_20250429155326.js
+          📄 getGrpConAvatarTurnRelationshipById_20250429155253.js
+          📄 getGrpConAvatarTurnRelationshipById_20250503165348.js
+          📄 getGrpConAvatarTurnRelationshipsByTurn_20250429155325.js
+          📄 getGrpConAvatarTurnRelationshipsByTurn_20250503165348.js
           📄 index_20250423131925.js
           📄 index_20250429211011.js
           📄 index_20250429215131.js
           📄 updateGroupConversationAvatarTurnRelationship_20250423131504.js
           📄 updateGroupConversationAvatarTurnRelationship_20250429211011.js
           📄 updateGroupConversationAvatarTurnRelationship_20250429213514.js
+          📄 updateGrpConAvatarTurnRelationship_20250429213513.js
+          📄 updateGrpConAvatarTurnRelationship_20250503165348.js
         📁 grpConAvatarTurns/
           📄 createGroupConversationAvatarTurn_20250423132327.js
           📄 createGroupConversationAvatarTurn_20250429155548.js
           📄 createGrpConAvatarTurn_20250429155547.js
           📄 createGrpConAvatarTurn_20250429214301.js
+          📄 createGrpConAvatarTurn_20250503085800.js
+          📄 createGrpConAvatarTurn_20250503110308.js
+          📄 createGrpConAvatarTurn_20250503155043.js
+          📄 createGrpConAvatarTurn_20250504153958.js
           📄 deleteGroupConversationAvatarTurn_20250423132334.js
           📄 deleteGroupConversationAvatarTurn_20250429211011.js
+          📄 deleteGrpConAvatarTurn_20250429211010.js
+          📄 deleteGrpConAvatarTurn_20250503155227.js
           📄 getGroupConversationAvatarTurnById_20250423132348.js
           📄 getGroupConversationAvatarTurnById_20250429155649.js
           📄 getGroupConversationAvatarTurnsByConversation_20250424094246.js
@@ -427,34 +537,49 @@
           📄 getGrpConAvatarTurnById_20250429214530.js
           📄 getGrpConAvatarTurnById_20250429215522.js
           📄 getGrpConAvatarTurnById_20250429215745.js
+          📄 getGrpConAvatarTurnById_20250503154937.js
+          📄 getGrpConAvatarTurnById_20250504153941.js
           📄 getGrpConAvatarTurnsByConversation_20250429211010.js
           📄 getGrpConAvatarTurnsByConversation_20250429212642.js
           📄 getGrpConAvatarTurnsByConversation_20250501121109.js
+          📄 getGrpConAvatarTurnsByConversation_20250503154357.js
+          📄 getGrpConAvatarTurnsByConversation_20250504153820.js
+          📄 getGrpConAvatarTurnsByConversation_20250504153921.js
           📄 index_20250423132244.js
           📄 index_20250429155903.js
           📄 index_20250429210944.js
           📄 updateGroupConversationAvatarTurn_20250423132359.js
           📄 updateGroupConversationAvatarTurn_20250429155930.js
           📄 updateGroupConversationAvatarTurn_20250429210934.js
+          📄 updateGrpConAvatarTurn_20250429210933.js
+          📄 updateGrpConAvatarTurn_20250503155320.js
         📁 grpCons/
           📄 createGroupConversation_20250423123855.js
           📄 createGroupConversation_20250429160011.js
           📄 createGroupConversation_20250429210911.js
+          📄 createGrpCon_20250429210910.js
+          📄 createGrpCon_20250503153632.js
           📄 deleteGroupConversation_20250423123614.js
           📄 deleteGroupConversation_20250429160044.js
+          📄 deleteGrpCon_20250429160043.js
+          📄 deleteGrpCon_20250503153757.js
           📄 getGroupConversationById_20250423123819.js
           📄 getGroupConversationById_20250429160122.js
           📄 getGroupConversationsByGroup_20250423123741.js
           📄 getGroupConversationsByGroup_20250429160159.js
           📄 getGrpConById_20250429160121.js
           📄 getGrpConById_20250429211920.js
+          📄 getGrpConById_20250503153555.js
           📄 getGrpConsByGroup_20250429160158.js
           📄 getGrpConsByGroup_20250430182019.js
+          📄 getGrpConsByGroup_20250503153405.js
           📄 index_20250423123524.js
           📄 index_20250429211011.js
           📄 updateGroupConversation_20250423123702.js
           📄 updateGroupConversation_20250429160317.js
           📄 updateGroupConversation_20250429212128.js
+          📄 updateGrpCon_20250429212127.js
+          📄 updateGrpCon_20250503153727.js
         📁 participant/
           📄 createParticipantHandler_20250418132455.js
           📄 createParticipantHandler_20250418132502.js
@@ -510,14 +635,45 @@
           📄 updateParticipant_20250418131612.js
           📄 updateParticipant_20250418145438.js
           📄 updateParticipant_20250418161926.js
+        📁 participantAvatars/
+          📄 createParticipantAvatar_20250429122324.js
+          📄 createParticipantAvatar_20250503165348.js
+          📄 deleteParticipantAvatar_20250429122507.js
+          📄 deleteParticipantAvatar_20250503165348.js
+          📄 getParticipantAvatarById_20250429122345.js
+          📄 getParticipantAvatarById_20250503165348.js
+          📄 getParticipantAvatarsByAvatar_20250429122444.js
+          📄 getParticipantAvatarsByAvatar_20250503165348.js
+          📄 getParticipantAvatarsByParticipant_20250429122413.js
+          📄 getParticipantAvatarsByParticipant_20250503165348.js
         📁 participantEvents/
           📄 createParticipantEvent_20250430083709.js
           📄 createParticipantEvent_20250430090227.js
+          📄 createParticipantEvent_20250503143601.js
+          📄 getParticipantEventById_20250430083738.js
+          📄 getParticipantEventById_20250503143646.js
           📄 getParticipantEventsByParticipant_20250430083813.js
           📄 getParticipantEventsByParticipant_20250430090421.js
+          📄 getParticipantEventsByParticipant_20250503143726.js
+          📄 getParticipantEventsByType_20250430083836.js
+          📄 getParticipantEventsByType_20250503143811.js
         📁 participants/
+          📄 createParticipantHandler_20250418145714.js
+          📄 createParticipantHandler_20250503170533.js
+          📄 createParticipant_20250419093749.js
+          📄 createParticipant_20250503165348.js
+          📄 deleteParticipant_20250418161940.js
+          📄 deleteParticipant_20250503165348.js
+          📄 getAllParticipants_20250418161851.js
+          📄 getAllParticipants_20250503165348.js
+          📄 getParticipantByEmail_20250418161827.js
+          📄 getParticipantByEmail_20250503143433.js
+          📄 getParticipantById_20250418161805.js
+          📄 getParticipantById_20250503133554.js
+          📄 getParticipantById_20250503133613.js
           📄 getParticipantsByGroup_20250418162031.js
           📄 getParticipantsByGroup_20250502113421.js
+          📄 getParticipantsByGroup_20250503165348.js
           📄 index_20250418145544.js
           📄 index_20250423131106.js
           📄 LogInHandler_20250418145917.js
@@ -530,13 +686,21 @@
           📄 updateParticipant_20250501182907.js
           📄 updateParticipant_20250501182928.js
           📄 updateParticipant_20250502113403.js
+          📄 updateParticipant_20250503165348.js
         📁 preferences/
+          📄 createGroupPreference_20250502094612.js
+          📄 createGroupPreference_20250503152924.js
           📄 createParticipantPreference_20250502094554.js
           📄 createParticipantPreference_20250502172356.js
+          📄 createParticipantPreference_20250503152822.js
+          📄 createSitePreference_20250502094630.js
+          📄 createSitePreference_20250503153152.js
           📄 getAllPreferenceTypes_20250502094537.js
           📄 getAllPreferenceTypes_20250502173601.js
           📄 getAllPreferenceTypes_20250502174856.js
           📄 getAllPreferenceTypes_20250502175608.js
+          📄 getAllPreferenceTypes_20250503165348.js
+          📄 getAllPreferenceTypes_20250504213959.js
           📄 getPreferenceTypeByName_20250502094524.js
           📄 getPreferenceTypeByName_20250502173519.js
           📄 getPreferenceTypeByName_20250502173543.js
@@ -544,14 +708,27 @@
           📄 getPreferenceTypeByName_20250502174702.js
           📄 getPreferenceTypeByName_20250502174832.js
           📄 getPreferenceTypeByName_20250502175551.js
+          📄 getPreferenceTypeByName_20250503133759.js
+          📄 getPreferenceTypeByName_20250504213945.js
           📄 getPreferenceWithFallback_20250502094654.js
           📄 getPreferenceWithFallback_20250502173820.js
           📄 getPreferenceWithFallback_20250502174935.js
           📄 getPreferenceWithFallback_20250502175533.js
+          📄 getPreferenceWithFallback_20250503133714.js
+          📄 getPreferenceWithFallback_20250503133816.js
+          📄 getPreferenceWithFallback_20250504214943.js
+          📄 getPreferenceWithFallback_20250504215335.js
       📁 middleware/
         📄 auth_20250424103749.js
         📄 auth_20250424103802.js
         📄 auth_20250428161325.js
+        📄 setClientSchema_20250503133158.js
+        📄 setClientSchema_20250503142054.js
+        📄 setClientSchema_20250504151647.js
+        📄 setClientSchema_20250504151808.js
+        📄 setClientSchema_20250504172259.js
+        📄 setClientSchema_20250504172315.js
+        📄 setClientSchema_20250504172531.js
       📁 routes/
         📄 conversations_20250501094448.js
         📄 conversations_20250501101642.js
@@ -596,6 +773,25 @@
         📄 conversations_20250502121313.js
         📄 conversations_20250502121505.js
         📄 conversations_20250502123234.js
+        📄 conversations_20250504221621.js
+        📄 conversations_20250504221710.js
+        📄 conversations_20250504221731.js
+        📄 conversations_20250504221753.js
+        📄 conversations_20250504221813.js
+        📄 conversations_20250504221900.js
+        📄 conversations_20250504221921.js
+        📄 conversations_20250504222004.js
+        📄 conversations_20250504222348.js
+        📄 conversations_20250505085847.js
+        📄 conversations_20250505090620.js
+        📄 conversations_20250505090634.js
+        📄 conversations_20250505090736.js
+        📄 conversations_20250505091126.js
+        📄 conversations_20250505091142.js
+        📄 conversations_20250505091211.js
+        📄 conversations_20250505091635.js
+        📄 conversations_20250505091706.js
+        📄 conversations_20250505091731.js
         📄 GroupConversationAvatars_20250423124957.js
         📄 GroupConversationAvatars_20250423124958.js
         📄 GroupConversationAvatars_20250423144059.js
@@ -620,13 +816,24 @@
         📄 groups_20250430150906.js
         📄 groups_20250501154057.js
         📄 groups_20250501185316.js
+        📄 groups_20250504222640.js
+        📄 grpConAvatars_20250429134654.js
+        📄 grpConAvatars_20250503154213.js
         📄 grpConAvatarTurnRelationships_20250424133245.js
         📄 grpConAvatarTurnRelationships_20250429211011.js
+        📄 grpConAvatarTurnRelationships_20250503154650.js
         📄 grpConAvatarTurns_20250423144057.js
         📄 grpConAvatarTurns_20250429135659.js
         📄 grpConAvatarTurns_20250501113828.js
+        📄 grpConAvatarTurns_20250503110404.js
+        📄 grpConAvatarTurns_20250503154538.js
+        📄 grpConAvatarTurns_20250504154404.js
+        📄 grpConAvatarTurns_20250504154647.js
         📄 grpCons_20250423144106.js
         📄 grpCons_20250429135441.js
+        📄 grpCons_20250503153438.js
+        📄 grpCons_20250503153500.js
+        📄 grpCons_20250503153519.js
         📄 me_20250428145032.js
         📄 me_20250428145039.js
         📄 me_20250428145704.js
@@ -634,6 +841,11 @@
         📄 me_20250428150000.js
         📄 me_20250428162141.js
         📄 me_20250430132221.js
+        📄 me_20250503113953.js
+        📄 me_20250503114032.js
+        📄 me_20250503133406.js
+        📄 me_20250503133638.js
+        📄 me_20250503133730.js
         📄 participantEvents_20250430083910.js
         📄 participantEvents_20250430091131.js
         📄 participants_20250418131937.js
@@ -658,6 +870,7 @@
         📄 preferences_20250502094903.js
         📄 preferences_20250502095425.js
         📄 preferences_20250502173920.js
+        📄 preferences_20250504222212.js
       📁 services/
         📄 authService_20250426101629.js
         📄 authService_20250426101630.js
@@ -681,6 +894,7 @@
         📄 embeddingService_20250501123347.js
         📄 embeddingService_20250501160606.js
         📄 embeddingService_20250501163400.js
+        📄 embeddingService_20250503142600.js
         📄 llmService_20250501162942.js
         📄 llmService_20250501182824.js
         📄 llmService_20250501190036.js
@@ -714,6 +928,20 @@
         📄 llmService_20250502152325.js
         📄 llmService_20250502152434.js
         📄 llmService_20250502152518.js
+        📄 llmService_20250503141651.js
+        📄 llmService_20250503142221.js
+        📄 llmService_20250503142248.js
+        📄 llmService_20250503142311.js
+        📄 llmService_20250503142333.js
+        📄 llmService_20250503142405.js
+        📄 llmService_20250503142434.js
+        📄 llmService_20250503142505.js
+        📄 llmService_20250503143021.js
+        📄 llmService_20250504211158.js
+        📄 llmService_20250504211238.js
+        📄 llmService_20250504211500.js
+        📄 llmService_20250504212513.js
+        📄 llmService_20250504213219.js
     📁 test/
       📄 group.test_20250415133948.js
       📄 group.test_20250415133954.js
@@ -722,6 +950,7 @@
       📄 group.test_20250419094340.js
       📄 group.test_20250419100142.js
       📄 group.test_20250423143423.js
+      📄 group.test_20250503165348.js
       📄 groupConversation.test_20250419111351.js
       📄 groupConversation.test_20250419111405.js
       📄 groupConversation.test_20250423143522.js
@@ -753,26 +982,32 @@
       📄 grpCon.test_20250423150345.js
       📄 grpCon.test_20250429210758.js
       📄 grpCon.test_20250429212446.js
+      📄 grpCon.test_20250503165348.js
       📄 grpConAvatars.test_20250424101258.js
       📄 grpConAvatars.test_20250429210555.js
       📄 grpConAvatars.test_20250429213151.js
       📄 grpConAvatars.test_20250429213257.js
+      📄 grpConAvatars.test_20250503165348.js
       📄 grpConAvatarTurnRelationships.test_20250429161357.js
       📄 grpConAvatarTurnRelationships.test_20250429211011.js
+      📄 grpConAvatarTurnRelationships.test_20250503165348.js
       📄 grpConAvatarTurns.test_20250429161024.js
       📄 grpConAvatarTurns.test_20250429211011.js
       📄 grpConAvatarTurns.test_20250429211722.js
       📄 grpConAvatarTurns.test_20250429214123.js
       📄 grpConAvatarTurns.test_20250429214729.js
       📄 grpConAvatarTurns.test_20250429215334.js
+      📄 grpConAvatarTurns.test_20250503165348.js
       📄 participant.integration.test_20250418161004.js
       📄 participant.integration.test_20250418161034.js
       📄 participant.integration.test_20250418161710.js
       📄 participant.integration.test_20250418162546.js
       📄 participant.integration.test_20250419091349.js
       📄 participant.integration.test_20250423144017.js
+      📄 participant.integration.test_20250503165348.js
       📄 participantEvents.test_20250430084930.js
       📄 participantEvents.test_20250430090656.js
+      📄 participantEvents.test_20250503144813.js
       📁 src/
         📁 db/
           📁 group/
@@ -816,6 +1051,7 @@
     📄 index.html
     📄 login.html
   📁 scripts/
+    📄 add-comments-feature.js
     📄 add-llm-avatar-id-to-groups.js
     📄 add-llm-config-to-avatars.js
     📄 add-preference-tables.js
@@ -823,17 +1059,35 @@
     📄 allow-null-participant-id.js
     📄 change-preference-value-to-bigint.js
     📄 check-env.js
+    📄 create-client-schema.js
     📄 fix-participant-events-sequence.js
+    📄 fix-sequences.js
+    📄 migrate-llms-to-public.js
+    📄 migrate-lookup-tables-to-public.js
     📄 neontest.js
+    📄 remove-non-lookup-tables-from-public.js
     📄 remove-participant-columns.js
     📄 rename-group-conversation-to-grp-con.js
+    📄 setup-multi-tenancy.js
     📄 test-db-connection.js
     📄 testConnection.mjs
     📄 update-max-tokens-in-llms.js
     📄 verify-preference-types.js
   📄 server.js
   📁 sql-scripts/
+    📄 add-comments-feature.sql
+    📄 append-llms-from-dev-to-public.sql
+    📄 copy-preference-types-to-public.sql
+    📄 create-client-schema.sql
+    📄 create-group-types-add-fk-to-groups.sql
+    📄 fix-sequences.sql
+    📄 migrate-llms-to-public.sql
+    📄 migrate-lookup-tables-to-public.sql
+    📄 remove-non-lookup-tables-from-public.sql
+    📄 setup-multi-tenancy.sql
   📁 src/
+    📁 config/
+      📄 schema.js
     📁 controllers/
       📁 participants/
         📄 loginHandler.js
@@ -914,6 +1168,8 @@
         📄 index.js
     📁 middleware/
       📄 auth.js
+      📄 authWithSchema.js
+      📄 setClientSchema.js
     📁 routes/
       📄 conversations.js
       📄 groups.js
@@ -930,7 +1186,10 @@
       📄 authService.js
       📄 embeddingService.js
       📄 llmService.js
+    📁 utils/
+      📄 clientSchema.js
   📁 test/
+    📄 comments.test.js
     📄 example.test.js
     📄 group.test.js
     📄 grpCon.test.js

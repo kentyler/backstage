@@ -25,7 +25,7 @@ export async function getPreferenceTypeByName(name, customPoolOrSchema = default
   try {
     const query = `
       SELECT id, name, description, created_at, updated_at
-      FROM preference_types
+      FROM public.preference_types
       WHERE name = $1
     `;
     const values = [name];

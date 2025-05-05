@@ -72,33 +72,33 @@ router.post('/comment', async (req, res, next) => {
     // Get all turns in the conversation to find the next turn below the parent
     const allTurns = await avatarTurns.getGrpConAvatarTurnsByConversation(conversationId, req.clientSchema);
     
-    // Sort turns by index in descending order (highest index first)
-    const sortedTurns = allTurns.sort((a, b) => Number(b.turn_index) - Number(a.turn_index));
+    // Sort turns by index in ascending order (lowest index first)
+    const sortedTurns = allTurns.sort((a, b) => Number(a.turn_index) - Number(b.turn_index));
     
     // Find the parent turn's position
     const parentIndex = Number(parentTurn.turn_index);
     
-    // Find the next turn below the parent (with lower index)
-    const lowerTurns = sortedTurns.filter(turn => Number(turn.turn_index) < parentIndex);
-    const nextLowerIndex = lowerTurns.length > 0 ? Number(lowerTurns[0].turn_index) : 0;
+    // Find the next turn above the parent (with higher index)
+    const higherTurns = sortedTurns.filter(turn => Number(turn.turn_index) > parentIndex);
+    const nextHigherIndex = higherTurns.length > 0 ? Number(higherTurns[0].turn_index) : parentIndex + 1;
     
-    // Find existing comments between parent and next lower turn
+    // Find existing comments between parent and next higher turn
     const existingComments = sortedTurns.filter(turn => 
-      Number(turn.turn_index) < parentIndex && 
-      Number(turn.turn_index) > nextLowerIndex &&
+      Number(turn.turn_index) > parentIndex && 
+      Number(turn.turn_index) < nextHigherIndex &&
       turn.turn_kind_id === TURN_KIND.COMMENT
     );
     
     // Calculate the new comment index
     let commentIndex;
     if (existingComments.length === 0) {
-      // No existing comments, place halfway between parent and next lower
-      commentIndex = (parentIndex + nextLowerIndex) / 2;
+      // No existing comments, place halfway between parent and next higher
+      commentIndex = (parentIndex + nextHigherIndex) / 2;
     } else {
-      // Find the highest comment index
+      // Find the highest comment index (furthest from parent)
       const highestCommentIndex = Math.max(...existingComments.map(c => Number(c.turn_index)));
-      // Place the new comment halfway between parent and highest comment
-      commentIndex = (parentIndex + highestCommentIndex) / 2;
+      // Place the new comment halfway between highest comment and next higher turn
+      commentIndex = (highestCommentIndex + nextHigherIndex) / 2;
     }
     
     // If contentVector is not provided, generate it from contentText

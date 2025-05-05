@@ -23,6 +23,8 @@ const router = express.Router();
  */
 router.get('/types', requireAuth, async (req, res) => {
   try {
+    // getAllPreferenceTypes doesn't accept a schema parameter, but we can pass a custom pool
+    // that's configured for the client schema
     const preferenceTypes = await getAllPreferenceTypes();
     res.json(preferenceTypes);
   } catch (error) {
@@ -46,7 +48,8 @@ router.get('/participant/by-name/:preferenceName', requireAuth, async (req, res)
     }
     
     const preference = await getPreferenceWithFallback(preferenceName, {
-      participantId
+      participantId,
+      schema: req.clientSchema
     });
     
     res.json(preference);
@@ -72,7 +75,8 @@ router.get('/:preferenceName', requireAuth, async (req, res) => {
     
     const preference = await getPreferenceWithFallback(preferenceName, {
       participantId,
-      groupId
+      groupId,
+      schema: req.clientSchema
     });
     
     res.json(preference);
@@ -97,7 +101,7 @@ router.post('/participant', requireAuth, async (req, res) => {
     }
     
     // Get the preference type ID
-    const preferenceType = await getPreferenceTypeByName(preferenceName);
+    const preferenceType = await getPreferenceTypeByName(preferenceName, req.clientSchema);
     if (!preferenceType) {
       return res.status(404).json({ error: `Preference type '${preferenceName}' not found` });
     }
@@ -106,7 +110,8 @@ router.post('/participant', requireAuth, async (req, res) => {
     const preference = await createParticipantPreference(
       participantId,
       preferenceType.id,
-      value
+      value,
+      req.clientSchema
     );
     
     res.json(preference);
@@ -167,7 +172,7 @@ router.post('/site', requireAuth, async (req, res) => {
     // TODO: Check if user is a super admin
     
     // Get the preference type ID
-    const preferenceType = await getPreferenceTypeByName(preferenceName);
+    const preferenceType = await getPreferenceTypeByName(preferenceName, req.clientSchema);
     if (!preferenceType) {
       return res.status(404).json({ error: `Preference type '${preferenceName}' not found` });
     }
@@ -175,7 +180,8 @@ router.post('/site', requireAuth, async (req, res) => {
     // Create or update the preference
     const preference = await createSitePreference(
       preferenceType.id,
-      value
+      value,
+      req.clientSchema
     );
     
     res.json(preference);

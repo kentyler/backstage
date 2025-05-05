@@ -60,16 +60,16 @@ export async function getLLMId(participantId = null, groupId = null, schema = nu
  */
 export async function getLLMConfig(llmId, schema = null) {
   try {
+    // Always query the public schema, but filter by subdomain field
     const query = `
       SELECT l.*, t.name as type_name, t.api_handler
-      FROM llms l
-      JOIN llm_types t ON l.type_id = t.id
+      FROM public.llms l
+      JOIN public.llm_types t ON l.type_id = t.id
       WHERE l.id = $1
     `;
     
-    // Use a schema-specific pool if a schema is provided
-    const schemaPool = schema ? createPool(schema) : pool;
-    const { rows } = await schemaPool.query(query, [llmId]);
+    // Use the default pool (which connects to the public schema)
+    const { rows } = await pool.query(query, [llmId]);
     
     if (rows.length > 0) {
       const llm = rows[0];
@@ -124,6 +124,7 @@ export async function getLLMConfig(llmId, schema = null) {
         max_tokens: llm.max_tokens, // This field now serves dual purpose: response length limit and context window size
         type_name: llm.type_name,
         api_handler: llm.api_handler,
+        subdomain: llm.subdomain, // Include the subdomain field
         // Add assistant_id directly if it's in the additional_config
         assistant_id: parsedAdditionalConfig.assistant_id,
         // Include the full additional_config
@@ -203,6 +204,44 @@ export async function getDefaultLLMConfig(schema = null) {
 }
 
 /**
+ * Get a list of available LLMs for a specific site
+ * 
+ * @param {string} subdomain - The subdomain of the site
+ * @returns {Promise<Array>} Array of available LLMs for the site
+ */
+export async function getAvailableLLMs(subdomain) {
+  try {
+    // Query the public.llms table with a compound WHERE clause
+    const query = `
+      SELECT l.*, t.name as type_name, t.api_handler
+      FROM public.llms l
+      JOIN public.llm_types t ON l.type_id = t.id
+      WHERE l.subdomain = 'public' OR l.subdomain = $1
+      ORDER BY l.name
+    `;
+    
+    // Use the default pool (which connects to the public schema)
+    const { rows } = await pool.query(query, [subdomain]);
+    
+    console.log(`Found ${rows.length} available LLMs for subdomain ${subdomain}`);
+    
+    // Return the list of available LLMs
+    return rows.map(llm => ({
+      id: llm.id,
+      name: llm.name,
+      provider: llm.provider,
+      model: llm.model,
+      type_name: llm.type_name,
+      subdomain: llm.subdomain,
+      is_public: llm.subdomain === 'public'
+    }));
+  } catch (error) {
+    console.error(`Error getting available LLMs for subdomain ${subdomain}:`, error);
+    return [];
+  }
+}
+
+/**
  * Get the LLM name based on the preference system
  * 
  * @param {number} [participantId=null] - The participant ID to get the LLM name for (optional)
@@ -222,15 +261,14 @@ export async function getLLMName(participantId = null, groupId = null, schema = 
     // Get the LLM ID from the preference (assuming it's stored as a number)
     const llmId = preference?.value || 1;
     
-    // Get the LLM name from the database
+    // Get the LLM name from the database (always from public schema)
     const query = `
-      SELECT name FROM llms
+      SELECT name FROM public.llms
       WHERE id = $1
     `;
     
-    // Use a schema-specific pool if a schema is provided
-    const schemaPool = schema ? createPool(schema) : pool;
-    const { rows } = await schemaPool.query(query, [llmId]);
+    // Use the default pool (which connects to the public schema)
+    const { rows } = await pool.query(query, [llmId]);
     
     if (rows.length > 0 && rows[0].name) {
       console.log(`Using LLM name from database: "${rows[0].name}" (ID: ${llmId}, source: ${preference?.source || 'default'})`);

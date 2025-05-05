@@ -4,6 +4,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self';">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+  <!-- X-Frame-Options removed: This header should be set server-side via Helmet middleware -->
   <title>Login</title>
   <style>
     body { font-family: sans-serif; padding: 2rem; max-width: 400px; margin: auto; }
@@ -11,48 +15,99 @@
     input { width: 100%; padding: .5rem; margin-top: .25rem; }
     button { padding: .75rem 1.5rem; }
     .error { color: red; margin-top: 1rem; }
+    .form-group { margin-bottom: 1rem; }
   </style>
 </head>
 <body>
   <h1>Login</h1>
-  <form id="login-form">
-    <label>
-      Email
+  <form id="login-form" method="POST" action="/api/participants/login">
+    <input type="hidden" id="csrf-token" name="_csrf">
+    <div class="form-group">
+      <label for="email">Email</label>
       <input type="email" id="email" name="email" required autocomplete="username" />
-    </label>
-    <label>
-      Password
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
       <input type="password" id="password" name="password" required autocomplete="current-password" />
-    </label>
+    </div>
     <button type="submit">Log In</button>
     <p><a href="forgot-password.html">Forgot your password?</a></p>
     <div id="error" class="error" aria-live="assertive"></div>
   </form>
 
   <script>
+    // Get the API base URL - using relative URL to avoid port issues
+    function getApiBaseUrl() {
+      // Always use relative URLs to avoid port confusion
+      return '/api';
+    }
+
+    // Fetch CSRF token when page loads
+    async function fetchCsrfToken() {
+      try {
+        const apiBaseUrl = getApiBaseUrl();
+        console.log(`Fetching CSRF token from: ${apiBaseUrl}/csrf-token`);
+        
+        const response = await fetch(`${apiBaseUrl}/csrf-token`, { 
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('csrf-token').value = data.csrfToken;
+        }
+      } catch (error) {
+        console.error('Failed to fetch CSRF token:', error);
+      }
+    }
+
+    // Call this when page loads
+    document.addEventListener('DOMContentLoaded', fetchCsrfToken);
+
     document.getElementById('login-form').addEventListener('submit', async event => {
       event.preventDefault();
       const errorEl = document.getElementById('error');
       errorEl.textContent = '';
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
+      const csrfToken = document.getElementById('csrf-token').value;
 
       try {
-        const res = await fetch('/api/participants/login', {
+        const apiBaseUrl = getApiBaseUrl();
+        console.log(`Submitting login to: ${apiBaseUrl}/participants/login`);
+        
+        const res = await fetch(`${apiBaseUrl}/participants/login`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken
+          },
           credentials: 'include',
           body: JSON.stringify({ email, password })
         });
 
+        // Log the response for debugging
+        console.log('Login response status:', res.status);
+        console.log('Login response headers:', res.headers);
+        
+        // Check if the response includes a Set-Cookie header
+        const setCookie = res.headers.get('Set-Cookie');
+        console.log('Set-Cookie header:', setCookie);
+        
         if (!res.ok) {
           const payload = await res.json();
           errorEl.textContent = payload.error || payload.message || 'Login failed';
           return;
         }
 
+        // Get the response data
+        const data = await res.json();
+        console.log('Login response data:', data);
+
         // On success, redirect to root (SPA or dashboard)
-        window.location.href = '/';
+        // Use relative URL to avoid port confusion
+        const rootUrl = '/';
+        console.log('Redirecting to:', rootUrl);
+        window.location.href = rootUrl;
       } catch (err) {
         console.error(err);
         errorEl.textContent = 'An unexpected error occurred. Please try again.';

@@ -17,6 +17,16 @@ Assumes `app` is exported as default from app.js.
 Boot the HTTP server on the specified port.
 ```
 
+## C:\Users\Ken\Desktop\back-stage\scripts\add-comments-feature.js
+
+```
+@file scripts/add-comments-feature.js
+@description Script to apply database changes for the comments feature
+This script:
+1. Changes the turn_index column in grp_con_avatar_turns from integer to numeric(10,2)
+2. Adds a new turn_kind for comments in the turn_kinds table
+```
+
 ## C:\Users\Ken\Desktop\back-stage\scripts\add-llm-config-to-avatars.js
 
 ```
@@ -54,12 +64,68 @@ Script to check the environment variables needed for database connection
 Run this script to verify your .env file is configured properly
 ```
 
+## C:\Users\Ken\Desktop\back-stage\scripts\create-client-schema.js
+
+```
+Script to create a client schema programmatically
+This script creates a new schema for a client and duplicates all tables
+from the dev schema to the client schema. The dev schema contains the
+latest tested changes and is used as the source for table structures.
+This approach allows for:
+1. Strong data isolation between clients
+2. Shared structure across all client schemas
+3. The public schema can still be used for shared data or as a template
+Usage: node scripts/create-client-schema.js <client_name>
+Example: node scripts/create-client-schema.js client1
+```
+
 ## C:\Users\Ken\Desktop\back-stage\scripts\fix-participant-events-sequence.js
 
 ```
 Script to fix the participant_events sequence
 This script executes the SQL in sql-scripts/fix-participant-events-sequence.sql
 to ensure the id column in participant_events has a properly attached sequence
+```
+
+## C:\Users\Ken\Desktop\back-stage\scripts\fix-sequences.js
+
+```
+Script to fix sequences in schemas
+Usage: node scripts/fix-sequences.js <schema_name>
+Example: node scripts/fix-sequences.js dev
+This script:
+1. Reads the SQL script from sql-scripts/fix-sequences.sql
+2. Executes it using the database connection
+3. Fixes sequences in the specified schema
+```
+
+## C:\Users\Ken\Desktop\back-stage\scripts\migrate-llms-to-public.js
+
+```
+Script to migrate the llms table from client schemas to the public schema
+This script runs the SQL script to migrate the llms table from client schemas to the public schema.
+It adds a 'subdomain' column to the llms table and sets it to the client schema name for each record.
+Usage: node scripts/migrate-llms-to-public.js
+```
+
+## C:\Users\Ken\Desktop\back-stage\scripts\migrate-lookup-tables-to-public.js
+
+```
+Script to migrate lookup tables to public schema
+This script runs the SQL script to migrate lookup tables from client schemas back to the public schema.
+It's designed to be run after the initial multi-tenancy setup when you want to switch to keeping
+lookup tables only in the public schema.
+Usage: node scripts/migrate-lookup-tables-to-public.js
+```
+
+## C:\Users\Ken\Desktop\back-stage\scripts\remove-non-lookup-tables-from-public.js
+
+```
+Script to remove non-lookup tables from public schema
+This script runs the SQL script to remove non-lookup tables from the public schema.
+It's designed to be run after the initial multi-tenancy setup and after migrating
+lookup tables to the public schema.
+Usage: node scripts/remove-non-lookup-tables-from-public.js
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\scripts\rename-group-conversation-to-grp-con.js
@@ -79,6 +145,16 @@ To use this script:
 3. Update the code in each file
 Note: This is a complex change that affects many parts of the codebase.
 It's recommended to make these changes incrementally and test thoroughly after each step.
+```
+
+## C:\Users\Ken\Desktop\back-stage\scripts\setup-multi-tenancy.js
+
+```
+Script to set up multi-tenancy programmatically
+This script runs the SQL script to set up schema-based multi-tenancy with:
+1. A 'dev' schema with all existing data from the public schema
+2. Three client schemas ('conflict_club', 'first_congregational', 'bsa') with only lookup table data
+Usage: node scripts/setup-multi-tenancy.js
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\scripts\test-db-connection.js
@@ -107,6 +183,32 @@ Script to verify preference types in the database
 This script checks if specific preference types exist and logs their properties
 ```
 
+## C:\Users\Ken\Desktop\back-stage\src\config\schema.js
+
+```
+@file src/config/schema.js
+@description Configuration for database schema selection
+This file provides functions for getting and setting the default schema
+to use for database operations. The schema can be configured via
+environment variables or set programmatically.
+```
+
+```
+Get the current default schema
+@returns {string} The current default schema
+```
+
+```
+Set the default schema
+@param {string} schema - The schema to use as default
+```
+
+```
+Get a connection pool for the specified schema
+@param {string} [schema=null] - The schema to use (optional, defaults to current default schema)
+@returns {Object} A connection pool for the specified schema
+```
+
 ## C:\Users\Ken\Desktop\back-stage\src\controllers\participants\loginHandler.js
 
 ```
@@ -124,6 +226,13 @@ Handles participant logout requests and clears the HttpOnly cookie
 ```
 Database connection module
 Provides a PostgreSQL connection pool for the application
+Supports schema-based multi-tenancy
+```
+
+```
+Creates a database connection pool with a specific schema search path
+@param {string} schema - The schema to use (defaults to 'public')
+@returns {Pool} - A PostgreSQL connection pool configured for the specified schema
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\src\db\groups\createGroup.js
@@ -164,6 +273,7 @@ Deletes a group from the database.
 ```
 Retrieves all groups from the database.
 *
+@param {string} [schema=null] - The schema to use for database operations (optional)
 @returns {Promise<Array<{id: number, name: string, created_at: string}>>} Array of group records.
 ```
 
@@ -178,6 +288,7 @@ Retrieves all groups from the database.
 Retrieves a single group by its ID.
 *
 @param {number} id - The ID of the group to retrieve.
+@param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
 @returns {Promise<{id: number, name: string, created_at: string}|null>} The group record, or null if not found.
 ```
 
@@ -203,13 +314,13 @@ Retrieves a single group by its name.
 ```
 
 ```
-The database connection pool
+The database connection pool and schema utilities
 ```
 
 ```
 Retrieves all groups that a specific participant belongs to
 @param {number} participantId - The ID of the participant
-@param {object} [pool=defaultPool] - Database connection pool (for testing)
+@param {string|object} [schemaOrPool=null] - Database schema name or connection pool
 @returns {Promise<Array<{id: number, name: string, created_at: string, role: string}>>} Array of group records
 @throws {Error} If a database error occurs
 ```
@@ -242,6 +353,7 @@ Inserts a new row into grp_con_avatars.
 *
 @param {number} conversationId
 @param {number} avatarId
+@param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
 @returns {Promise<{grp_con_id: number, avatar_id: number, added_at: string}>}
 ```
 
@@ -257,6 +369,7 @@ Deletes the link between an avatar and a conversation.
 *
 @param {number} conversationId
 @param {number} avatarId
+@param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
 @returns {Promise<boolean>} true if deleted, false otherwise
 ```
 
@@ -271,6 +384,7 @@ Deletes the link between an avatar and a conversation.
 Fetches avatar entries for one conversation.
 *
 @param {number} conversationId
+@param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
 @returns {Promise<Array<{avatar_id: number, added_at: string}>>}
 ```
 
@@ -285,6 +399,7 @@ Fetches avatar entries for one conversation.
 Fetches conversation entries for one avatar.
 *
 @param {number} avatarId
+@param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
 @returns {Promise<Array<{grp_con_id: number, added_at: string}>>}
 ```
 
@@ -331,12 +446,62 @@ Updates the relationship type of an existing relationship.
 @returns {Promise<object|null>}
 ```
 
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConAvatarTurns\createGrpConAvatarTurn.js
+
+```
+Creates a new avatar turn in a group conversation
+@param {number} conversationId - The ID of the conversation
+@param {number} avatarId - The ID of the avatar
+@param {number|string} turnIndex - The index of the turn (can be decimal for comments)
+@param {string} contentText - The text content of the turn
+@param {Array} contentVector - The vector representation of the content
+@param {number} [turnKindId=TURN_KIND.REGULAR] - The kind of turn (regular or comment)
+@param {string|object} schemaOrPool - Either a schema name or a pool object
+@returns {Promise<Object>} The created turn
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConAvatarTurns\deleteGrpConAvatarTurn.js
+
+```
+Delete a group conversation avatar turn by ID
+@param {number} id - The ID of the turn to delete
+@param {string|object} schemaOrPool - Either a schema name or a pool object
+@returns {Promise<boolean>} True if the turn was deleted, false if not found
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConAvatarTurns\getGrpConAvatarTurnById.js
+
+```
+Get a group conversation avatar turn by ID
+@param {number} id - The ID of the turn to retrieve
+@param {string|object} schemaOrPool - Either a schema name or a pool object
+@returns {Promise<object|null>} The turn object or null if not found
+```
+
 ## C:\Users\Ken\Desktop\back-stage\src\db\grpConAvatarTurns\getGrpConAvatarTurnsByConversation.js
 
 ```
 Parse a vector string from the database into an array of numbers
 @param {string} vectorStr - The vector string from the database (e.g., "[0.1,0.2,0.3]")
 @returns {number[]} The parsed vector as an array of numbers
+```
+
+```
+Get all avatar turns for a specific conversation
+@param {number} conversationId - The ID of the conversation
+@param {string|object} [schemaOrPool=null] - Schema name or custom pool
+@returns {Promise<Array>} List of avatar turns for the conversation
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConAvatarTurns\updateGrpConAvatarTurn.js
+
+```
+Update a group conversation avatar turn
+@param {number} id - The ID of the turn to update
+@param {string} newText - The new text content
+@param {Array<number>} newVector - The new vector content
+@param {string|object} schemaOrPool - Either a schema name or a pool object
+@returns {Promise<object>} The updated turn
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\src\db\grpCons\createGrpCon.js
@@ -346,6 +511,7 @@ Creates a new conversation under a group.
 @param {number} groupId - The ID of the group.
 @param {string} name - The conversation name.
 @param {string} description - The conversation description.
+@param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
 @returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}>}
 ```
 
@@ -354,6 +520,7 @@ Creates a new conversation under a group.
 ```
 Deletes a conversation by its ID.
 @param {number} id - The conversation ID.
+@param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
 @returns {Promise<boolean>} True if deleted, false otherwise.
 ```
 
@@ -362,6 +529,7 @@ Deletes a conversation by its ID.
 ```
 Retrieves a conversation by its ID.
 @param {number} id - The conversation ID.
+@param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
 @returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}|null>}
 ```
 
@@ -370,6 +538,7 @@ Retrieves a conversation by its ID.
 ```
 Retrieves conversations for a given group, ordered by creation date (newest first) and limited to 50.
 @param {number} groupId - The group ID.
+@param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
 @returns {Promise<Array<{id: number, group_id: number, name: string, description: string, created_at: string}>>}
 ```
 
@@ -380,6 +549,7 @@ Updates a conversation's name and description.
 @param {number} id - The conversation ID.
 @param {string} newName - The new conversation name.
 @param {string} newDescription - The new conversation description.
+@param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
 @returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}|null>}
 ```
 
@@ -484,7 +654,7 @@ Creates a new participant event in the database
 @param {number} participantId - The ID of the participant
 @param {number} eventTypeId - The ID of the event type
 @param {object} [details=null] - Optional JSON details about the event
-@param {object} [customPool=pool] - Database connection pool (for testing)
+@param {string|object} [schemaOrPool=null] - Schema name or database connection pool
 @returns {Promise<object>} The newly created participant event record
 @throws {Error} If an error occurs during creation
 ```
@@ -499,7 +669,7 @@ Creates a new participant event in the database
 ```
 Retrieves a participant event by its ID
 @param {number} id - The ID of the participant event to retrieve
-@param {object} [customPool=pool] - Database connection pool (for testing)
+@param {string|object} [schemaOrPool=null] - Schema name or database connection pool
 @returns {Promise<object|null>} The participant event record or null if not found
 @throws {Error} If an error occurs during retrieval
 ```
@@ -514,7 +684,7 @@ Retrieves a participant event by its ID
 ```
 Retrieves all events for a specific participant
 @param {number} participantId - The ID of the participant
-@param {object} [customPool=pool] - Database connection pool (for testing)
+@param {string|object} [schemaOrPool=null] - Schema name or database connection pool
 @returns {Promise<Array>} Array of participant event records
 @throws {Error} If an error occurs during retrieval
 ```
@@ -529,7 +699,7 @@ Retrieves all events for a specific participant
 ```
 Retrieves all events of a specific type
 @param {number} eventTypeId - The ID of the event type
-@param {object} [customPool=pool] - Database connection pool (for testing)
+@param {string|object} [schemaOrPool=null] - Schema name or database connection pool
 @returns {Promise<Array>} Array of participant event records
 @throws {Error} If an error occurs during retrieval
 ```
@@ -655,13 +825,13 @@ Handles request to get all participants
 ```
 
 ```
-The database connection pool
+The database connection pool and schema utilities
 ```
 
 ```
 Retrieves a participant by their email address
 @param {string} email - The email of the participant to retrieve
-@param {object} [pool=defaultPool] - Database connection pool (for testing)
+@param {string|object} [schemaOrPool=null] - Schema name or database connection pool
 @returns {Promise<object|null>} The participant record, or null if not found
 @throws {Error} If a database error occurs
 ```
@@ -674,13 +844,14 @@ Retrieves a participant by their email address
 ```
 
 ```
-The database connection pool
+The database connection pool and pool factory
 ```
 
 ```
 Retrieves a participant by their ID
 @param {number} id - The ID of the participant to retrieve
-@param {object} [pool=defaultPool] - Database connection pool (for testing)
+@param {string} [schema='public'] - The database schema to use
+@param {object} [pool=null] - Database connection pool (for testing)
 @returns {Promise<object|null>} The participant record, or null if not found
 @throws {Error} If a database error occurs
 ```
@@ -818,7 +989,7 @@ Creates or updates a participant preference
 @param {number} participantId - The ID of the participant
 @param {number} preferenceTypeId - The ID of the preference type
 @param {object} value - The JSON value for the preference
-@param {object} [customPool=pool] - Database connection pool (for testing)
+@param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
 @returns {Promise<object>} The newly created or updated participant preference
 @throws {Error} If an error occurs during creation/update
 ```
@@ -834,7 +1005,7 @@ Creates or updates a participant preference
 Creates or updates a site-wide preference
 @param {number} preferenceTypeId - The ID of the preference type
 @param {object} value - The JSON value for the preference
-@param {object} [customPool=pool] - Database connection pool (for testing)
+@param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
 @returns {Promise<object>} The newly created or updated site preference
 @throws {Error} If an error occurs during creation/update
 ```
@@ -863,7 +1034,7 @@ Retrieves all preference types
 ```
 Retrieves a preference type by its name
 @param {string} name - The unique name of the preference type
-@param {object} [customPool=pool] - Database connection pool (for testing)
+@param {object|string} [customPoolOrSchema=defaultPool] - Database connection pool or schema name
 @returns {Promise<object|null>} The preference type or null if not found
 @throws {Error} If an error occurs during retrieval
 ```
@@ -881,7 +1052,8 @@ Retrieves a preference with fallback hierarchy
 @param {object} options - Options for preference retrieval
 @param {number} [options.participantId] - The ID of the participant (optional)
 @param {number} [options.groupId] - The ID of the group (optional)
-@param {object} [options.customPool=pool] - Database connection pool (for testing)
+@param {string} [options.schema='public'] - The database schema to use
+@param {object} [options.customPool=null] - Database connection pool (for testing)
 @returns {Promise<object>} The preference value with source information
 @throws {Error} If an error occurs during retrieval or preference type doesn't exist
 ```
@@ -901,6 +1073,47 @@ Express middleware that:
 2. Verifies the JWT
 3. Attaches the decoded payload to req.user
 4. Returns 401 if missing or invalid
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\middleware\authWithSchema.js
+
+```
+Combined middleware for authentication and setting client schema
+This middleware combines requireAuth and setClientSchema for convenience
+```
+
+```
+Applies both authentication and client schema setting middleware
+@param {Object} req - Express request object
+@param {Object} res - Express response object
+@param {Function} next - Express next middleware function
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\middleware\setClientSchema.js
+
+```
+Middleware to set the client schema for each request
+This middleware extracts the client schema from:
+1. Subdomain (dev.example.com, first-congregational.example.com, etc.)
+2. JWT payload (req.user.clientSchema)
+3. Default schema ('dev')
+```
+
+```
+Extract the subdomain from the hostname
+@param {string} hostname - The hostname from the request
+@returns {string|null} - The subdomain or null if no subdomain
+```
+
+```
+Sets the client schema on the request object
+Priority order:
+1. Subdomain (dev.example.com, first-congregational.example.com, etc.)
+2. JWT payload (req.user.clientSchema)
+3. Default schema from configuration
+@param {Object} req - Express request object
+@param {Object} res - Express response object
+@param {Function} next - Express next middleware function
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\src\routes\conversations.js
@@ -991,8 +1204,15 @@ Remove a relationship by its ID.
 ```
 POST /api/avatar-turns
 Create a new avatar-turn.
-Expects JSON body: { conversationId, avatarId, turnIndex, contentText, contentVector }
+Expects JSON body: { conversationId, avatarId, turnIndex, contentText, contentVector, turnKindId }
 If contentVector is not provided, it will be generated from contentText
+```
+
+```
+POST /api/avatar-turns/comment
+Create a new comment on an existing turn.
+Expects JSON body: { conversationId, avatarId, parentTurnId, contentText, contentVector }
+Automatically calculates the appropriate turnIndex for the comment
 ```
 
 ```
@@ -1241,6 +1461,8 @@ preprocessing prompts, and finding similar texts based on embedding similarity
 ```
 Initialize the embedding service with the provided configuration or environment variable
 @param {Object} config - The LLM configuration (optional)
+@param {Object} options - Additional options
+@param {string} options.schema - The schema to use for database operations (optional)
 @returns {boolean} Whether the initialization was successful
 ```
 
@@ -1248,6 +1470,8 @@ Initialize the embedding service with the provided configuration or environment 
 Generate an embedding vector for the given text
 @param {string} text - The text to generate an embedding for
 @param {Object} config - The LLM configuration (optional)
+@param {Object} options - Additional options
+@param {string} options.schema - The schema to use for database operations (optional)
 @returns {Promise<number[]>} The embedding vector
 ```
 
@@ -1298,6 +1522,8 @@ Find similar texts using multiple query variants
 @param {string} prompt - The original prompt
 @param {Array<{text: string, embedding: number[]}>} embeddingDatabase - Array of objects containing text and embedding
 @param {Object} options - Optional parameters
+@param {Object} options.config - LLM configuration to use for this request (optional)
+@param {string} options.schema - The schema to use for database operations (optional)
 @returns {Promise<Array<{text: string, similarity: number}>>} Array of similar texts with their similarity scores
 ```
 
@@ -1319,25 +1545,35 @@ Get the LLM ID from preferences using the preference cascade
 ```
 Get the LLM configuration for a specific LLM ID
 @param {number} llmId - The LLM ID to get the configuration for
+@param {string} [schema=null] - The schema to use for database operations (optional)
 @returns {Promise<Object|null>} The LLM configuration or null if not found
 ```
 
 ```
 Get the LLM configuration for a specific participant using the preference hierarchy
 @param {number} participantId - The participant ID to get the LLM configuration for
+@param {string} [schema=null] - The schema to use for database operations (optional)
 @returns {Promise<Object|null>} The LLM configuration or null if not found
 ```
 
 ```
 Get the default LLM configuration from site preferences
+@param {string} [schema=null] - The schema to use for database operations
 @returns {Promise<Object>} The default LLM configuration
 @throws {Error} If no default LLM configuration is found
+```
+
+```
+Get a list of available LLMs for a specific site
+@param {string} subdomain - The subdomain of the site
+@returns {Promise<Array>} Array of available LLMs for the site
 ```
 
 ```
 Get the LLM name based on the preference system
 @param {number} [participantId=null] - The participant ID to get the LLM name for (optional)
 @param {number} [groupId=null] - The group ID to get the LLM name for (optional)
+@param {string} [schema=null] - The schema to use for database operations (optional)
 @returns {Promise<string>} The name of the LLM or default name ('Anthropic Claude-3-Opus')
 ```
 
@@ -1346,6 +1582,7 @@ Initialize the LLM service with the provided configuration, participant ID, grou
 @param {Object|number} configOrParticipantId - The LLM configuration or participant ID (optional)
 @param {Object} [options={}] - Additional options
 @param {number} [options.groupId] - The group ID to use for preference lookup (optional)
+@param {string} [options.schema=null] - The schema to use for database operations (optional)
 @returns {Promise<boolean>} Whether the initialization was successful
 ```
 
@@ -1383,7 +1620,36 @@ Get a response from LLM for the given prompt
 @param {number} options.topP - Controls diversity of responses (0.0-1.0) (optional)
 @param {number} options.maxTokens - Maximum number of tokens in the response (optional)
 @param {Object} options.config - LLM configuration to use for this request (optional)
+@param {string} options.schema - The schema to use for database operations (optional)
 @returns {Promise<string>} LLM's response
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\utils\clientSchema.js
+
+```
+Utility functions for determining client schema
+```
+
+```
+Determines the client schema for a participant
+This is a placeholder implementation that should be customized
+based on your specific requirements for determining which schema
+a participant belongs to (e.g., based on organization, group, etc.)
+@param {Object} participant - The participant object
+@returns {string} - The schema name for the participant
+```
+
+```
+Gets a list of all client schemas
+This is used for operations that need to be performed across all schemas
+@returns {Promise<string[]>} - A promise that resolves to an array of schema names
+```
+
+## C:\Users\Ken\Desktop\back-stage\test\comments.test.js
+
+```
+@file test/comments.test.js
+@description Tests for the comments feature
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\test\grpConAvatars.test.js

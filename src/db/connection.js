@@ -47,8 +47,11 @@ export function createPool(schema = 'public') {
   return pool;
 }
 
-// Create the default pool using the dev schema
-const defaultPool = createPool('dev');
+// Import the default schema from config
+import { getDefaultSchema } from '../config/schema.js';
+
+// Create the default pool using the default schema from config
+const defaultPool = createPool(getDefaultSchema());
 
 // Log connection parameters for debugging (without showing credentials)
 console.log('Database connection configured:');

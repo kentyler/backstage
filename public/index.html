@@ -328,6 +328,11 @@
             <!-- Groups will be populated here -->
           </div>
           <div class="dropdown-divider"></div>
+          <div id="llms-container">
+            <div class="dropdown-header">LLMs</div>
+            <!-- LLMs will be populated here -->
+          </div>
+          <div class="dropdown-divider"></div>
           <a href="#" id="logout-link">Log out</a>
         </div>
       </div>
@@ -367,10 +372,12 @@
   </div>
 
   <script>
-    // Store user data and groups globally
+    // Store user data, groups, and LLMs globally
     let currentUser = null;
     let userGroups = [];
     let selectedGroup = null;
+    let availableLLMs = [];
+    let selectedLLM = null;
     
     // Function to fetch current user data
     async function fetchCurrentUser() {
@@ -387,6 +394,12 @@
           // Update UI with user info
           document.getElementById('user-name').textContent = 
             currentUser.participant?.name || (currentUser.participantId ? `User #${currentUser.participantId}` : 'User');
+          
+          // Get available LLMs from the response
+          if (data.availableLLMs && Array.isArray(data.availableLLMs)) {
+            availableLLMs = data.availableLLMs;
+            console.log('Fetched available LLMs:', availableLLMs);
+          }
           
           // Show the app
           document.getElementById('app').style.display = 'block';
@@ -462,6 +475,9 @@
             groupsContainer.appendChild(groupItem);
             console.log('Added group to dropdown:', group.name);
           });
+          
+          // Try to load the last selected LLM from preferences
+          populateLLMs();
           
           // Try to load the last selected group from preferences
           if (groups.length > 0) {
@@ -622,6 +638,93 @@
         }
       } catch (err) {
         console.error('Error creating conversation:', err);
+      }
+    }
+    // Function to populate LLMs in the dropdown
+    function populateLLMs() {
+      if (!availableLLMs || availableLLMs.length === 0) {
+        console.log('No LLMs available to populate');
+        return;
+      }
+      
+      // Get the LLMs container
+      const llmsContainer = document.getElementById('llms-container');
+      
+      // Clear existing LLMs except the header
+      const header = llmsContainer.querySelector('.dropdown-header');
+      llmsContainer.innerHTML = '';
+      llmsContainer.appendChild(header);
+      
+      // Add LLMs to the dropdown
+      availableLLMs.forEach(llm => {
+        const llmItem = document.createElement('div');
+        llmItem.className = 'group-item llm-item'; // Reuse the group-item class for styling
+        llmItem.textContent = llm.name;
+        llmItem.dataset.llmId = llm.id;
+        llmItem.addEventListener('click', () => selectLLM(llm));
+        llmsContainer.appendChild(llmItem);
+        console.log('Added LLM to dropdown:', llm.name);
+      });
+      
+      // Try to highlight the current LLM if it exists
+      if (currentUser && currentUser.participant && currentUser.participant.current_llm_id) {
+        const currentLLMId = currentUser.participant.current_llm_id;
+        const currentLLM = availableLLMs.find(llm => llm.id === currentLLMId);
+        
+        if (currentLLM) {
+          console.log(`Current LLM is: ${currentLLM.name} (ID: ${currentLLM.id})`);
+          selectLLM(currentLLM, false); // Select without saving preference (it's already saved)
+        }
+      }
+    }
+    
+    // Function to handle LLM selection
+    async function selectLLM(llm, savePreference = true) {
+      selectedLLM = llm;
+      console.log(`Selected LLM: ${llm.name} (ID: ${llm.id})`);
+      
+      // Update visual selection in dropdown
+      document.querySelectorAll('.llm-item').forEach(item => {
+        item.classList.remove('selected');
+      });
+      
+      // Add selected class to the clicked LLM
+      const selectedItem = document.querySelector(`.llm-item[data-llm-id="${llm.id}"]`);
+      if (selectedItem) {
+        selectedItem.classList.add('selected');
+        console.log(`Added selected class to LLM: ${llm.name}`);
+      } else {
+        console.error(`Could not find LLM item with ID: ${llm.id}`);
+      }
+      
+      // Save the selected LLM ID as a participant preference if requested
+      if (savePreference) {
+        try {
+          const res = await fetch('/api/preferences/participant', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              preferenceName: 'llm_selection',
+              value: llm.id
+            }),
+            credentials: 'include'  // send cookies
+          });
+          
+          if (res.ok) {
+            console.log(`Saved LLM ID ${llm.id} as participant preference`);
+            
+            // Update the current_llm_id in the user object
+            if (currentUser && currentUser.participant) {
+              currentUser.participant.current_llm_id = llm.id;
+            }
+          } else {
+            console.error('Failed to save LLM ID as participant preference');
+          }
+        } catch (err) {
+          console.error('Error saving LLM ID as participant preference:', err);
+        }
       }
     }
     
@@ -806,8 +909,9 @@
       // Format the message with the participant's name before displaying it
       const formattedMessage = `<${currentUser.participant.name}>:${message}`;
       
-      // Add user message to transcript
-      addMessageToTranscript(formattedMessage, 'user');
+      // Add user message to transcript with a temporary ID
+      const tempMessageId = `temp-${Date.now()}`;
+      addMessageToTranscript(formattedMessage, 'user', tempMessageId);
       
       // Clear input
       userInput.innerHTML = '';
@@ -850,10 +954,21 @@
         removeMessageFromTranscript(loadingMessageId);
         
         // Add the actual response
-        if (data && data.llmTurn && data.llmTurn.content_text) {
+        if (data && data.userTurn && data.llmTurn && data.llmTurn.content_text) {
           // The API returns an object with userTurn and llmTurn properties
+          
+          // Update the temporary user message with the actual turn ID
+          const userMessageDiv = document.querySelector(`.message[data-message-id="${tempMessageId}"]`);
+          if (userMessageDiv && data.userTurn.id) {
+            userMessageDiv.dataset.turnId = data.userTurn.id;
+            console.log(`Updated user message with turn ID: ${data.userTurn.id}`);
+            // Remove the temporary ID as it's no longer needed
+            delete userMessageDiv.dataset.messageId;
+          }
+          
           const llmResponse = data.llmTurn.content_text;
-          addMessageToTranscript(llmResponse, 'response');
+          // Add the LLM response with its turn ID
+          addMessageToTranscript(llmResponse, 'response', null, data.llmTurn.id);
         } else if (data && Array.isArray(data) && data.length >= 2) {
           // Fallback for array format (as in the test page)
           const llmResponse = data[1].content_text;

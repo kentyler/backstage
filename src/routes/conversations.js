@@ -7,9 +7,10 @@ import express from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { getParticipantById, updateParticipant } from '../db/participants/index.js';
 import { createGrpConAvatarTurn } from '../db/grpConAvatarTurns/index.js';
+import { TURN_KIND } from '../db/grpConAvatarTurns/createGrpConAvatarTurn.js';
 import { getGrpConAvatarTurnsByConversation } from '../db/grpConAvatarTurns/index.js';
 import { getLLMResponse, getLLMName, getLLMConfig, getLLMId, getDefaultLLMConfig } from '../services/llmService.js';
-import { generateEmbedding, findSimilarTexts, findRelevantContext } from '../services/embeddingService.js';
+import { generateEmbedding, findSimilarTexts, findRelevantContext, initEmbeddingService } from '../services/embeddingService.js';
 import { getGrpConById } from '../db/grpCons/index.js';
 import { getGroupById } from '../db/groups/index.js';
 
@@ -32,13 +33,13 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
     }
     
     // Get the conversation and its associated group to get the LLM avatar ID
-    const conversation = await getGrpConById(conversationId);
+    const conversation = await getGrpConById(conversationId, req.clientSchema);
     if (!conversation) {
       return res.status(404).json({ error: 'Conversation not found' });
     }
     
     // Get the group to access its LLM avatar ID
-    const group = await getGroupById(conversation.group_id);
+    const group = await getGroupById(conversation.group_id, req.clientSchema);
     if (!group) {
       return res.status(404).json({ error: 'Group not found' });
     }
@@ -48,7 +49,7 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
     let llmConfig;
     try {
       // Get the LLM ID using the preference cascade (participant > group > site)
-      llmId = await getLLMId(participantId, conversation.group_id);
+      llmId = await getLLMId(participantId, conversation.group_id, req.clientSchema);
       llmConfig = await getLLMConfig(llmId);
       
       if (!llmConfig) {
@@ -64,15 +65,15 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
     // Get the LLM name using the preference system
     let llmName;
     try {
-      // Pass the participant ID and group ID to get the correct LLM name based on preferences
-      llmName = await getLLMName(participantId, conversation.group_id);
+      // Pass the participant ID, group ID, and client schema to get the correct LLM name based on preferences
+      llmName = await getLLMName(participantId, conversation.group_id, req.clientSchema);
     } catch (error) {
       console.error('Error getting LLM name:', error);
       llmName = 'Anthropic Claude-3-Opus'; // Fallback to hardcoded name if preference lookup fails
     }
     
     // Get the participant to access their avatar ID and name
-    const participant = await getParticipantById(participantId);
+    const participant = await getParticipantById(participantId, req.clientSchema);
     if (!participant) {
       return res.status(404).json({ error: 'Participant not found' });
     }
@@ -88,7 +89,8 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
       const { getPreferenceWithFallback } = await import('../db/preferences/getPreferenceWithFallback.js');
       const avatarPreference = await getPreferenceWithFallback('avatar_id', {
         participantId: participantId,
-        groupId: conversation.group_id
+        groupId: conversation.group_id,
+        schema: req.clientSchema
       });
       
       participantAvatarId = avatarPreference?.value;
@@ -105,14 +107,19 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
     }
     
     // Get the current turn index for this conversation
-    const existingTurns = await getGrpConAvatarTurnsByConversation(conversationId);
+    const existingTurns = await getGrpConAvatarTurnsByConversation(conversationId, req.clientSchema);
     const turnIndex = existingTurns.length;
     
     // Generate embedding for the user's prompt
     let promptEmbedding;
     try {
       console.log('Generating embedding for user prompt...');
-      promptEmbedding = await generateEmbedding(formattedPrompt);
+      // Initialize the embedding service with the LLM config if not already initialized
+      const embeddingInitialized = initEmbeddingService(llmConfig);
+      if (!embeddingInitialized) {
+        throw new Error('Embedding service initialization failed. Check API key and configuration.');
+      }
+      promptEmbedding = await generateEmbedding(formattedPrompt, null, { schema: req.clientSchema });
       console.log('Successfully generated embedding for user prompt');
     } catch (error) {
       console.error('Error generating embedding for user prompt:', error);
@@ -125,7 +132,9 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
       participantAvatarId,
       turnIndex,
       formattedPrompt,
-      promptEmbedding
+      promptEmbedding,
+      TURN_KIND.REGULAR,
+      req.clientSchema
     );
     
     // Create an embedding database from existing turns, filtering out turns with invalid embeddings
@@ -281,7 +290,12 @@ IMPORTANT GUIDELINES:
     let responseEmbedding;
     try {
       console.log('Generating embedding for LLM response...');
-      responseEmbedding = await generateEmbedding(llmResponse);
+      // Initialize the embedding service with the LLM config if not already initialized
+      const embeddingInitialized = initEmbeddingService(llmConfig);
+      if (!embeddingInitialized) {
+        throw new Error('Embedding service initialization failed. Check API key and configuration.');
+      }
+      responseEmbedding = await generateEmbedding(llmResponse, null, { schema: req.clientSchema });
       console.log('Successfully generated embedding for LLM response');
     } catch (error) {
       console.error('Error generating embedding for LLM response:', error);
@@ -295,7 +309,9 @@ IMPORTANT GUIDELINES:
       llmId,
       turnIndex + 1,
       llmResponse,
-      responseEmbedding
+      responseEmbedding,
+      TURN_KIND.REGULAR,
+      req.clientSchema
     );
     
     // Return both turns
@@ -320,7 +336,7 @@ router.get('/:conversationId/turns', requireAuth, async (req, res) => {
     const conversationId = Number(req.params.conversationId);
     
     // Get all turns for this conversation
-    const turns = await getGrpConAvatarTurnsByConversation(conversationId);
+    const turns = await getGrpConAvatarTurnsByConversation(conversationId, req.clientSchema);
     
     res.json(turns);
   } catch (error) {
