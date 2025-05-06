@@ -124,6 +124,8 @@
       padding: 0.8rem;
       border-top: 1px solid #dee2e6;
       margin-top: auto; /* Push to bottom */
+      display: flex;
+      gap: 0.5rem;
     }
     
     .conversations-list {
@@ -340,8 +342,9 @@
     
     <!-- App container with left column and main content -->
     <div class="app-container">
-      <!-- Left column for conversations -->
+      <!-- Left column for conversations and courses -->
       <div class="conversations-column">
+        <!-- Conversations section -->
         <div class="conversations-header">
           <div class="conversations-title">Conversations</div>
         </div>
@@ -350,6 +353,17 @@
         </div>
         <div class="new-conversation-container">
           <button id="new-conversation-btn" class="new-conversation-btn">New Conversation</button>
+        </div>
+        
+        <!-- Courses section -->
+        <div class="conversations-header">
+          <div class="conversations-title">Courses</div>
+        </div>
+        <div id="courses-list" class="conversations-list">
+          <!-- Courses will be populated here -->
+        </div>
+        <div class="new-conversation-container">
+          <button id="new-course-btn" class="new-conversation-btn">New Course</button>
         </div>
       </div>
       
@@ -372,12 +386,36 @@
   </div>
 
   <script>
-    // Store user data, groups, and LLMs globally
+    // Store user data, groups, LLMs, and CSRF token globally
     let currentUser = null;
     let userGroups = [];
     let selectedGroup = null;
     let availableLLMs = [];
     let selectedLLM = null;
+    let csrfToken = null;
+    
+    // Function to fetch CSRF token
+    async function fetchCsrfToken() {
+      try {
+        const res = await fetch('/api/csrf-token', {
+          method: 'GET',
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          csrfToken = data.csrfToken;
+          console.log('CSRF token fetched successfully');
+          return csrfToken;
+        } else {
+          console.error('Failed to fetch CSRF token');
+          return null;
+        }
+      } catch (err) {
+        console.error('Error fetching CSRF token:', err);
+        return null;
+      }
+    }
     
     // Function to fetch current user data
     async function fetchCurrentUser() {
@@ -526,7 +564,7 @@
     // Function to fetch conversations for a group
     async function fetchConversations(groupId) {
       try {
-        const url = `/api/grp-cons/by-group/${groupId}`;
+        const url = `/api/grp-cons/by-group/${groupId}?typeId=1`;
         console.log(`Fetching conversations from: ${url}`);
         
         const res = await fetch(url, {
@@ -544,6 +582,31 @@
         }
       } catch (err) {
         console.error('Error fetching conversations:', err);
+        return [];
+      }
+    }
+    
+    // Function to fetch courses for a group
+    async function fetchCourses(groupId) {
+      try {
+        const url = `/api/grp-cons/by-group/${groupId}?typeId=2`;
+        console.log(`Fetching courses from: ${url}`);
+        
+        const res = await fetch(url, {
+          method: 'GET',
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          const courses = await res.json();
+          console.log(`Fetched ${courses.length} courses for group ${groupId}:`, courses);
+          return courses;
+        } else {
+          console.error('Failed to fetch courses');
+          return [];
+        }
+      } catch (err) {
+        console.error('Error fetching courses:', err);
         return [];
       }
     }
@@ -588,6 +651,46 @@
       });
     }
     
+    // Function to display courses in the left column
+    function displayCourses(courses) {
+      const coursesList = document.getElementById('courses-list');
+      
+      // Clear existing courses
+      coursesList.innerHTML = '';
+      
+      if (courses.length === 0) {
+        const noCoursesMsg = document.createElement('div');
+        noCoursesMsg.className = 'conversation-item';
+        noCoursesMsg.textContent = 'No courses yet';
+        coursesList.appendChild(noCoursesMsg);
+        return;
+      }
+      
+      // Add courses to the list
+      courses.forEach(course => {
+        const courseItem = document.createElement('div');
+        courseItem.className = 'conversation-item';
+        courseItem.textContent = course.name;
+        courseItem.dataset.conversationId = course.id;
+        
+        // Add click event to handle course selection
+        courseItem.addEventListener('click', () => {
+          console.log(`Selected course: ${course.name} (ID: ${course.id})`);
+          
+          // Update visual selection
+          document.querySelectorAll('.conversation-item').forEach(item => {
+            item.classList.remove('selected');
+          });
+          courseItem.classList.add('selected');
+          
+          // Call the selectConversation function to update the UI
+          selectConversation(course);
+        });
+        
+        coursesList.appendChild(courseItem);
+      });
+    }
+    
     // Function to create a new conversation
     async function createNewConversation() {
       if (!selectedGroup) {
@@ -603,12 +706,14 @@
         const res = await fetch('/api/grp-cons', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken
           },
           body: JSON.stringify({
             groupId: selectedGroup.id,
             name: name,
-            description: ''  // Optional description
+            description: '',  // Optional description
+            typeId: 1  // 1 = conversation
           }),
           credentials: 'include'  // send cookies
         });
@@ -638,6 +743,61 @@
         }
       } catch (err) {
         console.error('Error creating conversation:', err);
+      }
+    }
+    
+    // Function to create a new course
+    async function createNewCourse() {
+      if (!selectedGroup) {
+        console.error('No group selected');
+        return;
+      }
+      
+      // Prompt user for course name
+      const name = prompt('Enter a name for the new course:');
+      if (!name) return; // User cancelled
+      
+      try {
+        const res = await fetch('/api/grp-cons', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken
+          },
+          body: JSON.stringify({
+            groupId: selectedGroup.id,
+            name: name,
+            description: '',  // Optional description
+            typeId: 2  // 2 = course
+          }),
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          const newCourse = await res.json();
+          console.log('Created new course:', newCourse);
+          
+          // Refresh courses list
+          const courses = await fetchCourses(selectedGroup.id);
+          displayCourses(courses);
+          
+          // Auto-select the newly created course
+          const courseItem = document.querySelector(`#courses-list .conversation-item[data-conversation-id="${newCourse.id}"]`);
+          if (courseItem) {
+            // Update visual selection
+            document.querySelectorAll('.conversation-item').forEach(item => {
+              item.classList.remove('selected');
+            });
+            courseItem.classList.add('selected');
+            
+            // Call the selectConversation function to update the UI
+            selectConversation(newCourse);
+          }
+        } else {
+          console.error('Failed to create course');
+        }
+      } catch (err) {
+        console.error('Error creating course:', err);
       }
     }
     // Function to populate LLMs in the dropdown
@@ -703,7 +863,8 @@
           const res = await fetch('/api/preferences/participant', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'x-csrf-token': csrfToken
             },
             body: JSON.stringify({
               preferenceName: 'llm_selection',
@@ -736,6 +897,10 @@
       // Fetch and display conversations for this group
       const conversations = await fetchConversations(group.id);
       displayConversations(conversations);
+      
+      // Fetch and display courses for this group
+      const courses = await fetchCourses(group.id);
+      displayCourses(courses);
       
       // Update UI to show the selected group in the header
       const groupNameDisplay = document.getElementById('group-name-display');
@@ -775,7 +940,8 @@
         const res = await fetch('/api/preferences/participant', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken
           },
           body: JSON.stringify({
             preferenceName: 'group_id',
@@ -936,7 +1102,8 @@
       fetch(`/api/conversations/${conversationId}/turns`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken
         },
         body: JSON.stringify({ prompt: message }),
         credentials: 'include'  // send cookies
@@ -1249,7 +1416,8 @@
         const response = await fetch('/api/grp-con-avatar-turns/comment', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken
           },
           body: JSON.stringify({
             conversationId: Number(conversationId),
@@ -1352,6 +1520,9 @@
     // Initialize the app
     (async function(){
       try {
+        // Fetch CSRF token first
+        await fetchCsrfToken();
+        
         // Fetch current user data
         await fetchCurrentUser();
         
@@ -1363,6 +1534,15 @@
         
         // Add event listener for new conversation button
         document.getElementById('new-conversation-btn').addEventListener('click', createNewConversation);
+        
+        // Add event listener for new course button
+        document.getElementById('new-course-btn').addEventListener('click', newCourse);
+        
+        // Function for new course button
+        function newCourse() {
+          console.log('New Course button clicked');
+          createNewCourse();
+        }
         
         // Set up conversation UI
         setupTextareaAutoResize();

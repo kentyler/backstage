@@ -7,10 +7,11 @@ import { getDefaultSchema } from '../../config/schema.js';
  * @param {number} groupId - The ID of the group.
  * @param {string} name - The conversation name.
  * @param {string} description - The conversation description.
+ * @param {number} [typeId=1] - The type ID from grp_con_types table (1=conversation, 2=course)
  * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
- * @returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}>}
+ * @returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}>}
  */
-export async function createGrpCon(groupId, name, description, customPoolOrSchema = null) {
+export async function createGrpCon(groupId, name, description, typeId = 1, customPoolOrSchema = null) {
   // Determine which pool to use
   let customPool = pool;
   
@@ -31,10 +32,10 @@ export async function createGrpCon(groupId, name, description, customPoolOrSchem
   }
 
   const query = `
-    INSERT INTO grp_cons (group_id, name, description)
-    VALUES ($1, $2, $3)
-    RETURNING id, group_id, name, description, created_at
+    INSERT INTO grp_cons (group_id, name, description, type_id)
+    VALUES ($1, $2, $3, $4)
+    RETURNING id, group_id, name, description, type_id, created_at
   `;
-  const result = await customPool.query(query, [groupId, name, description]);
+  const result = await customPool.query(query, [groupId, name, description, typeId]);
   return result.rows[0];
 }

@@ -6,7 +6,7 @@ import { getDefaultSchema } from '../../config/schema.js';
  * Retrieves a conversation by its ID.
  * @param {number} id - The conversation ID.
  * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
- * @returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}|null>}
+ * @returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}|null>}
  */
 export async function getGrpConById(id, customPoolOrSchema = null) {
   // Determine which pool to use
@@ -29,7 +29,7 @@ export async function getGrpConById(id, customPoolOrSchema = null) {
   }
 
   const query = `
-    SELECT id, group_id, name, description, created_at
+    SELECT id, group_id, name, description, type_id, created_at
       FROM grp_cons
      WHERE id = $1
   `;
