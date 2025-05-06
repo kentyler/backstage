@@ -459,6 +459,9 @@
       try {
         const res = await fetch('/api/participants/logout', {
           method: 'POST',
+          headers: {
+            'x-csrf-token': csrfToken  // Include CSRF token in headers
+          },
           credentials: 'include'  // send cookies
         });
         

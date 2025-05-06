@@ -11,7 +11,8 @@ export async function logoutHandler(req, res) {
 
     // Log the logout event (type 4 for logout)
     if (participantId) {
-      await createParticipantEvent(participantId, 4, {});
+      // Use the client schema from the request object
+      await createParticipantEvent(participantId, 4, {}, req.clientSchema);
     }
 
     // Clear the token cookie

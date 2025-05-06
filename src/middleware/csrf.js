@@ -31,7 +31,8 @@ export function validateCsrfToken(req, res, next) {
   }
 
   const secret = req.session.csrfSecret;
-  const token = req.headers['x-csrf-token'] || req.body._csrf;
+  // Safely get token from headers or body (if body exists)
+  const token = req.headers['x-csrf-token'] || (req.body ? req.body._csrf : undefined);
 
   if (!secret || !token) {
     return res.status(403).json({ error: 'CSRF token missing' });
