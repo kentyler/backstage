@@ -26,6 +26,7 @@
     📄 .env_20250501094414
     📄 .env_20250501095221
     📄 .env_20250501160642
+    📄 .env_20250506110236
     📄 .gitignore_20250424121607
     📄 .gitignore_20250424121608
     📄 .gitignore_20250424121633
@@ -74,6 +75,14 @@
     📄 app_20250503142123.js
     📄 app_20250503214242.js
     📄 app_20250504152228.js
+    📄 app_20250505095831.js
+    📄 app_20250505144955.js
+    📄 app_20250505150256.js
+    📄 app_20250505150317.js
+    📄 app_20250505150814.js
+    📄 app_20250505151248.js
+    📄 app_20250505160652.js
+    📄 app_20250506094907.js
     📄 build-tree_20250418125243.js
     📄 build-tree_20250418125456.js
     📄 cli_20250425095025.js
@@ -97,6 +106,8 @@
     📄 package_20250422135243.json
     📄 package_20250424124151.json
     📄 package_20250424124319.json
+    📄 participant_documentation_20250505215648.md
+    📄 participant_documentation_20250505215731.md
     📄 pg_dump_20250418093759.ps1
     📄 pg_dump_20250418094734.ps1
     📄 pg_dump_20250418094833.ps1
@@ -104,6 +115,9 @@
     📄 print-tree_20250418124726.js
     📄 print-tree_20250418124929.js
     📄 print-tree_20250418125244.js
+    📄 project-summary_20250502085406.md
+    📄 project-summary_20250505213301.md
+    📄 project-summary_20250505213432.md
     📁 public/
       📄 conversation-test_20250501091237.html
       📄 conversation-test_20250501094638.html
@@ -111,6 +125,8 @@
       📄 conversation-test_20250502100802.html
       📄 conversation-test_20250502100822.html
       📄 conversation-test_20250503111107.html
+      📄 conversation-test_20250506100823.html
+      📄 conversation-test_20250506100939.html
       📄 forgot-password_20250428130813.html
       📄 forgot-password_20250428143806.html
       📄 index_20250428144600.html
@@ -177,16 +193,53 @@
       📄 index_20250504152413.html
       📄 index_20250505091344.html
       📄 index_20250505091414.html
+      📄 index_20250505094450.html
+      📄 index_20250505170150.html
+      📄 index_20250505173704.html
+      📄 index_20250505174317.html
+      📄 index_20250505174449.html
+      📄 index_20250505174507.html
+      📄 index_20250505174523.html
+      📄 index_20250505174540.html
+      📄 index_20250505174605.html
+      📄 index_20250505174631.html
+      📄 index_20250505174650.html
+      📄 index_20250505214425.html
+      📄 index_20250506101040.html
+      📄 index_20250506101059.html
+      📄 index_20250506101135.html
+      📄 index_20250506101355.html
+      📄 index_20250506101415.html
+      📄 index_20250506101713.html
+      📄 index_20250506101915.html
+      📄 index_20250506102031.html
+      📄 index_20250506102131.html
+      📄 index_20250506102346.html
+      📄 index_20250506102406.html
+      📄 index_20250506102626.html
+      📄 index_20250506102650.html
+      📄 index_20250506102929.html
+      📄 index_20250506103330.html
       📄 login_20250428130803.html
       📄 login_20250428143715.html
       📄 login_20250428151559.html
       📄 login_20250428151724.html
       📄 login_20250428160250.html
+      📄 login_20250505095553.html
+      📄 login_20250505145333.html
+      📄 login_20250505150749.html
+      📄 login_20250505155130.html
+      📄 login_20250505155333.html
+      📄 login_20250505160724.html
+      📄 login_20250505160740.html
     📁 scripts/
       📄 check-env_20250418163733.js
       📄 check-env_20250418163746.js
       📄 create-client-schema_20250503134248.js
       📄 create-client-schema_20250503141342.js
+      📄 create-supabase-buckets_20250506105344.js
+      📄 create-supabase-buckets_20250506110602.js
+      📄 create-supabase-buckets_20250506112418.js
       📄 fix-sequences_20250503145207.js
       📄 fix-sequences_20250503145811.js
       📄 neontest_20250416160043.js
@@ -242,6 +295,11 @@
     📄 server_20250504215842.js
     📄 server_20250504220132.js
     📄 server_20250504220638.js
+    📄 server_20250505100037.js
+    📄 server_20250505144550.js
+    📄 server_20250505144933.js
+    📄 server_20250505150553.js
+    📄 server_20250505160519.js
     📁 sql-scripts/
       📄 add-avatar-scopes-fk-in-avatar_20250417152703
       📄 add-avatar-scopes-fk-in-avatar_20250417152712
@@ -255,6 +313,8 @@
       📄 add-llms-table_20250501182652.sql
       📄 add-participant-avatar-table_20250429121639.txt
       📄 add-participant-avatar-table_20250429121640.txt
+      📄 applied manually to all 4 schemas_20250505172746.sql
+      📄 applied manually to all 4 schemas_20250505172747.sql
       📄 change-preference-value-to-bigint_20250502122452.sql
       📄 change-preference-value-to-bigint_20250502171331.sql
       📄 create-client-schema_20250503133441.sql
@@ -274,6 +334,9 @@
       📄 setup-multi-tenancy_20250503135408.sql
       📄 setup-multi-tenancy_20250503135712.sql
     📁 src/
+      📁 config/
+        📄 schema_20250503141712.js
+        📄 schema_20250505152441.js
       📁 controllers/
         📁 participants/
           📄 loginHandler_20250425112356.js
@@ -299,8 +362,21 @@
           📄 loginHandler_20250504151618.js
           📄 loginHandler_20250504151703.js
           📄 loginHandler_20250504151831.js
+          📄 loginHandler_20250505100105.js
+          📄 loginHandler_20250505145012.js
+          📄 loginHandler_20250505150351.js
+          📄 loginHandler_20250505152054.js
+          📄 loginHandler_20250505152116.js
+          📄 loginHandler_20250505152859.js
+          📄 loginHandler_20250505154413.js
+          📄 loginHandler_20250505154451.js
+          📄 loginHandler_20250505155659.js
+          📄 loginHandler_20250505160544.js
+          📄 loginHandler_20250505160614.js
           📄 logoutHandler_20250430104613.js
           📄 logoutHandler_20250504151903.js
+          📄 logoutHandler_20250505214940.js
+          📄 logoutHandler_20250505215023.js
       📁 db/
         📄 connection_20250415150849.js
         📄 connection_20250415150951.js
@@ -559,6 +635,7 @@
           📄 createGroupConversation_20250429210911.js
           📄 createGrpCon_20250429210910.js
           📄 createGrpCon_20250503153632.js
+          📄 createGrpCon_20250505172929.js
           📄 deleteGroupConversation_20250423123614.js
           📄 deleteGroupConversation_20250429160044.js
           📄 deleteGrpCon_20250429160043.js
@@ -570,9 +647,11 @@
           📄 getGrpConById_20250429160121.js
           📄 getGrpConById_20250429211920.js
           📄 getGrpConById_20250503153555.js
+          📄 getGrpConById_20250505173032.js
           📄 getGrpConsByGroup_20250429160158.js
           📄 getGrpConsByGroup_20250430182019.js
           📄 getGrpConsByGroup_20250503153405.js
+          📄 getGrpConsByGroup_20250505173103.js
           📄 index_20250423123524.js
           📄 index_20250429211011.js
           📄 updateGroupConversation_20250423123702.js
@@ -580,6 +659,21 @@
           📄 updateGroupConversation_20250429212128.js
           📄 updateGrpCon_20250429212127.js
           📄 updateGrpCon_20250503153727.js
+          📄 updateGrpCon_20250505173003.js
+        📁 grpConUploads/
+          📄 createGrpConUpload_20250506094645.js
+          📄 createGrpConUpload_20250506095322.js
+          📄 createGrpConUpload_20250506095624.js
+          📄 createGrpConUpload_20250506120356.js
+          📄 deleteGrpConUpload_20250506094924.js
+          📄 deleteGrpConUpload_20250506095757.js
+          📄 getGrpConUploadById_20250506094704.js
+          📄 getGrpConUploadById_20250506095518.js
+          📄 getGrpConUploadById_20250506095653.js
+          📄 getGrpConUploadsByConversation_20250506094725.js
+          📄 getGrpConUploadsByConversation_20250506095726.js
+          📄 index_20250506094741.js
+          📄 index_20250506094944.js
         📁 participant/
           📄 createParticipantHandler_20250418132455.js
           📄 createParticipantHandler_20250418132502.js
@@ -722,6 +816,8 @@
         📄 auth_20250424103749.js
         📄 auth_20250424103802.js
         📄 auth_20250428161325.js
+        📄 csrf_20250505095644.js
+        📄 csrf_20250505214229.js
         📄 setClientSchema_20250503133158.js
         📄 setClientSchema_20250503142054.js
         📄 setClientSchema_20250504151647.js
@@ -729,6 +825,11 @@
         📄 setClientSchema_20250504172259.js
         📄 setClientSchema_20250504172315.js
         📄 setClientSchema_20250504172531.js
+        📄 setClientSchema_20250505151509.js
+        📄 setClientSchema_20250505151736.js
+        📄 setClientSchema_20250505153727.js
+        📄 setClientSchema_20250505153845.js
+        📄 setClientSchema_20250505153907.js
       📁 routes/
         📄 conversations_20250501094448.js
         📄 conversations_20250501101642.js
@@ -834,6 +935,15 @@
         📄 grpCons_20250503153438.js
         📄 grpCons_20250503153500.js
         📄 grpCons_20250503153519.js
+        📄 grpCons_20250505173141.js
+        📄 grpConUploads_20250506094816.js
+        📄 grpConUploads_20250506095010.js
+        📄 grpConUploads_20250506095842.js
+        📄 grpConUploads_20250506103910.js
+        📄 grpConUploads_20250506122509.js
+        📄 grpConUploads_20250506122548.js
+        📄 grpConUploads_20250506122757.js
+        📄 grpConUploads_20250506122955.js
         📄 me_20250428145032.js
         📄 me_20250428145039.js
         📄 me_20250428145704.js
@@ -846,6 +956,7 @@
         📄 me_20250503133406.js
         📄 me_20250503133638.js
         📄 me_20250503133730.js
+        📄 me_20250505094405.js
         📄 participantEvents_20250430083910.js
         📄 participantEvents_20250430091131.js
         📄 participants_20250418131937.js
@@ -942,6 +1053,18 @@
         📄 llmService_20250504211500.js
         📄 llmService_20250504212513.js
         📄 llmService_20250504213219.js
+        📄 supabaseService_20250506095146.js
+        📄 supabaseService_20250506103805.js
+        📄 supabaseService_20250506103835.js
+        📄 supabaseService_20250506103855.js
+        📄 supabaseService_20250506110312.js
+        📄 supabaseService_20250506110510.js
+        📄 supabaseService_20250506110708.js
+        📄 supabaseService_20250506111003.js
+      📁 utils/
+        📄 clientSchema_20250503133236.js
+        📄 clientSchema_20250505151427.js
+        📄 clientSchema_20250505155639.js
     📁 test/
       📄 group.test_20250415133948.js
       📄 group.test_20250415133954.js
@@ -1039,10 +1162,12 @@
   📁 examples/
     📄 llm-config-examples.json
   📄 extract_jsdocs.py
+  📄 http___localhost_3000-1746489855724.jpeg
   📄 index.js
   📄 neon_schema.sql
   📄 package-lock.json
   📄 package.json
+  📄 participant_documentation.md
   📄 pg_dump_schema.ps1
   📄 project-summary.md
   📁 public/
@@ -1060,6 +1185,8 @@
     📄 change-preference-value-to-bigint.js
     📄 check-env.js
     📄 create-client-schema.js
+    📄 create-supabase-buckets.js
+    📄 create-supabase-rls-policies.js
     📄 fix-participant-events-sequence.js
     📄 fix-sequences.js
     📄 migrate-llms-to-public.js
@@ -1076,7 +1203,11 @@
   📄 server.js
   📁 sql-scripts/
     📄 add-comments-feature.sql
+    📄 add-courses-tables.sql
+    📄 add-public-url-to-grp-con-uploads.sql
+    📄 add-type-to-grp-cons.sql
     📄 append-llms-from-dev-to-public.sql
+    📄 applied manually to all 4 schemas.sql
     📄 copy-preference-types-to-public.sql
     📄 create-client-schema.sql
     📄 create-group-types-add-fk-to-groups.sql
@@ -1130,6 +1261,12 @@
         📄 getGrpConsByGroup.js
         📄 index.js
         📄 updateGrpCon.js
+      📁 grpConUploads/
+        📄 createGrpConUpload.js
+        📄 deleteGrpConUpload.js
+        📄 getGrpConUploadById.js
+        📄 getGrpConUploadsByConversation.js
+        📄 index.js
       📁 participantAvatars/
         📄 createParticipantAvatar.js
         📄 deleteParticipantAvatar.js
@@ -1169,6 +1306,7 @@
     📁 middleware/
       📄 auth.js
       📄 authWithSchema.js
+      📄 csrf.js
       📄 setClientSchema.js
     📁 routes/
       📄 conversations.js
@@ -1177,6 +1315,7 @@
       📄 grpConAvatarTurnRelationships.js
       📄 grpConAvatarTurns.js
       📄 grpCons.js
+      📄 grpConUploads.js
       📄 me.js
       📄 participantAvatars.js
       📄 participantEvents.js
@@ -1186,8 +1325,12 @@
       📄 authService.js
       📄 embeddingService.js
       📄 llmService.js
+      📄 supabaseService.js
     📁 utils/
       📄 clientSchema.js
+  📁 ssl/
+    📄 cert.pem
+    📄 key.pem
   📁 test/
     📄 comments.test.js
     📄 example.test.js

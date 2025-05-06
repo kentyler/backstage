@@ -5,17 +5,15 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase configuration with hardcoded values
+// Supabase configuration from environment variables
 // Using anonymous key for client-side operations
-const SUPABASE_URL = 'https://tbmpeqqzaproilxazsjf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRibXBlcXF6YXByb2lseGF6c2pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3NDI5MTEsImV4cCI6MjA2MDMxODkxMX0.R0HyzKWvAExBSB_rv0wmBTdTvnKQSLcAXsGE7ICA6WI';
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
-// Create Supabase client with anonymous key
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// Log Supabase configuration for debugging
-console.log('Supabase URL:', SUPABASE_URL);
-console.log('Using Supabase anonymous key for authentication');
+// Log initialization without exposing sensitive information
+console.log('Supabase client initialized');
 
 /**
  * Upload a file to Supabase Storage

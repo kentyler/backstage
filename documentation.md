@@ -10,11 +10,19 @@ Create a new participant, but handle 409 conflict with a friendly message.
 
 ```
 Main entry point: start the Express server.
-Assumes `app` is exported as default from app.js.
+Supports both HTTP and HTTPS based on environment and certificate availability.
+- Development: Uses mkcert certificates if available, falls back to HTTP
+- Production: Adapts to platform SSL configuration
 ```
 
 ```
-Boot the HTTP server on the specified port.
+Check if SSL certificates exist
+@returns {Object|null} SSL options if certificates exist, null otherwise
+```
+
+```
+Detect if the app is running behind a reverse proxy that handles SSL
+Common in production environments like Heroku, Render, etc.
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\scripts\add-comments-feature.js
@@ -77,6 +85,48 @@ This approach allows for:
 3. The public schema can still be used for shared data or as a template
 Usage: node scripts/create-client-schema.js <client_name>
 Example: node scripts/create-client-schema.js client1
+```
+
+## C:\Users\Ken\Desktop\back-stage\scripts\create-supabase-buckets.js
+
+```
+Script to create Supabase buckets for each client schema
+This script creates a bucket in Supabase Storage for each client schema.
+Each bucket is named after the client schema and is configured to:
+- Be private (not public)
+- Accept only text files
+- Have a 10MB file size limit
+```
+
+```
+Creates a bucket in Supabase Storage if it doesn't already exist
+@param {string} bucketName - Name of the bucket to create
+@returns {Promise<void>}
+```
+
+```
+Main function to create buckets for all client schemas
+```
+
+## C:\Users\Ken\Desktop\back-stage\scripts\create-supabase-rls-policies.js
+
+```
+Script to create RLS policies for Supabase Storage
+This script creates the necessary RLS policies to allow file uploads
+to Supabase Storage buckets. It creates policies for:
+- INSERT: Allow file uploads
+- SELECT: Allow file downloads
+- DELETE: Allow file deletions
+```
+
+```
+Creates RLS policies for a bucket
+@param {string} bucketName - Name of the bucket
+@returns {Promise<void>}
+```
+
+```
+Main function to create RLS policies for all buckets
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\scripts\fix-participant-events-sequence.js
@@ -511,8 +561,9 @@ Creates a new conversation under a group.
 @param {number} groupId - The ID of the group.
 @param {string} name - The conversation name.
 @param {string} description - The conversation description.
+@param {number} [typeId=1] - The type ID from grp_con_types table (1=conversation, 2=course)
 @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
-@returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}>}
+@returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}>}
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\src\db\grpCons\deleteGrpCon.js
@@ -530,27 +581,100 @@ Deletes a conversation by its ID.
 Retrieves a conversation by its ID.
 @param {number} id - The conversation ID.
 @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
-@returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}|null>}
+@returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}|null>}
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\src\db\grpCons\getGrpConsByGroup.js
 
 ```
 Retrieves conversations for a given group, ordered by creation date (newest first) and limited to 50.
+Optionally filters by conversation type.
 @param {number} groupId - The group ID.
+@param {number|null} [typeId=null] - The type ID to filter by (1=conversation, 2=course), or null for all types
 @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
-@returns {Promise<Array<{id: number, group_id: number, name: string, description: string, created_at: string}>>}
+@returns {Promise<Array<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}>>}
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\src\db\grpCons\updateGrpCon.js
 
 ```
-Updates a conversation's name and description.
+Updates a conversation's name, description, and optionally its type.
 @param {number} id - The conversation ID.
 @param {string} newName - The new conversation name.
 @param {string} newDescription - The new conversation description.
+@param {number|null} [newTypeId=null] - The new type ID from grp_con_types table (1=conversation, 2=course), or null to keep current type
 @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
-@returns {Promise<{id: number, group_id: number, name: string, description: string, created_at: string}|null>}
+@returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}|null>}
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConUploads\createGrpConUpload.js
+
+```
+Create a new group conversation upload record
+@module db/grpConUploads/createGrpConUpload
+```
+
+```
+Create a new group conversation upload record
+@param {Object} uploadData - The upload data
+@param {number} uploadData.grpConId - The group conversation ID
+@param {number} [uploadData.turnId] - The turn ID (optional)
+@param {string} uploadData.filename - The filename
+@param {string} uploadData.mimeType - The MIME type
+@param {string} uploadData.filePath - The file path in Supabase Storage
+@param {string} [uploadData.publicUrl] - The public URL of the file (optional)
+@param {string} [uploadData.bucketName] - The Supabase Storage bucket name (optional)
+@param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
+@returns {Promise<Object>} - The created upload record
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConUploads\deleteGrpConUpload.js
+
+```
+Delete a group conversation upload record
+@module db/grpConUploads/deleteGrpConUpload
+```
+
+```
+Delete a group conversation upload record
+@param {number} id - The upload ID
+@param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
+@returns {Promise<boolean>} - True if deletion was successful
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConUploads\getGrpConUploadById.js
+
+```
+Get a group conversation upload by ID
+@module db/grpConUploads/getGrpConUploadById
+```
+
+```
+Get a group conversation upload by ID
+@param {number} id - The upload ID
+@param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
+@returns {Promise<Object|null>} - The upload record or null if not found
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConUploads\getGrpConUploadsByConversation.js
+
+```
+Get all uploads for a specific group conversation
+@module db/grpConUploads/getGrpConUploadsByConversation
+```
+
+```
+Get all uploads for a specific group conversation
+@param {number} grpConId - The group conversation ID
+@param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
+@returns {Promise<Array>} - Array of upload records
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\db\grpConUploads\index.js
+
+```
+Group conversation uploads database operations
+@module db/grpConUploads
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\src\db\participantAvatars\createParticipantAvatar.js
@@ -1241,7 +1365,7 @@ Remove a turn by its ID.
 
 ```
 POST   /api/grpCons
-body: { groupId, name, description }
+body: { groupId, name, description, typeId }
 ```
 
 ```
@@ -1250,15 +1374,61 @@ GET    /api/grpCons/:id
 
 ```
 GET    /api/grpCons/by-group/:groupId
+query: { typeId } - Optional filter by type (1=conversation, 2=course)
 ```
 
 ```
 PUT    /api/grpCons/:id
-body: { newName, newDescription }
+body: { newName, newDescription, newTypeId }
 ```
 
 ```
 DELETE /api/grpCons/:id
+```
+
+## C:\Users\Ken\Desktop\back-stage\src\routes\grpConUploads.js
+
+```
+Group conversation uploads routes
+@module routes/grpConUploads
+```
+
+```
+Upload a file to a conversation
+@name POST /api/grp-con-uploads
+@function
+@memberof module:routes/grpConUploads
+@param {string} req.body.grpConId - The conversation ID
+@param {string} req.body.avatarId - The avatar ID (optional, defaults to participant's avatar)
+@param {File} req.file - The file to upload
+@returns {Object} The created upload record
+```
+
+```
+Get a specific file by ID
+@name GET /api/grp-con-uploads/:id
+@function
+@memberof module:routes/grpConUploads
+@param {string} req.params.id - The upload ID
+@returns {Object} The file data
+```
+
+```
+Get all files for a conversation
+@name GET /api/grp-con-uploads/conversation/:grpConId
+@function
+@memberof module:routes/grpConUploads
+@param {string} req.params.grpConId - The conversation ID
+@returns {Array} Array of upload records
+```
+
+```
+Delete a file
+@name DELETE /api/grp-con-uploads/:id
+@function
+@memberof module:routes/grpConUploads
+@param {string} req.params.id - The upload ID
+@returns {Object} Success message
 ```
 
 ## C:\Users\Ken\Desktop\back-stage\src\routes\me.js
@@ -1624,6 +1794,37 @@ Get a response from LLM for the given prompt
 @returns {Promise<string>} LLM's response
 ```
 
+## C:\Users\Ken\Desktop\back-stage\src\services\supabaseService.js
+
+```
+Supabase service for file storage operations
+@module services/supabaseService
+```
+
+```
+Upload a file to Supabase Storage
+@param {Buffer} fileBuffer - The file buffer to upload
+@param {string} fileName - The name of the file
+@param {string} mimeType - The MIME type of the file
+@param {string} clientSchema - The client schema (used for bucket organization)
+@param {string} conversationId - The conversation ID
+@returns {Promise<Object>} - The upload result with file path
+```
+
+```
+Get a file from Supabase Storage
+@param {string} filePath - The path of the file in Supabase Storage
+@param {string} clientSchema - The client schema (used as bucket name)
+@returns {Promise<Object>} - The file data
+```
+
+```
+Delete a file from Supabase Storage
+@param {string} filePath - The path of the file in Supabase Storage
+@param {string} clientSchema - The client schema (used as bucket name)
+@returns {Promise<boolean>} - True if deletion was successful
+```
+
 ## C:\Users\Ken\Desktop\back-stage\src\utils\clientSchema.js
 
 ```
@@ -1632,10 +1833,11 @@ Utility functions for determining client schema
 
 ```
 Determines the client schema for a participant
-This is a placeholder implementation that should be customized
-based on your specific requirements for determining which schema
-a participant belongs to (e.g., based on organization, group, etc.)
+Uses the SUBDOMAIN_TO_SCHEMA mapping to determine the schema
+based on the participant's organization or other attributes
 @param {Object} participant - The participant object
+@param {Object} [options] - Additional options
+@param {boolean} [options.isLocalhost] - Whether the request is from localhost
 @returns {string} - The schema name for the participant
 ```
 

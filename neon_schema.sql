@@ -525,7 +525,9 @@ CREATE TABLE bsa.grp_con_uploads (
     filename text NOT NULL,
     mime_type text,
     file_path text NOT NULL,
-    uploaded_at timestamp with time zone DEFAULT now()
+    uploaded_at timestamp with time zone DEFAULT now(),
+    public_url text,
+    bucket_name text
 );
 
 
@@ -557,8 +559,16 @@ CREATE TABLE bsa.grp_cons (
     group_id bigint,
     name text NOT NULL,
     description text,
-    created_at timestamp with time zone DEFAULT now()
+    created_at timestamp with time zone DEFAULT now(),
+    type_id integer NOT NULL
 );
+
+
+--
+-- Name: COLUMN grp_cons.type_id; Type: COMMENT; Schema: bsa; Owner: -
+--
+
+COMMENT ON COLUMN bsa.grp_cons.type_id IS 'Reference to grp_con_types table defining the type of group conversation';
 
 
 --
@@ -1268,7 +1278,9 @@ CREATE TABLE conflict_club.grp_con_uploads (
     filename text NOT NULL,
     mime_type text,
     file_path text NOT NULL,
-    uploaded_at timestamp with time zone DEFAULT now()
+    uploaded_at timestamp with time zone DEFAULT now(),
+    public_url text,
+    bucket_name text
 );
 
 
@@ -1300,8 +1312,16 @@ CREATE TABLE conflict_club.grp_cons (
     group_id bigint,
     name text NOT NULL,
     description text,
-    created_at timestamp with time zone DEFAULT now()
+    created_at timestamp with time zone DEFAULT now(),
+    type_id integer NOT NULL
 );
+
+
+--
+-- Name: COLUMN grp_cons.type_id; Type: COMMENT; Schema: conflict_club; Owner: -
+--
+
+COMMENT ON COLUMN conflict_club.grp_cons.type_id IS 'Reference to grp_con_types table defining the type of group conversation';
 
 
 --
@@ -2048,7 +2068,9 @@ CREATE TABLE dev.grp_con_uploads (
     filename text NOT NULL,
     mime_type text,
     file_path text NOT NULL,
-    uploaded_at timestamp with time zone DEFAULT now()
+    uploaded_at timestamp with time zone DEFAULT now(),
+    public_url text,
+    bucket_name text
 );
 
 
@@ -2080,7 +2102,8 @@ CREATE TABLE dev.grp_cons (
     group_id bigint,
     name text NOT NULL,
     description text,
-    created_at timestamp with time zone DEFAULT now()
+    created_at timestamp with time zone DEFAULT now(),
+    type_id integer
 );
 
 
@@ -2101,60 +2124,6 @@ CREATE SEQUENCE dev.grp_cons_id_seq
 --
 
 ALTER SEQUENCE dev.grp_cons_id_seq OWNED BY dev.grp_cons.id;
-
-
---
--- Name: llm_types; Type: TABLE; Schema: dev; Owner: -
---
-
-CREATE TABLE dev.llm_types (
-    id integer NOT NULL,
-    name character varying(50) NOT NULL,
-    description text,
-    api_handler character varying(100) NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
-);
-
-
---
--- Name: COLUMN llm_types.name; Type: COMMENT; Schema: dev; Owner: -
---
-
-COMMENT ON COLUMN dev.llm_types.name IS 'Unique name for this LLM type';
-
-
---
--- Name: COLUMN llm_types.description; Type: COMMENT; Schema: dev; Owner: -
---
-
-COMMENT ON COLUMN dev.llm_types.description IS 'Description of this LLM type and its capabilities';
-
-
---
--- Name: COLUMN llm_types.api_handler; Type: COMMENT; Schema: dev; Owner: -
---
-
-COMMENT ON COLUMN dev.llm_types.api_handler IS 'The function or method that handles API calls for this type';
-
-
---
--- Name: llm_types_id_seq; Type: SEQUENCE; Schema: dev; Owner: -
---
-
-CREATE SEQUENCE dev.llm_types_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: llm_types_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: -
---
-
-ALTER SEQUENCE dev.llm_types_id_seq OWNED BY dev.llm_types.id;
 
 
 --
@@ -2876,7 +2845,9 @@ CREATE TABLE first_congregational.grp_con_uploads (
     filename text NOT NULL,
     mime_type text,
     file_path text NOT NULL,
-    uploaded_at timestamp with time zone DEFAULT now()
+    uploaded_at timestamp with time zone DEFAULT now(),
+    public_url text,
+    bucket_name text
 );
 
 
@@ -2908,8 +2879,16 @@ CREATE TABLE first_congregational.grp_cons (
     group_id bigint,
     name text NOT NULL,
     description text,
-    created_at timestamp with time zone DEFAULT now()
+    created_at timestamp with time zone DEFAULT now(),
+    type_id integer NOT NULL
 );
+
+
+--
+-- Name: COLUMN grp_cons.type_id; Type: COMMENT; Schema: first_congregational; Owner: -
+--
+
+COMMENT ON COLUMN first_congregational.grp_cons.type_id IS 'Reference to grp_con_types table defining the type of group conversation';
 
 
 --
@@ -3353,6 +3332,38 @@ CREATE SEQUENCE public.groups_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
+
+
+--
+-- Name: grp_con_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.grp_con_types (
+    id integer NOT NULL,
+    name character varying(50) NOT NULL,
+    description text,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+--
+-- Name: grp_con_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.grp_con_types_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: grp_con_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.grp_con_types_id_seq OWNED BY public.grp_con_types.id;
 
 
 --
@@ -3910,13 +3921,6 @@ ALTER TABLE ONLY dev.grp_cons ALTER COLUMN id SET DEFAULT nextval('dev.grp_cons_
 
 
 --
--- Name: llm_types id; Type: DEFAULT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.llm_types ALTER COLUMN id SET DEFAULT nextval('dev.llm_types_id_seq'::regclass);
-
-
---
 -- Name: participant_avatars id; Type: DEFAULT; Schema: dev; Owner: -
 --
 
@@ -4103,6 +4107,13 @@ ALTER TABLE ONLY public.file_types ALTER COLUMN id SET DEFAULT nextval('public.f
 --
 
 ALTER TABLE ONLY public.group_types ALTER COLUMN id SET DEFAULT nextval('public.group_types_id_seq'::regclass);
+
+
+--
+-- Name: grp_con_types id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.grp_con_types ALTER COLUMN id SET DEFAULT nextval('public.grp_con_types_id_seq'::regclass);
 
 
 --
@@ -4661,22 +4672,6 @@ ALTER TABLE ONLY dev.grp_cons
 
 
 --
--- Name: llm_types llm_types_name_key; Type: CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.llm_types
-    ADD CONSTRAINT llm_types_name_key UNIQUE (name);
-
-
---
--- Name: llm_types llm_types_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.llm_types
-    ADD CONSTRAINT llm_types_pkey PRIMARY KEY (id);
-
-
---
 -- Name: participant_avatars participant_avatars_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
 --
 
@@ -5045,6 +5040,22 @@ ALTER TABLE ONLY public.group_types
 
 
 --
+-- Name: grp_con_types grp_con_types_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.grp_con_types
+    ADD CONSTRAINT grp_con_types_name_key UNIQUE (name);
+
+
+--
+-- Name: grp_con_types grp_con_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.grp_con_types
+    ADD CONSTRAINT grp_con_types_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: llm_types llm_types_name_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5132,10 +5143,24 @@ CREATE INDEX grp_con_avatar_turn_relationships_target_turn_id_idx ON bsa.grp_con
 
 
 --
+-- Name: idx_grp_cons_type_id; Type: INDEX; Schema: bsa; Owner: -
+--
+
+CREATE INDEX idx_grp_cons_type_id ON bsa.grp_cons USING btree (type_id);
+
+
+--
 -- Name: grp_con_avatar_turn_relationships_target_turn_id_idx; Type: INDEX; Schema: conflict_club; Owner: -
 --
 
 CREATE INDEX grp_con_avatar_turn_relationships_target_turn_id_idx ON conflict_club.grp_con_avatar_turn_relationships USING btree (target_turn_id);
+
+
+--
+-- Name: idx_grp_cons_type_id; Type: INDEX; Schema: conflict_club; Owner: -
+--
+
+CREATE INDEX idx_grp_cons_type_id ON conflict_club.grp_cons USING btree (type_id);
 
 
 --
@@ -5153,6 +5178,21 @@ CREATE INDEX grp_con_avatar_turn_relationships_target_turn_id_idx ON first_congr
 
 
 --
+-- Name: idx_grp_cons_type_id; Type: INDEX; Schema: first_congregational; Owner: -
+--
+
+CREATE INDEX idx_grp_cons_type_id ON first_congregational.grp_cons USING btree (type_id);
+
+
+--
+-- Name: grp_cons fk_grp_con_type; Type: FK CONSTRAINT; Schema: bsa; Owner: -
+--
+
+ALTER TABLE ONLY bsa.grp_cons
+    ADD CONSTRAINT fk_grp_con_type FOREIGN KEY (type_id) REFERENCES public.grp_con_types(id);
+
+
+--
 -- Name: groups groups_group_type_id_fkey; Type: FK CONSTRAINT; Schema: bsa; Owner: -
 --
 
@@ -5161,11 +5201,27 @@ ALTER TABLE ONLY bsa.groups
 
 
 --
+-- Name: grp_cons fk_grp_con_type; Type: FK CONSTRAINT; Schema: conflict_club; Owner: -
+--
+
+ALTER TABLE ONLY conflict_club.grp_cons
+    ADD CONSTRAINT fk_grp_con_type FOREIGN KEY (type_id) REFERENCES public.grp_con_types(id);
+
+
+--
 -- Name: groups groups_group_type_id_fkey; Type: FK CONSTRAINT; Schema: dev; Owner: -
 --
 
 ALTER TABLE ONLY dev.groups
     ADD CONSTRAINT groups_group_type_id_fkey FOREIGN KEY (group_type_id) REFERENCES public.group_types(id);
+
+
+--
+-- Name: grp_cons fk_grp_con_type; Type: FK CONSTRAINT; Schema: first_congregational; Owner: -
+--
+
+ALTER TABLE ONLY first_congregational.grp_cons
+    ADD CONSTRAINT fk_grp_con_type FOREIGN KEY (type_id) REFERENCES public.grp_con_types(id);
 
 
 --
