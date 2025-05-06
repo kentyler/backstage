@@ -23,6 +23,7 @@ import participantAvatarRoutes          from './src/routes/participantAvatars.js
 import participantEventRoutes           from './src/routes/participantEvents.js';
 import conversationsRoutes              from './src/routes/conversations.js';
 import preferencesRoutes                from './src/routes/preferences.js';
+import grpConUploadsRoutes              from './src/routes/grpConUploads.js';
 import meRouter                         from './src/routes/me.js';
 import { loginHandler }                 from './src/controllers/participants/loginHandler.js';
 import { setClientSchema }              from './src/middleware/setClientSchema.js';
@@ -125,6 +126,7 @@ app.use(
 app.use('/api/participant-avatars',                         participantAvatarRoutes);
 app.use('/api/participant-events',                          participantEventRoutes);
 app.use('/api/preferences',                                 preferencesRoutes);
+app.use('/api/grp-con-uploads',                             grpConUploadsRoutes);
 
 // mount the "who-ami" endpoint
 app.use('/api/me', meRouter);

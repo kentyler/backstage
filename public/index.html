@@ -195,10 +195,93 @@
       background-color: #f9f9f9;
     }
     
-    .input-area {
-      display: flex;
-      gap: 10px;
+    .input-table {
+      width: 100%;
       margin-top: 10px;
+      border-collapse: collapse;
+    }
+    
+    .input-table td {
+      padding: 0;
+      vertical-align: top;
+    }
+    
+    .input-table .file-cell {
+      width: 40px;
+      text-align: center;
+      padding-bottom: 5px;
+    }
+    
+    .input-table .send-cell {
+      width: 80px;
+      text-align: center;
+    }
+    
+    .input-table .input-cell {
+      padding-right: 10px;
+    }
+    
+    .file-upload-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background-color: #f0f0f0;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .file-upload-label:hover {
+      background-color: #e0e0e0;
+    }
+    
+    .file-upload-icon {
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+      position: relative;
+    }
+    
+    .file-upload-icon::before {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 14px;
+      border: 2px solid #666;
+      border-radius: 4px 4px 0 0;
+      border-bottom: none;
+      top: 0;
+      left: 4px;
+    }
+    
+    .file-upload-icon::after {
+      content: '';
+      position: absolute;
+      width: 4px;
+      height: 8px;
+      border: 2px solid #666;
+      border-radius: 0 0 4px 4px;
+      border-top: none;
+      bottom: 0;
+      left: 6px;
+    }
+    
+    .file-upload-input {
+      display: none;
+    }
+    
+    .file-message {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .file-link {
+      color: #0066cc;
+      text-decoration: underline;
+      cursor: pointer;
     }
     
     .user-input {
@@ -206,12 +289,13 @@
       padding: 10px;
       border: 1px solid #dee2e6;
       border-radius: 4px;
-      min-height: 80px;
+      min-height: 100px;
       max-height: 200px;
       overflow-y: auto;
       font-family: inherit;
       font-size: 1rem;
       background-color: white;
+      margin-top: -40px; /* Negative top margin to align with the paper clip icon */
     }
     
     /* Style for placeholder in contenteditable div */
@@ -377,10 +461,25 @@
         </div>
         
         <!-- Input area -->
-        <div class="input-area">
-          <div id="user-input" class="user-input" contenteditable="true" placeholder="Type your message here..."></div>
-          <button id="send-button" class="send-button">Send</button>
-        </div>
+        <table class="input-table">
+          <tr>
+            <td></td>
+            <td class="file-cell">
+              <label for="file-upload" class="file-upload-label">
+                <span class="file-upload-icon"></span>
+              </label>
+              <input type="file" id="file-upload" class="file-upload-input" accept="text/*">
+            </td>
+          </tr>
+          <tr>
+            <td class="input-cell">
+              <div id="user-input" class="user-input" contenteditable="true" placeholder="Type your message here..."></div>
+            </td>
+            <td class="send-cell">
+              <button id="send-button" class="send-button">Send</button>
+            </td>
+          </tr>
+        </table>
       </div>
     </div>
   </div>
@@ -1520,6 +1619,107 @@
       });
     }
     
+    // Function to handle file upload
+    async function handleFileUpload(file) {
+      // Check if a conversation is selected
+      const conversationTitle = document.getElementById('conversation-title');
+      if (conversationTitle.textContent === 'Select a conversation') {
+        alert('Please select a conversation first');
+        return;
+      }
+      
+      // Get the selected conversation ID
+      const selectedConversation = document.querySelector('.conversation-item.selected');
+      if (!selectedConversation) {
+        console.error('No conversation selected');
+        return;
+      }
+      
+      const conversationId = selectedConversation.dataset.conversationId;
+      
+      // Create a FormData object to send the file
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('grpConId', conversationId);
+      
+      // Show loading message in the transcript
+      const loadingMessage = `Uploading file: ${file.name}...`;
+      const loadingMessageId = Date.now();
+      addMessageToTranscript(loadingMessage, 'user', loadingMessageId);
+      
+      try {
+        // Upload the file
+        const response = await fetch('/api/grp-con-uploads', {
+          method: 'POST',
+          headers: {
+            'x-csrf-token': csrfToken
+          },
+          body: formData,
+          credentials: 'include'
+        });
+        
+        // Remove loading message
+        removeMessageFromTranscript(loadingMessageId);
+        
+        if (response.ok) {
+          const uploadData = await response.json();
+          console.log('File uploaded successfully:', uploadData);
+          
+          // Display the file in the conversation
+          displayFileInConversation(uploadData);
+        } else {
+          console.error('Failed to upload file:', await response.text());
+          alert('Failed to upload file. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        
+        // Remove loading message
+        removeMessageFromTranscript(loadingMessageId);
+        
+        alert('Error uploading file. Please try again.');
+      }
+    }
+    
+    // Function to display a file in the conversation
+    function displayFileInConversation(fileData) {
+      // Create a message with the file information
+      const fileMessage = document.createElement('div');
+      fileMessage.className = 'message user-message';
+      
+      // Create prefix element with the user's name
+      const prefixDiv = document.createElement('div');
+      prefixDiv.className = 'message-prefix';
+      prefixDiv.textContent = currentUser.participant?.name || 'You' + ':';
+      fileMessage.appendChild(prefixDiv);
+      
+      // Create content element with the file information
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content file-message';
+      
+      // Add file icon
+      const fileIcon = document.createElement('span');
+      fileIcon.textContent = '📄';
+      contentDiv.appendChild(fileIcon);
+      
+      // Add file name as a link
+      const fileLink = document.createElement('a');
+      fileLink.className = 'file-link';
+      fileLink.textContent = fileData.filename;
+      fileLink.href = `/api/grp-con-uploads/${fileData.id}`;
+      fileLink.target = '_blank';
+      contentDiv.appendChild(fileLink);
+      
+      fileMessage.appendChild(contentDiv);
+      
+      // Add the file message to the transcript
+      const transcriptArea = document.getElementById('transcript-area');
+      transcriptArea.appendChild(fileMessage);
+      
+      // Auto-scroll to the bottom
+      transcriptArea.scrollTop = transcriptArea.scrollHeight;
+    }
+    
     // Initialize the app
     (async function(){
       try {
@@ -1549,6 +1749,15 @@
         
         // Set up conversation UI
         setupTextareaAutoResize();
+        
+        // Add event listener for file upload
+        document.getElementById('file-upload').addEventListener('change', function(e) {
+          if (this.files && this.files.length > 0) {
+            handleFileUpload(this.files[0]);
+            // Reset the input so the same file can be uploaded again if needed
+            this.value = '';
+          }
+        });
         
         // Add event listener for send button
         document.getElementById('send-button').addEventListener('click', handleMessageSubmit);
