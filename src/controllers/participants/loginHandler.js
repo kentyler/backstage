@@ -132,7 +132,7 @@ export async function loginHandler(req, res) {
       secure: useSecureCookies, // Use secure cookies when HTTPS is available and not on localhost
       sameSite: useSecureCookies ? 'Strict' : 'Lax', // Stricter when using HTTPS
       domain: cookieDomain, // Add domain property for subdomain support
-      maxAge: 60 * 60 * 1000 // 1 hour
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours (increased from 1 hour to reduce frequency of session timeouts)
     });
     
     if (useSecureCookies) {

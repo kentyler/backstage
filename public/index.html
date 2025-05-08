@@ -20,13 +20,19 @@
     }
     
     .app-title {
-      font-size: 1.5rem;
+      font-size: 1.25rem;
       font-weight: bold;
+      display: flex;
+      align-items: center;
     }
     
-    .user-dropdown {
+    .user-dropdown, .group-dropdown {
       position: relative;
       display: inline-block;
+    }
+    
+    .group-dropdown {
+      margin-left: 10px;
     }
     
     .dropdown-button {
@@ -38,6 +44,7 @@
       cursor: pointer;
       display: flex;
       align-items: center;
+      font-size: 1.25rem; /* Increased font size for dropdown buttons */
     }
     
     .dropdown-button:hover {
@@ -47,12 +54,20 @@
     .dropdown-content {
       display: none;
       position: absolute;
-      right: 0;
       background-color: #f9f9f9;
       min-width: 160px;
       box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
       z-index: 1;
       border-radius: 4px;
+    }
+    
+    /* Position dropdown content */
+    .user-dropdown .dropdown-content {
+      right: 0;
+    }
+    
+    .group-dropdown .dropdown-content {
+      left: 0;
     }
     
     .dropdown-content a, .dropdown-content .group-item {
@@ -61,13 +76,15 @@
       text-decoration: none;
       display: block;
       cursor: pointer;
+      font-size: 1rem; /* Set font size for dropdown items */
     }
     
     .dropdown-content a:hover, .dropdown-content .group-item:hover {
       background-color: #f1f1f1;
     }
     
-    .user-dropdown:hover .dropdown-content {
+    .user-dropdown:hover .dropdown-content,
+    .group-dropdown:hover .dropdown-content {
       display: block;
     }
     
@@ -82,13 +99,18 @@
       height: calc(100vh - 60px); /* Subtract header height */
     }
     
-    .conversations-column {
+    .conversations-column, .topics-column {
       width: 250px;
       border-right: 1px solid #dee2e6;
       display: flex;
       flex-direction: column;
       background-color: #f8f9fa;
       position: relative;
+    }
+    
+    /* Hide topics column by default */
+    .topics-column {
+      display: none; /* Will be shown when a template is selected */
     }
     
     .conversations-header {
@@ -155,7 +177,7 @@
     }
     
     .dropdown-header {
-      font-weight: bold;
+      font-weight: normal;
       padding: 8px 16px;
       color: #6c757d;
       background-color: #f8f9fa;
@@ -403,17 +425,25 @@
   <div id="app" style="display:none">
     <!-- Header with user dropdown -->
     <header>
-      <div class="app-title">Conversational AI<span id="group-name-display" class="group-name"></span></div>
+      <div class="app-title">
+        Conversational AI
+        <div class="group-dropdown">
+          <button id="group-button" class="dropdown-button">
+            <span id="group-name-display" class="group-name">Select Group</span>
+          </button>
+          <div class="dropdown-content">
+            <div id="groups-container">
+              <div class="dropdown-header">Groups</div>
+              <!-- Groups will be populated here -->
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="user-dropdown">
         <button id="user-button" class="dropdown-button">
           <span id="user-name">User</span>
         </button>
         <div class="dropdown-content">
-          <div id="groups-container">
-            <div class="dropdown-header">Groups</div>
-            <!-- Groups will be populated here -->
-          </div>
-          <div class="dropdown-divider"></div>
           <div id="llms-container">
             <div class="dropdown-header">LLMs</div>
             <!-- LLMs will be populated here -->
@@ -426,7 +456,7 @@
     
     <!-- App container with left column and main content -->
     <div class="app-container">
-      <!-- Left column for conversations and courses -->
+      <!-- Left column for conversations and templates -->
       <div class="conversations-column">
         <!-- Conversations section -->
         <div class="conversations-header">
@@ -439,15 +469,28 @@
           <button id="new-conversation-btn" class="new-conversation-btn">New Conversation</button>
         </div>
         
-        <!-- Courses section -->
+        <!-- Templates section -->
         <div class="conversations-header">
-          <div class="conversations-title">Courses</div>
+          <div class="conversations-title">Templates</div>
         </div>
-        <div id="courses-list" class="conversations-list">
-          <!-- Courses will be populated here -->
+        <div id="templates-list" class="conversations-list">
+          <!-- templates will be populated here -->
         </div>
         <div class="new-conversation-container">
-          <button id="new-course-btn" class="new-conversation-btn">New Course</button>
+          <button id="new-template-btn" class="new-conversation-btn">New template</button>
+        </div>
+      </div>
+      
+      <!-- Topics column - Only visible when a template is selected -->
+      <div id="topics-column" class="topics-column">
+        <div class="conversations-header">
+          <div class="conversations-title">Topics</div>
+        </div>
+        <div id="topics-list" class="conversations-list">
+          <!-- Topics will be populated here -->
+        </div>
+        <div class="new-conversation-container">
+          <button id="new-topic-btn" class="new-conversation-btn">New Topic</button>
         </div>
       </div>
       
@@ -688,11 +731,11 @@
       }
     }
     
-    // Function to fetch courses for a group
-    async function fetchCourses(groupId) {
+    // Function to fetch templates for a group
+    async function fetchtemplates(groupId) {
       try {
         const url = `/api/grp-cons/by-group/${groupId}?typeId=2`;
-        console.log(`Fetching courses from: ${url}`);
+        console.log(`Fetching templates from: ${url}`);
         
         const res = await fetch(url, {
           method: 'GET',
@@ -700,15 +743,15 @@
         });
         
         if (res.ok) {
-          const courses = await res.json();
-          console.log(`Fetched ${courses.length} courses for group ${groupId}:`, courses);
-          return courses;
+          const templates = await res.json();
+          console.log(`Fetched ${templates.length} templates for group ${groupId}:`, templates);
+          return templates;
         } else {
-          console.error('Failed to fetch courses');
+          console.error('Failed to fetch templates');
           return [];
         }
       } catch (err) {
-        console.error('Error fetching courses:', err);
+        console.error('Error fetching templates:', err);
         return [];
       }
     }
@@ -753,43 +796,43 @@
       });
     }
     
-    // Function to display courses in the left column
-    function displayCourses(courses) {
-      const coursesList = document.getElementById('courses-list');
+    // Function to display templates in the left column
+    function displaytemplates(templates) {
+      const templatesList = document.getElementById('templates-list');
       
-      // Clear existing courses
-      coursesList.innerHTML = '';
+      // Clear existing templates
+      templatesList.innerHTML = '';
       
-      if (courses.length === 0) {
-        const noCoursesMsg = document.createElement('div');
-        noCoursesMsg.className = 'conversation-item';
-        noCoursesMsg.textContent = 'No courses yet';
-        coursesList.appendChild(noCoursesMsg);
+      if (templates.length === 0) {
+        const notemplatesMsg = document.createElement('div');
+        notemplatesMsg.className = 'conversation-item';
+        notemplatesMsg.textContent = 'No templates yet';
+        templatesList.appendChild(notemplatesMsg);
         return;
       }
       
-      // Add courses to the list
-      courses.forEach(course => {
-        const courseItem = document.createElement('div');
-        courseItem.className = 'conversation-item';
-        courseItem.textContent = course.name;
-        courseItem.dataset.conversationId = course.id;
+      // Add templates to the list
+      templates.forEach(template => {
+        const templateItem = document.createElement('div');
+        templateItem.className = 'conversation-item';
+        templateItem.textContent = template.name;
+        templateItem.dataset.conversationId = template.id;
         
-        // Add click event to handle course selection
-        courseItem.addEventListener('click', () => {
-          console.log(`Selected course: ${course.name} (ID: ${course.id})`);
+        // Add click event to handle template selection
+        templateItem.addEventListener('click', () => {
+          console.log(`Selected template: ${template.name} (ID: ${template.id})`);
           
           // Update visual selection
           document.querySelectorAll('.conversation-item').forEach(item => {
             item.classList.remove('selected');
           });
-          courseItem.classList.add('selected');
+          templateItem.classList.add('selected');
           
           // Call the selectConversation function to update the UI
-          selectConversation(course);
+          selectConversation(template);
         });
         
-        coursesList.appendChild(courseItem);
+        templatesList.appendChild(templateItem);
       });
     }
     
@@ -848,15 +891,15 @@
       }
     }
     
-    // Function to create a new course
-    async function createNewCourse() {
+    // Function to create a new template
+    async function createNewtemplate() {
       if (!selectedGroup) {
         console.error('No group selected');
         return;
       }
       
-      // Prompt user for course name
-      const name = prompt('Enter a name for the new course:');
+      // Prompt user for template name
+      const name = prompt('Enter a name for the new template:');
       if (!name) return; // User cancelled
       
       try {
@@ -870,36 +913,36 @@
             groupId: selectedGroup.id,
             name: name,
             description: '',  // Optional description
-            typeId: 2  // 2 = course
+            typeId: 2  // 2 = template
           }),
           credentials: 'include'  // send cookies
         });
         
         if (res.ok) {
-          const newCourse = await res.json();
-          console.log('Created new course:', newCourse);
+          const newtemplate = await res.json();
+          console.log('Created new template:', newtemplate);
           
-          // Refresh courses list
-          const courses = await fetchCourses(selectedGroup.id);
-          displayCourses(courses);
+          // Refresh templates list
+          const templates = await fetchtemplates(selectedGroup.id);
+          displaytemplates(templates);
           
-          // Auto-select the newly created course
-          const courseItem = document.querySelector(`#courses-list .conversation-item[data-conversation-id="${newCourse.id}"]`);
-          if (courseItem) {
+          // Auto-select the newly created template
+          const templateItem = document.querySelector(`#templates-list .conversation-item[data-conversation-id="${newtemplate.id}"]`);
+          if (templateItem) {
             // Update visual selection
             document.querySelectorAll('.conversation-item').forEach(item => {
               item.classList.remove('selected');
             });
-            courseItem.classList.add('selected');
+            templateItem.classList.add('selected');
             
             // Call the selectConversation function to update the UI
-            selectConversation(newCourse);
+            selectConversation(newtemplate);
           }
         } else {
-          console.error('Failed to create course');
+          console.error('Failed to create template');
         }
       } catch (err) {
-        console.error('Error creating course:', err);
+        console.error('Error creating template:', err);
       }
     }
     // Function to populate LLMs in the dropdown
@@ -1000,9 +1043,9 @@
       const conversations = await fetchConversations(group.id);
       displayConversations(conversations);
       
-      // Fetch and display courses for this group
-      const courses = await fetchCourses(group.id);
-      displayCourses(courses);
+      // Fetch and display templates for this group
+      const templates = await fetchtemplates(group.id);
+      displaytemplates(templates);
       
       // Update UI to show the selected group in the header
       const groupNameDisplay = document.getElementById('group-name-display');
@@ -1062,9 +1105,191 @@
       }
     }
     
+    // Function to fetch topics for a template
+    async function fetchTopics(templateId) {
+      try {
+        const url = `/api/grp-con-template-topics/by-template/${templateId}`;
+        console.log(`Fetching topics from: ${url}`);
+        
+        const res = await fetch(url, {
+          method: 'GET',
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          const topics = await res.json();
+          console.log(`Fetched ${topics.length} topics for template ${templateId}:`, topics);
+          
+          // Sort topics by topic_index
+          topics.sort((a, b) => parseFloat(a.topic_index) - parseFloat(b.topic_index));
+          
+          return topics;
+        } else {
+          console.error('Failed to fetch topics');
+          return [];
+        }
+      } catch (err) {
+        console.error('Error fetching topics:', err);
+        return [];
+      }
+    }
+    
+    // Function to display topics in the topics column
+    function displayTopics(topics) {
+      const topicsList = document.getElementById('topics-list');
+      
+      // Clear existing topics
+      topicsList.innerHTML = '';
+      
+      if (topics.length === 0) {
+        const noTopicsMsg = document.createElement('div');
+        noTopicsMsg.className = 'conversation-item';
+        noTopicsMsg.textContent = 'No topics yet';
+        topicsList.appendChild(noTopicsMsg);
+        return;
+      }
+      
+      // Add topics to the list
+      topics.forEach(topic => {
+        const topicItem = document.createElement('div');
+        topicItem.className = 'conversation-item';
+        topicItem.textContent = topic.title;
+        topicItem.dataset.topicId = topic.id;
+        
+        // Add click event to handle topic selection
+        topicItem.addEventListener('click', () => {
+          console.log(`Selected topic: ${topic.title} (ID: ${topic.id})`);
+          
+          // Update visual selection
+          document.querySelectorAll('#topics-list .conversation-item').forEach(item => {
+            item.classList.remove('selected');
+          });
+          topicItem.classList.add('selected');
+          
+          // Display topic content in the transcript area
+          displayTopicContent(topic);
+        });
+        
+        topicsList.appendChild(topicItem);
+      });
+    }
+    
+    // Function to handle topic selection by creating and submitting a prompt
+    function displayTopicContent(topic) {
+      // Create a prompt in the form of "Tell me about <topic>"
+      const prompt = `Tell me about ${topic.title}`;
+      
+      // Set the prompt in the user input field
+      const userInput = document.getElementById('user-input');
+      userInput.innerHTML = prompt;
+      
+      // Submit the prompt as if the user had entered it manually
+      handleMessageSubmit();
+    }
+    
+    // Function to create a new topic
+    async function createNewTopic() {
+      // Get the selected template
+      const selectedTemplate = document.querySelector('#templates-list .conversation-item.selected');
+      if (!selectedTemplate) {
+        console.error('No template selected');
+        return;
+      }
+      
+      const templateId = selectedTemplate.dataset.conversationId;
+      
+      // Prompt user for topic title
+      const title = prompt('Enter a title for the new topic:');
+      if (!title) return; // User cancelled
+      
+      try {
+        // Get the current topics to determine the next topic_index
+        const currentTopics = await fetchTopics(templateId);
+        let nextIndex = 10; // Default starting index
+        
+        if (currentTopics.length > 0) {
+          // Find the highest topic_index and add 10
+          const highestIndex = Math.max(...currentTopics.map(t => parseFloat(t.topic_index)));
+          nextIndex = highestIndex + 10;
+        }
+        
+        // Refresh CSRF token before sending request
+        await fetchCsrfToken();
+        
+        const res = await fetch('/api/grp-con-template-topics', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken
+          },
+          body: JSON.stringify({
+            template_id: Number(templateId),
+            title: title,
+            content: '',  // Empty content initially
+            topic_index: nextIndex
+          }),
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          const newTopic = await res.json();
+          console.log('Created new topic:', newTopic);
+          
+          // Refresh topics list
+          const topics = await fetchTopics(templateId);
+          displayTopics(topics);
+          
+          // Auto-select the newly created topic
+          const topicItem = document.querySelector(`#topics-list .conversation-item[data-topic-id="${newTopic.id}"]`);
+          if (topicItem) {
+            // Update visual selection
+            document.querySelectorAll('#topics-list .conversation-item').forEach(item => {
+              item.classList.remove('selected');
+            });
+            topicItem.classList.add('selected');
+            
+            // Display the topic content
+            displayTopicContent(newTopic);
+          }
+        } else {
+          console.error('Failed to create topic');
+        }
+      } catch (err) {
+        console.error('Error creating topic:', err);
+      }
+    }
+    
     // Function to handle conversation selection
-    function selectConversation(conversation) {
-      console.log(`Selected conversation: ${conversation.name} (ID: ${conversation.id})`);
+    async function selectConversation(conversation) {
+      console.log(`Selected conversation: ${conversation.name} (ID: ${conversation.id}), typeId: ${conversation.type_id}`);
+      
+      // Check if this is a template (type_id = 2) or a conversation (type_id = 1)
+      // Note: The property is type_id, not typeId
+      const isTemplate = conversation.type_id === 2;
+      console.log(`Is this a template? ${isTemplate}`);
+      
+      // Show or hide the topics column based on whether this is a template
+      const topicsColumn = document.getElementById('topics-column');
+      if (isTemplate) {
+        console.log('This is a template, showing topics column');
+        // Show the topics column and fetch topics
+        topicsColumn.style.display = 'flex';
+        
+        // Fetch and display topics for this template
+        try {
+          const topics = await fetchTopics(conversation.id);
+          displayTopics(topics);
+        } catch (err) {
+          console.error('Error fetching topics:', err);
+          // Still show the topics column even if fetching topics fails
+          const topicsList = document.getElementById('topics-list');
+          topicsList.innerHTML = '<div class="conversation-item">No topics yet</div>';
+        }
+      } else {
+        console.log('This is not a template, hiding topics column');
+        // Hide the topics column
+        topicsColumn.style.display = 'none';
+      }
       
       // Update the conversation title
       const conversationTitle = document.getElementById('conversation-title');
@@ -1114,9 +1339,16 @@
         
         // Display regular turns first
         regularTurns.forEach(turn => {
-          // Determine if this is a user message or LLM response based on avatar ID
-          const isUserMessage = turn.avatar_id === currentUser.participant?.current_avatar_id;
-          const messageType = isUserMessage ? 'user' : 'response';
+          // Determine if this is a user message or LLM response
+          let messageType;
+          if (turn.message_type_id !== undefined) {
+            // Use message_type_id if available (new method)
+            messageType = turn.message_type_id === 1 ? 'user' : 'response';
+          } else {
+            // Fall back to avatar ID comparison (old method)
+            const isUserMessage = turn.avatar_id === currentUser.participant?.current_avatar_id;
+            messageType = isUserMessage ? 'user' : 'response';
+          }
           
           // Add the message to the transcript with its turn ID
           addMessageToTranscript(turn.content_text, messageType, null, turn.id);
@@ -1161,11 +1393,14 @@
     }
     
     // Function to handle message submission
-    function handleMessageSubmit() {
+    async function handleMessageSubmit() {
       const userInput = document.getElementById('user-input');
       const message = userInput.innerHTML.trim();
       
       if (!message) return; // Don't send empty messages
+      
+      // Refresh CSRF token before sending message
+      await fetchCsrfToken();
       
       // Check if a conversation is selected
       const conversationTitle = document.getElementById('conversation-title');
@@ -1685,9 +1920,16 @@
     function displayFileInConversation(fileData) {
       // Create a message with the file information
       const fileMessage = document.createElement('div');
-      fileMessage.className = 'message user-message';
       
-      // Create prefix element with the user's name
+      // Determine message type based on message_type_id if available
+      let messageType = 'user'; // Default to user message for file uploads
+      if (fileData.message_type_id !== undefined) {
+        messageType = fileData.message_type_id === 1 ? 'user' : 'response';
+      }
+      
+      fileMessage.className = `message ${messageType}-message`;
+      
+      // Create prefix element with the sender's name
       const prefixDiv = document.createElement('div');
       prefixDiv.className = 'message-prefix';
       prefixDiv.textContent = currentUser.participant?.name || 'You' + ':';
@@ -1738,13 +1980,19 @@
         // Add event listener for new conversation button
         document.getElementById('new-conversation-btn').addEventListener('click', createNewConversation);
         
-        // Add event listener for new course button
-        document.getElementById('new-course-btn').addEventListener('click', newCourse);
+        // Add event listener for new template button
+        document.getElementById('new-template-btn').addEventListener('click', newtemplate);
         
-        // Function for new course button
-        function newCourse() {
-          console.log('New Course button clicked');
-          createNewCourse();
+        // Add event listener for new topic button
+        document.getElementById('new-topic-btn').addEventListener('click', () => {
+          console.log('New topic button clicked');
+          createNewTopic();
+        });
+        
+        // Function for new template button
+        function newtemplate() {
+          console.log('New template button clicked');
+          createNewtemplate();
         }
         
         // Set up conversation UI
@@ -1759,14 +2007,14 @@
           }
         });
         
-        // Add event listener for send button
-        document.getElementById('send-button').addEventListener('click', handleMessageSubmit);
-        
-        // Add event listener for Enter key in textarea (Shift+Enter for new line)
-        document.getElementById('user-input').addEventListener('keydown', function(e) {
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault(); // Prevent default to avoid new line
-            handleMessageSubmit();
+    // Add event listener for send button
+    document.getElementById('send-button').addEventListener('click', () => handleMessageSubmit());
+    
+    // Add event listener for Enter key in textarea (Shift+Enter for new line)
+    document.getElementById('user-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault(); // Prevent default to avoid new line
+        handleMessageSubmit();
           }
         });
         

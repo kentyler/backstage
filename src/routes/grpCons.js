@@ -16,7 +16,7 @@ router.post('/', async (req, res, next) => {
       groupId, 
       name, 
       description, 
-      typeId, // Optional type ID (1=conversation, 2=course)
+      typeId, // Optional type ID (1=conversation, 2=template)
       req.clientSchema
     );
     res.status(201).json(conv);
@@ -44,7 +44,7 @@ router.get('/:id', async (req, res, next) => {
 
 /**
  * GET    /api/grpCons/by-group/:groupId
- *    query: { typeId } - Optional filter by type (1=conversation, 2=course)
+ *    query: { typeId } - Optional filter by type (1=conversation, 2=template)
  */
 router.get('/by-group/:groupId', async (req, res, next) => {
   try {

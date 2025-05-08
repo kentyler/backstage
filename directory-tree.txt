@@ -1203,7 +1203,7 @@
   📄 server.js
   📁 sql-scripts/
     📄 add-comments-feature.sql
-    📄 add-courses-tables.sql
+    📄 add-templates-tables.sql
     📄 add-public-url-to-grp-con-uploads.sql
     📄 add-type-to-grp-cons.sql
     📄 append-llms-from-dev-to-public.sql

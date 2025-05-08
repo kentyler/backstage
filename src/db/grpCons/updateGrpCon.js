@@ -7,7 +7,7 @@ import { getDefaultSchema } from '../../config/schema.js';
  * @param {number} id - The conversation ID.
  * @param {string} newName - The new conversation name.
  * @param {string} newDescription - The new conversation description.
- * @param {number|null} [newTypeId=null] - The new type ID from grp_con_types table (1=conversation, 2=course), or null to keep current type
+ * @param {number|null} [newTypeId=null] - The new type ID from grp_con_types table (1=conversation, 2=template), or null to keep current type
  * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
  * @returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}|null>}
  */

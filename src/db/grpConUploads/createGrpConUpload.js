@@ -4,6 +4,7 @@
  */
 
 import { pool, createPool } from '../connection.js';
+import { getDefaultSchema } from '../../config/schema.js';
 
 /**
  * Create a new group conversation upload record
@@ -29,6 +30,12 @@ const createGrpConUpload = async (uploadData, customPoolOrSchema = null) => {
     } else {
       // If a pool object is provided, use it
       currentPool = customPoolOrSchema;
+    }
+  } else {
+    // Use default schema if no schema or pool is provided
+    const defaultSchema = getDefaultSchema();
+    if (defaultSchema !== 'public') {
+      currentPool = createPool(defaultSchema);
     }
   }
   

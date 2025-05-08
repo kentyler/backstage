@@ -40,13 +40,16 @@ export async function getGrpConAvatarTurnsByConversation(conversationId, schemaO
       // If a pool object is provided, use it
       customPool = schemaOrPool;
     }
-  } else if (getDefaultSchema) {
-    // If no schema or pool is provided, use the default schema
-    customPool = createPool(getDefaultSchema());
+  } else {
+    // Use default schema if no schema or pool is provided
+    const defaultSchema = getDefaultSchema();
+    if (defaultSchema !== 'public') {
+      customPool = createPool(defaultSchema);
+    }
   }
   
   const query = `
-    SELECT id, grp_con_id, avatar_id, turn_index, content_text, content_vector, created_at, turn_kind_id
+    SELECT id, grp_con_id, avatar_id, turn_index, content_text, content_vector, created_at, turn_kind_id, message_type_id
       FROM grp_con_avatar_turns
      WHERE grp_con_id = $1
   ORDER BY turn_index

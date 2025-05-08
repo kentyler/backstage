@@ -7,7 +7,7 @@ import { getDefaultSchema } from '../../config/schema.js';
  * @param {number} groupId - The ID of the group.
  * @param {string} name - The conversation name.
  * @param {string} description - The conversation description.
- * @param {number} [typeId=1] - The type ID from grp_con_types table (1=conversation, 2=course)
+ * @param {number} [typeId=1] - The type ID from grp_con_types table (1=conversation, 2=template)
  * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
  * @returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}>}
  */

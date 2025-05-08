@@ -13,6 +13,8 @@ import { getLLMResponse, getLLMName, getLLMConfig, getLLMId, getDefaultLLMConfig
 import { generateEmbedding, findSimilarTexts, findRelevantContext, initEmbeddingService } from '../services/embeddingService.js';
 import { getGrpConById } from '../db/grpCons/index.js';
 import { getGroupById } from '../db/groups/index.js';
+import { getGrpConUploadsByConversation } from '../db/grpConUploads/index.js';
+import { getGrpConUploadVectorsByUpload } from '../db/grpConUploadVectors/index.js';
 
 const router = express.Router();
 
@@ -134,11 +136,12 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
       formattedPrompt,
       promptEmbedding,
       TURN_KIND.REGULAR,
+      1, // message_type_id = 1 for user messages
       req.clientSchema
     );
     
     // Create an embedding database from existing turns, filtering out turns with invalid embeddings
-    const embeddingDatabase = existingTurns
+    const turnsEmbeddingDatabase = existingTurns
       .filter(turn => {
         // Check if the turn has valid content and embedding
         const hasValidContent = turn && turn.content && typeof turn.content === 'string';
@@ -161,16 +164,124 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
         turn_index: turn.turn_index
       }));
     
-    console.log(`Created embedding database with ${embeddingDatabase.length} valid turns out of ${existingTurns.length} total turns`);
+    console.log(`Created turns embedding database with ${turnsEmbeddingDatabase.length} valid turns out of ${existingTurns.length} total turns`);
+    
+    // Find relevant past turns using vector similarity
+    let relevantTurns = [];
+    try {
+      console.log('Finding relevant past turns using vector similarity...');
+      relevantTurns = await findRelevantContext(prompt, turnsEmbeddingDatabase, {
+        config: llmConfig,
+        schema: req.clientSchema,
+        threshold: 0.6, // Adjust threshold for turn relevance
+        maxResults: 5 // Limit to most relevant turns
+      });
+      console.log(`Found ${relevantTurns.length} relevant past turns`);
+    } catch (error) {
+      console.error('Error finding relevant past turns:', error);
+      // Continue with empty relevant turns if there's an error
+    }
+    
+    // Get all uploads for this conversation
+    let uploads = [];
+    let uploadsEmbeddingDatabase = [];
+    
+    try {
+      console.log('Getting uploads for conversation...');
+      uploads = await getGrpConUploadsByConversation(conversationId, req.clientSchema);
+      console.log(`Found ${uploads.length} uploads for conversation`);
+      
+      // Create an embedding database from uploaded files
+      if (uploads.length > 0) {
+        // For each upload, get its vectors
+        for (const upload of uploads) {
+          try {
+            const vectors = await getGrpConUploadVectorsByUpload(upload.id, req.clientSchema);
+            console.log(`Found ${vectors.length} vectors for upload ${upload.id}`);
+            
+            // Add each vector to the database
+            for (const vector of vectors) {
+              // Parse the vector if it's a string
+              let parsedVector = vector.content_vector;
+              if (typeof vector.content_vector === 'string') {
+                try {
+                  // Remove the square brackets and split by comma
+                  const vectorString = vector.content_vector.replace(/^\[|\]$/g, '');
+                  parsedVector = vectorString.split(',').map(Number);
+                } catch (error) {
+                  console.error('Error parsing vector string:', error);
+                  continue; // Skip this vector
+                }
+              }
+              
+              // Add to the embedding database
+              uploadsEmbeddingDatabase.push({
+                text: vector.content_text,
+                embedding: parsedVector,
+                uploadId: upload.id,
+                fileName: upload.file_name,
+                mimeType: upload.mime_type
+              });
+            }
+          } catch (error) {
+            console.error(`Error getting vectors for upload ${upload.id}:`, error);
+          }
+        }
+        
+        console.log(`Created uploads embedding database with ${uploadsEmbeddingDatabase.length} vectors`);
+      }
+    } catch (error) {
+      console.error('Error getting uploads for conversation:', error);
+      // Continue with empty uploads if there's an error
+    }
+    
+    // Find relevant content from uploaded files using vector similarity
+    let relevantUploads = [];
+    if (uploadsEmbeddingDatabase.length > 0) {
+      try {
+        console.log('Finding relevant content from uploaded files using vector similarity...');
+        relevantUploads = await findRelevantContext(prompt, uploadsEmbeddingDatabase, {
+          config: llmConfig,
+          schema: req.clientSchema,
+          threshold: 0.6, // Adjust threshold for upload relevance
+          maxResults: 5 // Limit to most relevant content chunks
+        });
+        console.log(`Found ${relevantUploads.length} relevant content chunks from uploaded files`);
+      } catch (error) {
+        console.error('Error finding relevant content from uploaded files:', error);
+        // Continue with empty relevant uploads if there's an error
+      }
+    }
+    
+    // Combine relevant turns and uploads into a context string
+    let vectorSearchContext = '';
+    
+    if (relevantTurns.length > 0) {
+      vectorSearchContext += '### Relevant conversation history:\n\n';
+      relevantTurns.forEach((item, index) => {
+        vectorSearchContext += `${index + 1}. ${item.text}\n\n`;
+      });
+    }
+    
+    if (relevantUploads.length > 0) {
+      vectorSearchContext += '### Relevant information from uploaded files:\n\n';
+      relevantUploads.forEach((item, index) => {
+        // Find the original upload to get the file name
+        const uploadInfo = uploadsEmbeddingDatabase.find(u => u.text === item.text);
+        const fileName = uploadInfo ? uploadInfo.fileName : 'Unknown file';
+        
+        vectorSearchContext += `${index + 1}. From "${fileName}":\n${item.text}\n\n`;
+      });
+    }
     
     // Include all past turns as context, but measure total length and limit if needed
     let conversationHistory = [];
-    if (embeddingDatabase.length > 0) {
+    if (turnsEmbeddingDatabase.length > 0) {
       console.log('Including past turns as conversation history...');
       
       // Convert the embedding database to a conversation history
       // Sort by turn index to maintain conversation flow
-      const sortedTurns = embeddingDatabase
+      const sortedTurns = turnsEmbeddingDatabase
         .sort((a, b) => a.turn_index - b.turn_index)
         .map(turn => ({
           role: turn.role,
@@ -213,22 +324,26 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
       // Construct the enhanced prompt with memory context
       let systemMessage = "You are a helpful AI assistant. Respond concisely and clearly.";
       
-      if (conversationHistory.length > 0) {
+      if (conversationHistory.length > 0 || vectorSearchContext) {
         // Create a more explicit system message for broader context usage with anti-hallucination instructions
-        systemMessage = `You have access to the conversation history between you and the user. 
-This history contains important information that the user has shared with you previously.
-Use this history to provide more personalized and relevant responses to the user's current prompt.
-DO NOT say you don't have access to previous conversations or that you don't remember - you have the relevant history below.
+        systemMessage = `You have access to the conversation history between you and the user, as well as relevant information from uploaded files. 
+This information contains important context that will help you provide more accurate and relevant responses.
+DO NOT say you don't have access to previous conversations or uploaded files - you have the relevant information below.
 
 IMPORTANT GUIDELINES:
-1. Consider past information for ALL prompts when it's relevant to the current context.
+1. Consider all provided context when it's relevant to the current prompt.
 2. Use the user's previously shared preferences, facts, and details to personalize your responses.
-3. When referencing past information, be accurate and precise about what the user actually said.
-4. Keep your responses focused on the current prompt - only include past information that is directly relevant.
-5. If the user asks about something they haven't mentioned before, respond naturally without drawing attention to the lack of history.
-6. NEVER make up or hallucinate information that isn't supported by the conversation context.
-7. If you don't know something or it wasn't mentioned in the conversation, acknowledge that rather than making up an answer.
+3. When referencing past information or uploaded files, be accurate and precise about what they contain.
+4. Keep your responses focused on the current prompt - only include context that is directly relevant.
+5. If the user asks about something that isn't in the provided context, respond naturally without drawing attention to the lack of information.
+6. NEVER make up or hallucinate information that isn't supported by the provided context.
+7. If you don't know something or it wasn't mentioned in the context, acknowledge that rather than making up an answer.
 8. Do not introduce new topics, facts, or questions that aren't directly related to what has been discussed.`;
+        
+        // If we have vector search results, add them to the system message
+        if (vectorSearchContext) {
+          systemMessage += `\n\nHere is relevant information to help you answer the user's question:\n\n${vectorSearchContext}`;
+        }
         
         // Format the messages for LLM in a way that preserves the conversation flow
         const messages = [];
@@ -248,7 +363,7 @@ IMPORTANT GUIDELINES:
         });
         
         // Get response from LLM API with the full message history, configuration, and parameters to reduce hallucinations
-        console.log(`Getting LLM response with ${messages.length} messages in history`);
+        console.log(`Getting LLM response with ${messages.length} messages in history and vector search context`);
         llmResponse = await getLLMResponse(formattedPrompt, {
           config: llmConfig,
           systemMessage,
@@ -311,6 +426,7 @@ IMPORTANT GUIDELINES:
       llmResponse,
       responseEmbedding,
       TURN_KIND.REGULAR,
+      2, // message_type_id = 2 for LLM messages
       req.clientSchema
     );
     

@@ -561,7 +561,7 @@ Creates a new conversation under a group.
 @param {number} groupId - The ID of the group.
 @param {string} name - The conversation name.
 @param {string} description - The conversation description.
-@param {number} [typeId=1] - The type ID from grp_con_types table (1=conversation, 2=course)
+@param {number} [typeId=1] - The type ID from grp_con_types table (1=conversation, 2=template)
 @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
 @returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}>}
 ```
@@ -590,7 +590,7 @@ Retrieves a conversation by its ID.
 Retrieves conversations for a given group, ordered by creation date (newest first) and limited to 50.
 Optionally filters by conversation type.
 @param {number} groupId - The group ID.
-@param {number|null} [typeId=null] - The type ID to filter by (1=conversation, 2=course), or null for all types
+@param {number|null} [typeId=null] - The type ID to filter by (1=conversation, 2=template), or null for all types
 @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
 @returns {Promise<Array<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}>>}
 ```
@@ -602,7 +602,7 @@ Updates a conversation's name, description, and optionally its type.
 @param {number} id - The conversation ID.
 @param {string} newName - The new conversation name.
 @param {string} newDescription - The new conversation description.
-@param {number|null} [newTypeId=null] - The new type ID from grp_con_types table (1=conversation, 2=course), or null to keep current type
+@param {number|null} [newTypeId=null] - The new type ID from grp_con_types table (1=conversation, 2=template), or null to keep current type
 @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
 @returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}|null>}
 ```
@@ -1374,7 +1374,7 @@ GET    /api/grpCons/:id
 
 ```
 GET    /api/grpCons/by-group/:groupId
-query: { typeId } - Optional filter by type (1=conversation, 2=course)
+query: { typeId } - Optional filter by type (1=conversation, 2=template)
 ```
 
 ```

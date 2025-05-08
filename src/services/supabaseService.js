@@ -6,14 +6,14 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Supabase configuration from environment variables
-// Using anonymous key for client-side operations
+// Using service role key for file operations to ensure proper permissions
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 // Log initialization without exposing sensitive information
-console.log('Supabase client initialized');
+console.log('Supabase client initialized with service role key');
 
 /**
  * Upload a file to Supabase Storage
@@ -31,15 +31,42 @@ export const uploadFile = async (fileBuffer, fileName, mimeType, clientSchema, c
     const bucketName = clientSchema;
     const filePath = `${conversationId}/${fileName}`;
     
+    console.log(`Attempting to upload file to bucket: ${bucketName}, path: ${filePath}`);
+    
+    // Check if bucket exists, create it if it doesn't
+    const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+    
+    if (bucketsError) {
+      console.error('Error listing buckets:', bucketsError);
+      throw new Error(`Supabase bucket list error: ${bucketsError.message}`);
+    }
+    
+    const bucketExists = buckets.some(bucket => bucket.name === bucketName);
+    
+    if (!bucketExists) {
+      console.log(`Bucket ${bucketName} does not exist, creating it...`);
+      const { error: createBucketError } = await supabase.storage.createBucket(bucketName, {
+        public: true // Make bucket public for easier access
+      });
+      
+      if (createBucketError) {
+        console.error('Error creating bucket:', createBucketError);
+        throw new Error(`Supabase bucket creation error: ${createBucketError.message}`);
+      }
+      console.log(`Bucket ${bucketName} created successfully`);
+    }
+    
     // Upload the file to Supabase Storage
+    console.log(`Uploading file to bucket ${bucketName}, path: ${filePath}`);
     const { data, error } = await supabase.storage
       .from(bucketName)
       .upload(filePath, fileBuffer, {
         contentType: mimeType,
-        upsert: false // Don't overwrite if file exists
+        upsert: true // Allow overwriting if file exists
       });
     
     if (error) {
+      console.error('Supabase upload error details:', error);
       throw new Error(`Supabase upload error: ${error.message}`);
     }
     

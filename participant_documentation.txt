@@ -8,7 +8,7 @@ This guide will help you understand how to use the Conversational AI: Conflict C
 2. [Main Interface Overview](#main-interface-overview)
 3. [User Menu](#user-menu)
 4. [Working with Conversations](#working-with-conversations)
-5. [Working with Courses](#working-with-courses)
+5. [Working with templates](#working-with-templates)
 6. [Sending and Responding to Messages](#sending-and-responding-to-messages)
 7. [Using Comments](#using-comments)
 
@@ -30,8 +30,8 @@ After logging in, you'll see the main interface which consists of several key ar
 The interface shows the Conversational AI platform with "Conflict Club" branding in the header. The screenshot displays the main application interface with the conversation list on the left and the selected conversation content on the right.
 
 1. **Header Bar**: Contains the application title and your user menu
-2. **Left Sidebar**: Lists your conversations and courses
-3. **Main Content Area**: Displays the selected conversation or course content
+2. **Left Sidebar**: Lists your conversations and templates
+3. **Main Content Area**: Displays the selected conversation or template content
 4. **Message Input Area**: Located at the bottom of the main content area for typing messages
 
 ## User Menu
@@ -49,7 +49,7 @@ The user menu is located in the top-right corner of the screen, showing your use
 1. Click on your username in the top-right corner
 2. In the dropdown menu, find the "Groups" section
 3. Click on the group you want to select
-4. The interface will update to show conversations and courses for that group
+4. The interface will update to show conversations and templates for that group
 
 ### Selecting an LLM
 
@@ -92,29 +92,29 @@ In the conversation screen, you can see:
 2. The main content area will update to show the conversation history
 3. You can now send messages in this conversation
 
-## Working with Courses
+## Working with templates
 
-Courses are structured learning experiences within the platform.
+templates are structured learning experiences within the platform.
 
-The course screen has a similar layout to the conversation screen, but it's focused on structured learning content rather than free-form conversation.
+The template screen has a similar layout to the conversation screen, but it's focused on structured learning content rather than free-form conversation.
 
-### Viewing Courses
+### Viewing templates
 
-1. Your courses are listed in the left sidebar under the "Courses" heading
-2. Each course shows its name
-3. The currently selected course is highlighted
+1. Your templates are listed in the left sidebar under the "templates" heading
+2. Each template shows its name
+3. The currently selected template is highlighted
 
-### Creating a New Course
+### Creating a New template
 
-1. Click the "New Course" button at the bottom of the Courses section
-2. Enter a name for your new course when prompted
-3. The new course will be created and automatically selected
+1. Click the "New template" button at the bottom of the templates section
+2. Enter a name for your new template when prompted
+3. The new template will be created and automatically selected
 
-### Selecting a Course
+### Selecting a template
 
-1. Click on any course in the list to select it
-2. The main content area will update to show the course content
-3. You can now interact with the course materials
+1. Click on any template in the list to select it
+2. The main content area will update to show the template content
+3. You can now interact with the template materials
 
 ## Sending and Responding to Messages
 

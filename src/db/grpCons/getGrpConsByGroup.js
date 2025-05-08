@@ -6,7 +6,7 @@ import { getDefaultSchema } from '../../config/schema.js';
  * Retrieves conversations for a given group, ordered by creation date (newest first) and limited to 50.
  * Optionally filters by conversation type.
  * @param {number} groupId - The group ID.
- * @param {number|null} [typeId=null] - The type ID to filter by (1=conversation, 2=course), or null for all types
+ * @param {number|null} [typeId=null] - The type ID to filter by (1=conversation, 2=template), or null for all types
  * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
  * @returns {Promise<Array<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}>>}
  */

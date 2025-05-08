@@ -12,7 +12,7 @@ import jwt from 'jsonwebtoken';
  * @param payload
 */
 export function signToken(payload) {
-  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });
 }
 
 /**

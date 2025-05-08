@@ -30,6 +30,7 @@ function toVectorLiteral(arr) {
  * @param {string} contentText - The text content of the turn
  * @param {Array} contentVector - The vector representation of the content
  * @param {number} [turnKindId=TURN_KIND.REGULAR] - The kind of turn (regular or comment)
+ * @param {number} [messageTypeId=null] - The type of message (1 for user, 2 for LLM)
  * @param {string|object} schemaOrPool - Either a schema name or a pool object
  * @returns {Promise<Object>} The created turn
  */
@@ -40,31 +41,46 @@ export async function createGrpConAvatarTurn(
   contentText, 
   contentVector, 
   turnKindId = TURN_KIND.REGULAR,
+  messageTypeId = null,
   schemaOrPool = null
 ) {
   // Determine which pool to use
   let customPool = pool;
+  
+  console.log('createGrpConAvatarTurn called with schemaOrPool:', schemaOrPool);
+  
   if (schemaOrPool) {
     if (typeof schemaOrPool === 'string') {
       // If a schema name is provided, create a pool for that schema
+      console.log('Creating pool with schema:', schemaOrPool);
       customPool = createPool(schemaOrPool);
     } else {
       // If a pool object is provided, use it
+      console.log('Using provided pool object');
       customPool = schemaOrPool;
     }
   } else {
-    // If no schema or pool is provided, use the default schema
-    customPool = createPool(getDefaultSchema());
+    // Use default schema if no schema or pool is provided
+    const defaultSchema = getDefaultSchema();
+    console.log('No schema or pool provided, using default schema:', defaultSchema);
+    if (defaultSchema !== 'public') {
+      console.log('Creating pool with default schema:', defaultSchema);
+      customPool = createPool(defaultSchema);
+    } else {
+      console.log('Using default pool (public schema)');
+    }
   }
+  
+  console.log('Final pool to be used for query:', customPool ? 'Custom pool' : 'Default pool');
 
   const normalized = normalizeVector(contentVector);
   const vecLit     = toVectorLiteral(normalized);
 
   const query = `
     INSERT INTO grp_con_avatar_turns
-      (grp_con_id, turn_kind_id, avatar_id, turn_index, content_text, content_vector)
-    VALUES ($1, $2, $3, $4, $5, $6::vector)
-    RETURNING id, grp_con_id, avatar_id, turn_index, content_text, content_vector, created_at, turn_kind_id
+      (grp_con_id, turn_kind_id, avatar_id, turn_index, content_text, content_vector, message_type_id)
+    VALUES ($1, $2, $3, $4, $5, $6::vector, $7)
+    RETURNING id, grp_con_id, avatar_id, turn_index, content_text, content_vector, created_at, turn_kind_id, message_type_id
   `;
   const { rows } = await customPool.query(query, [
     conversationId,
@@ -73,6 +89,7 @@ export async function createGrpConAvatarTurn(
     turnIndex,
     contentText,
     vecLit,
+    messageTypeId,
   ]);
   const row = rows[0];
   row.content_vector = normalized;

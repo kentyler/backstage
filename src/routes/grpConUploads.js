@@ -117,6 +117,8 @@ const chunkText = (text, maxChunkSize = MAX_CHUNK_SIZE, overlap = CHUNK_OVERLAP)
  */
 router.post('/', requireAuth, upload.single('file'), async (req, res) => {
   try {
+    console.log('POST /api/grp-con-uploads - req.clientSchema:', req.clientSchema);
+    
     const { grpConId, avatarId } = req.body;
     const file = req.file;
     
@@ -133,6 +135,7 @@ router.post('/', requireAuth, upload.single('file'), async (req, res) => {
     const fileName = file.originalname;
     const mimeType = file.mimetype;
     const clientSchema = req.clientSchema;
+    console.log('clientSchema before passing to functions:', clientSchema);
     
     const uploadResult = await uploadFile(
       fileBuffer,
@@ -167,6 +170,12 @@ router.post('/', requireAuth, upload.single('file'), async (req, res) => {
     const turnIndex = maxTurnIndex + 1;
     
     // Create the turn record
+    console.log('About to call createGrpConAvatarTurn with clientSchema:', clientSchema);
+    if (!clientSchema) {
+      console.log('WARNING: clientSchema is null or undefined, forcing to "dev" for localhost');
+      clientSchema = 'dev';
+    }
+    
     const turn = await createGrpConAvatarTurn(
       grpConId,
       effectiveAvatarId,
@@ -174,7 +183,8 @@ router.post('/', requireAuth, upload.single('file'), async (req, res) => {
       `File: ${fileName}`,
       emptyVector,
       TURN_KIND_UPLOAD,
-      clientSchema
+      null, // messageTypeId parameter
+      clientSchema // schemaOrPool parameter
     );
     
     // Create record in database with the new turn ID
