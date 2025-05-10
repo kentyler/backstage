@@ -28,6 +28,7 @@ import grpConTemplateTopicsRoutes       from './src/routes/grpConTemplateTopics.
 import meRouter                         from './src/routes/me.js';
 import { loginHandler }                 from './src/controllers/participants/loginHandler.js';
 import { setClientSchema }              from './src/middleware/setClientSchema.js';
+import { setClientPool }                from './src/middleware/setClientPool.js';
 
 const app = express();
 app.use(express.json());
@@ -110,8 +111,9 @@ app.use(generateCsrfSecret);
 app.get('/api/csrf-token', generateCsrfToken, csrfTokenHandler);
 app.use('/api', validateCsrfToken);
 
-// Apply setClientSchema middleware globally
+// Apply schema middleware globally
 app.use(setClientSchema);
+app.use(setClientPool);
 
 // API mounts
 app.use('/api/groups', groupRoutes);

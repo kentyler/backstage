@@ -20,7 +20,7 @@ router
         if (isNaN(participantId)) {
           return res.status(400).json({ error: 'Invalid participant ID' });
         }
-        const groups = await groupCtrl.getGroupsByParticipant(participantId, req.clientSchema);
+        const groups = await groupCtrl.getGroupsByParticipant(participantId, req.clientPool);
         return res.json(groups);
       }
       

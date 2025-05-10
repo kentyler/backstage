@@ -12,36 +12,30 @@ import { getDefaultSchema } from '../../config/schema.js';
 /**
  * Retrieves all groups that a specific participant belongs to
  * @param {number} participantId - The ID of the participant
- * @param {string|object} [schemaOrPool=null] - Database schema name or connection pool
+ * @param {object} [pool=defaultPool] - Database connection pool
  * @returns {Promise<Array<{id: number, name: string, created_at: string, role: string}>>} Array of group records
  * @throws {Error} If a database error occurs
  */
-export async function getGroupsByParticipant(participantId, schemaOrPool = null) {
-  // Determine which pool to use
-  let queryPool = defaultPool;
+export async function getGroupsByParticipant(participantId, pool = defaultPool) {
+  // Debug: Log the schema being used
+  console.log(`getGroupsByParticipant: Using pool with schema:`, 
+    pool === defaultPool ? 'defaultPool' : 'custom pool');
   
-  if (schemaOrPool) {
-    if (typeof schemaOrPool === 'string') {
-      // If a schema name is provided, create a pool for that schema
-      queryPool = createPool(schemaOrPool);
-    } else {
-      // If a pool object is provided, use it
-      queryPool = schemaOrPool;
-    }
-  } else {
-    // Use default schema if no schema or pool is provided
-    const defaultSchema = getDefaultSchema();
-    if (defaultSchema !== 'public') {
-      queryPool = createPool(defaultSchema);
-    }
+  // Get the actual schema from the pool if possible
+  try {
+    const schemaResult = await pool.query('SHOW search_path;');
+    console.log('Current search_path:', schemaResult.rows[0].search_path);
+  } catch (schemaError) {
+    console.error('Error getting search_path:', schemaError.message);
   }
+  
   try {
     const query = `
       SELECT 
         g.id,
         g.name,
         g.created_at,
-        pg.role
+        pg.participant_role_id
       FROM groups g
       JOIN participant_groups pg ON g.id = pg.group_id
       WHERE pg.participant_id = $1
@@ -49,7 +43,7 @@ export async function getGroupsByParticipant(participantId, schemaOrPool = null)
     `;
     const values = [participantId];
 
-    const result = await queryPool.query(query, values);
+    const result = await pool.query(query, values);
     return result.rows;
   } catch (error) {
     throw new Error(`Failed to get groups by participant: ${error.message}`);
