@@ -6,16 +6,15 @@
 /**
  * The database connection pool
  */
-import { pool as defaultPool } from '../connection.js';
+import { pool } from '../connection.js';
 
 /**
  * Deletes a participant from the database
  * @param {number} id - The ID of the participant to delete
- * @param {object} [pool=defaultPool] - Database connection pool (for testing)
  * @returns {Promise<boolean>} True if a participant was deleted, false otherwise
  * @throws {Error} If a database error occurs
  */
-export async function deleteParticipant(id, pool = defaultPool) {
+export async function deleteParticipant(id) {
   try {
     // Check if it's the test participant (ID: 1) - optional protection
     // if (id === 1) {

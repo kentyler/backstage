@@ -5,7 +5,7 @@ import { signToken } from '../../services/authService.js';
 import { createParticipantEvent } from '../../db/participantEvents/index.js';
 import { getPreferenceWithFallback } from '../../db/preferences/getPreferenceWithFallback.js';
 import { determineClientSchema } from '../../utils/clientSchema.js';
-import { getDefaultSchema } from '../../config/schema.js';
+import { getDefaultSchema, setDefaultSchema } from '../../config/schema.js';
 
 // System participant ID for logging events not associated with a specific participant
 const SYSTEM_PARTICIPANT_ID = 815; // Special participant created for system events
@@ -40,14 +40,36 @@ export async function loginHandler(req, res) {
     // Get the client schema from the request or use the default schema
     let clientSchema = req.clientSchema || getDefaultSchema();
     console.log(`Using schema: ${clientSchema} for login request`);
+    console.log(`looking up email: ${email} for login request`); 
 
-    // Pass the client schema to getParticipantByEmail
-    const participant = await getParticipantByEmail(email, clientSchema);
+    // Use the client-specific pool that was set by the setClientPool middleware
+    // This ensures we use the correct schema for database operations
+    if (!req.clientPool) {
+      console.error('No client pool available. The setClientPool middleware might not be applied.');
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+
+    let participant = null;
+    
+    try {
+      // Query the database directly using the client-specific pool
+      const query = `
+        SELECT * FROM participants
+        WHERE email = $1
+      `;
+      const values = [email];
+      
+      const result = await req.clientPool.query(query, values);
+      participant = result.rows[0] || null;
+    } catch (dbError) {
+      console.error(`Database error when looking up participant by email: ${dbError.message}`);
+      return res.status(500).json({ error: 'Database error when looking up participant' });
+    }
     if (!participant) {
     // Log unsuccessful login attempt (participant not found - type 3)
     // Using system participant ID since the database requires a valid participant_id
     // Don't log the password for security reasons
-    await createParticipantEvent(SYSTEM_PARTICIPANT_ID, 3, { email }, clientSchema);
+    await createParticipantEvent(SYSTEM_PARTICIPANT_ID, 3, { email });
       return res.status(401).json({ error: 'Login failed.' });
     }
 
@@ -55,20 +77,19 @@ export async function loginHandler(req, res) {
     if (!isPasswordValid) {
       // Log unsuccessful login attempt (invalid password - type 2)
       // Don't log the password for security reasons
-      await createParticipantEvent(participant.id, 2, { email }, clientSchema);
+      await createParticipantEvent(participant.id, 2, { email });
       return res.status(401).json({ error: 'Login failed.' });
     }
 
     // Log successful login (type 1)
-    await createParticipantEvent(participant.id, 1, { email }, clientSchema);
+    await createParticipantEvent(participant.id, 1, { email });
 
     const { password: _, ...participantData } = participant;
     
     // Get the participant's avatar ID from preferences
     try {
       const avatarIdPreference = await getPreferenceWithFallback('avatar_id', {
-        participantId: participant.id,
-        schema: clientSchema
+        participantId: participant.id
       });
       console.log(`Retrieved avatar_id preference for participant ${participant.id}:`, avatarIdPreference);
       

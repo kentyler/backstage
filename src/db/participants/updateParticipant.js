@@ -6,8 +6,7 @@
 /**
  * The database connection pool
  */
-import { pool as defaultPool } from '../connection.js';
-
+import { pool } from '../connection.js';
 /**
  * Updates a participant's information
  * @param {number} id - The ID of the participant to update
@@ -16,11 +15,10 @@ import { pool as defaultPool } from '../connection.js';
  * @param {string} [updates.email] - Updated email
  * @param {string} [updates.password] - Updated password (should be hashed)
  * @param {number} [createdByParticipantId=null] - ID of participant making the change (for logging)
- * @param {object} [pool=defaultPool] - Database connection pool (for testing)
  * @returns {Promise<object|null>} The updated participant record, or null if not found
  * @throws {Error} If email already exists or another error occurs
  */
-export async function updateParticipant(id, updates, createdByParticipantId = null, pool = defaultPool) {
+export async function updateParticipant(id, updates, createdByParticipantId = null) {
   try {
     // Check if the participant exists
     const existingParticipant = await pool.query(

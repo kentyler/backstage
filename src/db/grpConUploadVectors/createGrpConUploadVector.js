@@ -3,9 +3,7 @@
  * @module db/grpConUploadVectors/createGrpConUploadVector
  */
 
-import { pool, createPool } from '../connection.js';
-import { getDefaultSchema } from '../../config/schema.js';
-
+import { pool } from '../connection.js';
 /**
  * Create a new group conversation upload vector record
  * @param {Object} vectorData - The vector data
@@ -16,26 +14,8 @@ import { getDefaultSchema } from '../../config/schema.js';
  * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
  * @returns {Promise<Object>} - The created vector record
  */
-const createGrpConUploadVector = async (vectorData, customPoolOrSchema = null) => {
-  // Determine which pool to use
-  let currentPool = pool;
-  
-  if (customPoolOrSchema) {
-    if (typeof customPoolOrSchema === 'string') {
-      // If a schema name is provided, create a pool for that schema
-      currentPool = createPool(customPoolOrSchema);
-    } else {
-      // If a pool object is provided, use it
-      currentPool = customPoolOrSchema;
-    }
-  } else {
-    // Use default schema if no schema or pool is provided
-    const defaultSchema = getDefaultSchema();
-    if (defaultSchema !== 'public') {
-      currentPool = createPool(defaultSchema);
-    }
-  }
-  
+const createGrpConUploadVector = async (vectorData) => {
+ 
   const {
     uploadId,
     chunkIndex,
@@ -70,7 +50,7 @@ const createGrpConUploadVector = async (vectorData, customPoolOrSchema = null) =
   ];
   
   try {
-    const result = await currentPool.query(query, values);
+    const result = await pool.query(query, values);
     return result.rows[0];
   } catch (error) {
     console.error('Error creating group conversation upload vector:', error);

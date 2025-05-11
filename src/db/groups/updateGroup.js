@@ -1,10 +1,11 @@
 // src/db/group/updateGroup.js
+import { pool } from '../connection.js';
+
 /**
  * @file src/db/group/updateGroup.js
  * @description Updates a group's properties in the database.
  */
 
-import { pool } from '../connection.js';
 
 /**
  * Updates an existing group's properties.

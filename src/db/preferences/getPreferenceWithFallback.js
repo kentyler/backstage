@@ -3,7 +3,7 @@
  * @description Retrieves a preference with fallback hierarchy (participant -> group -> site -> default).
  */
 
-import { pool as defaultPool, createPool } from '../connection.js';
+import { pool } from '../connection.js';
 import { getPreferenceTypeByName } from './getPreferenceTypeByName.js';
 
 /**
@@ -12,21 +12,17 @@ import { getPreferenceTypeByName } from './getPreferenceTypeByName.js';
  * @param {object} options - Options for preference retrieval
  * @param {number} [options.participantId] - The ID of the participant (optional)
  * @param {number} [options.groupId] - The ID of the group (optional)
- * @param {string} [options.schema='public'] - The database schema to use
- * @param {object} [options.customPool=null] - Database connection pool (for testing)
- * @returns {Promise<object>} The preference value with source information
+ * @param {string} [options.schema] - The database schema to use (optional, uses current search path by default)
+ ** @returns {Promise<object>} The preference value with source information
  * @throws {Error} If an error occurs during retrieval or preference type doesn't exist
  */
-export async function getPreferenceWithFallback(preferenceName, options, customPool = null) {
-  const { participantId, groupId, schema = 'public' } = options;
+export async function getPreferenceWithFallback(preferenceName, options) {
+  const { participantId, groupId } = options;
   
-  // If no pool is provided, create one for the specified schema
-  const clientPool = customPool || options.customPool || 
-    (schema === 'public' ? defaultPool : createPool(schema));
-  
+    
   try {
     // Get the preference type
-    const preferenceType = await getPreferenceTypeByName(preferenceName, schema);
+    const preferenceType = await getPreferenceTypeByName(preferenceName);
     if (!preferenceType) {
       throw new Error(`Preference type '${preferenceName}' not found`);
     }
@@ -41,7 +37,7 @@ export async function getPreferenceWithFallback(preferenceName, options, customP
         LIMIT 1
       `;
       const participantPreferenceValues = [participantId, preferenceType.id];
-      const participantPreferenceResult = await clientPool.query(
+      const participantPreferenceResult = await pool.query(
         participantPreferenceQuery, 
         participantPreferenceValues
       );
@@ -63,7 +59,7 @@ export async function getPreferenceWithFallback(preferenceName, options, customP
         WHERE group_id = $1 AND preference_type_id = $2
       `;
       const groupPreferenceValues = [groupId, preferenceType.id];
-      const groupPreferenceResult = await clientPool.query(
+      const groupPreferenceResult = await pool.query(
         groupPreferenceQuery, 
         groupPreferenceValues
       );
@@ -84,7 +80,7 @@ export async function getPreferenceWithFallback(preferenceName, options, customP
       WHERE preference_type_id = $1
     `;
     const sitePreferenceValues = [preferenceType.id];
-    const sitePreferenceResult = await clientPool.query(
+    const sitePreferenceResult = await pool.query(
       sitePreferenceQuery, 
       sitePreferenceValues
     );

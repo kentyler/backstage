@@ -1,12 +1,16 @@
 // tests/group.test.js
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, beforeAll } from 'vitest';
 import { pool } from '../src/db/connection.js';
+import { setDefaultSchema } from '../src/config/schema.js';
 import { createGroup } from '../src/db/groups/createGroup.js';
 import { getGroupById } from '../src/db/groups/getGroupById.js';
 import { getGroupByName } from '../src/db/groups/getGroupByName.js';
 import { updateGroup } from '../src/db/groups/updateGroup.js';
 import { deleteGroup } from '../src/db/groups/deleteGroup.js';
+
+// Set the schema to 'dev' for tests
+setDefaultSchema('dev');
 
 const testGroupName = 'test-data';
 let testGroupId;
@@ -50,7 +54,7 @@ describe('Group Functions', () => {
   });
 
   it('should update group name', async () => {
-    const updated = await updateGroup(testGroupId, 'test-data-updated');
+    const updated = await updateGroup(testGroupId, { name: 'test-data-updated' });
     expect(updated).not.toBeNull();
     expect(updated.name).toBe('test-data-updated');
   });

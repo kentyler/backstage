@@ -12,7 +12,7 @@ import { pool } from '../connection.js';
  * @returns {Promise<object|null>} The deleted relationship or null if not found
  * @throws {Error} If the operation fails
  */
-export async function deleteParticipantAvatar(id, customPool = pool) {
+export async function deleteParticipantAvatar(id) {
   try {
     const query = `
       DELETE FROM participant_avatars
@@ -20,7 +20,7 @@ export async function deleteParticipantAvatar(id, customPool = pool) {
       RETURNING id, participant_id, avatar_id, created_at, created_by_participant_id
     `;
     
-    const { rows } = await customPool.query(query, [id]);
+    const { rows } = await pool.query(query, [id]);
     
     return rows.length > 0 ? rows[0] : null;
   } catch (error) {

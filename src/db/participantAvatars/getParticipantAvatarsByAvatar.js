@@ -12,7 +12,7 @@ import { pool } from '../connection.js';
  * @returns {Promise<Array<object>>} Array of participant-avatar relationships
  * @throws {Error} If the operation fails
  */
-export async function getParticipantAvatarsByAvatar(avatarId, customPool = pool) {
+export async function getParticipantAvatarsByAvatar(avatarId) {
   try {
     const query = `
       SELECT 
@@ -29,7 +29,7 @@ export async function getParticipantAvatarsByAvatar(avatarId, customPool = pool)
       ORDER BY pa.created_at DESC
     `;
     
-    const { rows } = await customPool.query(query, [avatarId]);
+    const { rows } = await pool.query(query, [avatarId]);
     
     return rows;
   } catch (error) {

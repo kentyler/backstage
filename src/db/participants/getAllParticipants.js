@@ -6,15 +6,14 @@
 /**
  * The database connection pool
  */
-import { pool as defaultPool } from '../connection.js';
+import { pool } from '../connection.js';
 
 /**
  * Retrieves all participants from the database
- * @param {object} [pool=defaultPool] - Database connection pool (for testing)
  * @returns {Promise<object[]>} Array of participant records
  * @throws {Error} If a database error occurs
  */
-export async function getAllParticipants(pool = defaultPool) {
+export async function getAllParticipants() {
   try {
     const query = `
       SELECT * FROM participants

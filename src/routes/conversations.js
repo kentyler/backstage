@@ -35,13 +35,13 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
     }
     
     // Get the conversation and its associated group to get the LLM avatar ID
-    const conversation = await getGrpConById(conversationId, req.clientSchema);
+    const conversation = await getGrpConById(conversationId, req.clientPool);
     if (!conversation) {
       return res.status(404).json({ error: 'Conversation not found' });
     }
     
     // Get the group to access its LLM avatar ID
-    const group = await getGroupById(conversation.group_id, req.clientSchema);
+    const group = await getGroupById(conversation.group_id);
     if (!group) {
       return res.status(404).json({ error: 'Group not found' });
     }
@@ -51,7 +51,7 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
     let llmConfig;
     try {
       // Get the LLM ID using the preference cascade (participant > group > site)
-      llmId = await getLLMId(participantId, conversation.group_id, req.clientSchema);
+      llmId = await getLLMId(participantId, conversation.group_id);
       llmConfig = await getLLMConfig(llmId);
       
       if (!llmConfig) {
@@ -67,15 +67,15 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
     // Get the LLM name using the preference system
     let llmName;
     try {
-      // Pass the participant ID, group ID, and client schema to get the correct LLM name based on preferences
-      llmName = await getLLMName(participantId, conversation.group_id, req.clientSchema);
+      // Pass the participant ID, group ID to get the correct LLM name based on preferences
+      llmName = await getLLMName(participantId, conversation.group_id);
     } catch (error) {
       console.error('Error getting LLM name:', error);
       llmName = 'Anthropic Claude-3-Opus'; // Fallback to hardcoded name if preference lookup fails
     }
     
     // Get the participant to access their avatar ID and name
-    const participant = await getParticipantById(participantId, req.clientSchema);
+    const participant = await getParticipantById(participantId);
     if (!participant) {
       return res.status(404).json({ error: 'Participant not found' });
     }
@@ -91,8 +91,7 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
       const { getPreferenceWithFallback } = await import('../db/preferences/getPreferenceWithFallback.js');
       const avatarPreference = await getPreferenceWithFallback('avatar_id', {
         participantId: participantId,
-        groupId: conversation.group_id,
-        schema: req.clientSchema
+        groupId: conversation.group_id
       });
       
       participantAvatarId = avatarPreference?.value;
@@ -109,7 +108,7 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
     }
     
     // Get the current turn index for this conversation
-    const existingTurns = await getGrpConAvatarTurnsByConversation(conversationId, req.clientSchema);
+    const existingTurns = await getGrpConAvatarTurnsByConversation(conversationId);
     const turnIndex = existingTurns.length;
     
     // Generate embedding for the user's prompt
@@ -121,7 +120,7 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
       if (!embeddingInitialized) {
         throw new Error('Embedding service initialization failed. Check API key and configuration.');
       }
-      promptEmbedding = await generateEmbedding(formattedPrompt, null, { schema: req.clientSchema });
+      promptEmbedding = await generateEmbedding(formattedPrompt, null);
       console.log('Successfully generated embedding for user prompt');
     } catch (error) {
       console.error('Error generating embedding for user prompt:', error);
@@ -136,8 +135,8 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
       formattedPrompt,
       promptEmbedding,
       TURN_KIND.REGULAR,
-      1, // message_type_id = 1 for user messages
-      req.clientSchema
+      1,// message_type_id = 1 for user messages
+     
     );
     
     // Create an embedding database from existing turns, filtering out turns with invalid embeddings
@@ -172,7 +171,6 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
       console.log('Finding relevant past turns using vector similarity...');
       relevantTurns = await findRelevantContext(prompt, turnsEmbeddingDatabase, {
         config: llmConfig,
-        schema: req.clientSchema,
         threshold: 0.6, // Adjust threshold for turn relevance
         maxResults: 5 // Limit to most relevant turns
       });
@@ -188,7 +186,7 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
     
     try {
       console.log('Getting uploads for conversation...');
-      uploads = await getGrpConUploadsByConversation(conversationId, req.clientSchema);
+      uploads = await getGrpConUploadsByConversation(conversationId);
       console.log(`Found ${uploads.length} uploads for conversation`);
       
       // Create an embedding database from uploaded files
@@ -196,7 +194,7 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
         // For each upload, get its vectors
         for (const upload of uploads) {
           try {
-            const vectors = await getGrpConUploadVectorsByUpload(upload.id, req.clientSchema);
+            const vectors = await getGrpConUploadVectorsByUpload(upload.id);
             console.log(`Found ${vectors.length} vectors for upload ${upload.id}`);
             
             // Add each vector to the database
@@ -242,7 +240,7 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
         console.log('Finding relevant content from uploaded files using vector similarity...');
         relevantUploads = await findRelevantContext(prompt, uploadsEmbeddingDatabase, {
           config: llmConfig,
-          schema: req.clientSchema,
+          
           threshold: 0.6, // Adjust threshold for upload relevance
           maxResults: 5 // Limit to most relevant content chunks
         });
@@ -410,7 +408,7 @@ IMPORTANT GUIDELINES:
       if (!embeddingInitialized) {
         throw new Error('Embedding service initialization failed. Check API key and configuration.');
       }
-      responseEmbedding = await generateEmbedding(llmResponse, null, { schema: req.clientSchema });
+      responseEmbedding = await generateEmbedding(llmResponse, null);
       console.log('Successfully generated embedding for LLM response');
     } catch (error) {
       console.error('Error generating embedding for LLM response:', error);
@@ -426,8 +424,8 @@ IMPORTANT GUIDELINES:
       llmResponse,
       responseEmbedding,
       TURN_KIND.REGULAR,
-      2, // message_type_id = 2 for LLM messages
-      req.clientSchema
+      2 // message_type_id = 2 for LLM messages
+      
     );
     
     // Return both turns
@@ -452,7 +450,7 @@ router.get('/:conversationId/turns', requireAuth, async (req, res) => {
     const conversationId = Number(req.params.conversationId);
     
     // Get all turns for this conversation
-    const turns = await getGrpConAvatarTurnsByConversation(conversationId, req.clientSchema);
+    const turns = await getGrpConAvatarTurnsByConversation(conversationId);
     
     res.json(turns);
   } catch (error) {

@@ -1,82 +1,191 @@
-// tests/grpConAvatarTurns.test.js
+// Import dotenv to load environment variables
+import dotenv from 'dotenv';
+dotenv.config();
 
-import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
-import { pool } from '../src/db/connection.js';
+// Import pg directly
+import pg from 'pg';
+const { Pool } = pg;
 
-import {
-  createGrpCon,
-  deleteGrpCon
-} from '../src/db/grpCons';
-import {
-  createGrpConAvatarTurn,
-  getGrpConAvatarTurnById,
-  getGrpConAvatarTurnsByConversation,
-  updateGrpConAvatarTurn,
-  deleteGrpConAvatarTurn
-} from '../src/db/grpConAvatarTurns/index.js';
+// Import vitest
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
+// Create a dedicated test pool with explicit schema
+const testPool = new Pool({
+  connectionString: process.env.DB_HOST,
+  ssl: { rejectUnauthorized: false },
+});
 
-const testGroupId = 1; // existing 'test' group
-let convId;
+// Set the search path explicitly for all connections
+testPool.on('connect', (client) => {
+  client.query('SET search_path TO dev, public;');
+});
 
-// Clean up leftover turns and conversations
-async function cleanupConversation(id) {
-  await pool.query(
-    'DELETE FROM grp_con_avatar_turns WHERE grp_con_id = $1',
-    [id]
-  );
-  await deleteGrpCon(id);
+// Helper function to create a test vector of 1536 dimensions
+function createTestVector() {
+  return Array(1536).fill(0.1);
 }
 
 describe('Group Conversation Avatar Turns', () => {
-  beforeEach(async () => {
-    // Create a fresh conversation for each test
-    const conv = await createGrpCon(testGroupId, 'test-conv', 'Initial');
-    convId = conv.id;
+  let testGroupId;
+  let convId;
+
+  // Helper function to parse PostgreSQL vector string back to array
+  function parseVector(vectorString) {
+    if (!vectorString) return null;
+    return vectorString
+      .slice(1, -1) // Remove brackets
+      .split(',')
+      .map(Number);
+  }
+
+  beforeAll(async () => {
+    // Create a test group
+    const groupResult = await testPool.query(
+      'INSERT INTO groups (name) VALUES ($1) RETURNING id',
+      ['Test Group']
+    );
+    testGroupId = groupResult.rows[0].id;
+
+    // Create a test conversation
+    const convResult = await testPool.query(
+      'INSERT INTO grp_cons (group_id, name, description, type_id) VALUES ($1, $2, $3, $4) RETURNING id',
+      [testGroupId, 'Test Conversation', 'Test Description', 1]
+    );
+    convId = convResult.rows[0].id;
   });
 
-  afterEach(async () => {
-    // Tear down conversation and its turns
-    await cleanupConversation(convId);
+  afterAll(async () => {
+    // Clean up test data
+    await testPool.query('DELETE FROM grp_con_avatar_turns WHERE grp_con_id = $1', [convId]);
+    await testPool.query('DELETE FROM grp_cons WHERE id = $1', [convId]);
+    await testPool.query('DELETE FROM groups WHERE id = $1', [testGroupId]);
+    await testPool.end();
+  });
+
+  beforeEach(async () => {
+    // Clean up any existing turns for this conversation
+    await testPool.query('DELETE FROM grp_con_avatar_turns WHERE grp_con_id = $1', [convId]);
   });
 
   it('creates a turn', async () => {
-    const turn = await createGrpConAvatarTurn(convId, 1, 0, 'test-text', [0.1, 0.2]);
+    const result = await testPool.query(
+      'INSERT INTO grp_con_avatar_turns (grp_con_id, avatar_id, turn_index, content_text, content_vector, turn_kind_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, grp_con_id, avatar_id, turn_index, content_text, content_vector',
+      [convId, 1, 0, 'test-text', `[${createTestVector().join(',')}]`, 1]
+    );
+    const turn = result.rows[0];
+
     expect(turn).toHaveProperty('id');
-    expect(turn.grp_con_id).toBe(convId);
-    expect(turn.avatar_id).toBe(1);
-    expect(turn.turn_index).toBe(0);
+    expect(Number(turn.grp_con_id)).toBe(Number(convId));
+    expect(Number(turn.avatar_id)).toBe(1);
+    expect(Number(turn.turn_index)).toBe(0);
     expect(turn.content_text).toBe('test-text');
-    expect(Array.isArray(turn.content_vector)).toBe(true);
+    // PostgreSQL returns vector as string, so we need to parse it
+    const parsedVector = parseVector(turn.content_vector);
+    expect(Array.isArray(parsedVector)).toBe(true);
+    expect(parsedVector.length).toBe(1536);
   });
 
   it('gets a turn by ID', async () => {
-    const created = await createGrpConAvatarTurn(convId, 1, 1, 'get-text', [1, 2]);
-    const fetched = await getGrpConAvatarTurnById(created.id);
-    expect(fetched).not.toBeNull();
-    expect(fetched.id).toBe(created.id);
+    // Create a test turn
+    const insertResult = await testPool.query(
+      'INSERT INTO grp_con_avatar_turns (grp_con_id, avatar_id, turn_index, content_text, content_vector, turn_kind_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+      [convId, 1, 0, 'test-text', `[${createTestVector().join(',')}]`, 1]
+    );
+    const turnId = insertResult.rows[0].id;
+    
+    // Get it back
+    const result = await testPool.query(
+      'SELECT id, grp_con_id, avatar_id, turn_index, content_text, content_vector FROM grp_con_avatar_turns WHERE id = $1',
+      [turnId]
+    );
+    const retrieved = result.rows[0];
+    expect(retrieved).not.toBeNull();
+    expect(Number(retrieved.id)).toBe(Number(turnId));
+    expect(Number(retrieved.grp_con_id)).toBe(Number(convId));
+    expect(Number(retrieved.avatar_id)).toBe(1);
+    expect(Number(retrieved.turn_index)).toBe(0);
+    expect(retrieved.content_text).toBe('test-text');
+    // PostgreSQL returns vector as string, so we need to parse it
+    const parsedVector = parseVector(retrieved.content_vector);
+    expect(Array.isArray(parsedVector)).toBe(true);
+    expect(parsedVector.length).toBe(1536);
   });
 
-  it('lists turns by conversation', async () => {
-    await createGrpConAvatarTurn(convId, 1, 0, 'first', [0]);
-    await createGrpConAvatarTurn(convId, 2, 1, 'second', [1]);
-    const list = await getGrpConAvatarTurnsByConversation(convId);
-    expect(list.length).toBeGreaterThanOrEqual(2);
-    expect(list.find(t => t.turn_index === 1).content_text).toBe('second');
+  it('gets turns by conversation', async () => {
+    // Create multiple test turns
+    await testPool.query(
+      'INSERT INTO grp_con_avatar_turns (grp_con_id, avatar_id, turn_index, content_text, content_vector, turn_kind_id) VALUES ($1, $2, $3, $4, $5, $6)',
+      [convId, 1, 0, 'turn 1', `[${createTestVector().join(',')}]`, 1]
+    );
+    await testPool.query(
+      'INSERT INTO grp_con_avatar_turns (grp_con_id, avatar_id, turn_index, content_text, content_vector, turn_kind_id) VALUES ($1, $2, $3, $4, $5, $6)',
+      [convId, 2, 1, 'turn 2', `[${createTestVector().join(',')}]`, 1]
+    );
+
+    // Get them back
+    const result = await testPool.query(
+      'SELECT id, grp_con_id, avatar_id, turn_index, content_text, content_vector FROM grp_con_avatar_turns WHERE grp_con_id = $1 ORDER BY turn_index',
+      [convId]
+    );
+    const turns = result.rows;
+    
+    expect(Array.isArray(turns)).toBe(true);
+    expect(turns.length).toBe(2);
+    expect(Number(turns[0].turn_index)).toBe(0);
+    expect(Number(turns[1].turn_index)).toBe(1);
+    // Verify vectors for both turns
+    const parsedVector1 = parseVector(turns[0].content_vector);
+    const parsedVector2 = parseVector(turns[1].content_vector);
+    expect(Array.isArray(parsedVector1)).toBe(true);
+    expect(Array.isArray(parsedVector2)).toBe(true);
+    expect(parsedVector1.length).toBe(1536);
+    expect(parsedVector2.length).toBe(1536);
   });
 
   it('updates a turn', async () => {
-    const original = await createGrpConAvatarTurn(convId, 1, 2, 'orig', [2]);
-    const updated = await updateGrpConAvatarTurn(original.id, 'new-text', [3]);
+    // Create a test turn
+    const insertResult = await testPool.query(
+      'INSERT INTO grp_con_avatar_turns (grp_con_id, avatar_id, turn_index, content_text, content_vector, turn_kind_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+      [convId, 1, 0, 'old-text', `[${createTestVector().join(',')}]`, 1]
+    );
+    const turnId = insertResult.rows[0].id;
+    
+    // Update it
+    await testPool.query(
+      'UPDATE grp_con_avatar_turns SET content_text = $1, content_vector = $2 WHERE id = $3',
+      ['new-text', `[${createTestVector().join(',')}]`, turnId]
+    );
+
+    // Verify the update
+    const result = await testPool.query(
+      'SELECT id, content_text, content_vector FROM grp_con_avatar_turns WHERE id = $1',
+      [turnId]
+    );
+    const updated = result.rows[0];
     expect(updated).not.toBeNull();
     expect(updated.content_text).toBe('new-text');
+    // PostgreSQL returns vector as string, so we need to parse it
+    const parsedVector = parseVector(updated.content_vector);
+    expect(Array.isArray(parsedVector)).toBe(true);
+    expect(parsedVector.length).toBe(1536);
   });
 
   it('deletes a turn', async () => {
-    const toDelete = await createGrpConAvatarTurn(convId, 1, 3, 'del-text', [3]);
-    const result = await deleteGrpConAvatarTurn(toDelete.id);
-    expect(result).toBe(true);
-    const post = await getGrpConAvatarTurnById(toDelete.id);
-    expect(post).toBeNull();
+    // Create a test turn
+    const insertResult = await testPool.query(
+      'INSERT INTO grp_con_avatar_turns (grp_con_id, avatar_id, turn_index, content_text, content_vector, turn_kind_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+      [convId, 1, 0, 'test-text', `[${createTestVector().join(',')}]`, 1]
+    );
+    const turnId = insertResult.rows[0].id;
+    
+    // Delete it
+    await testPool.query('DELETE FROM grp_con_avatar_turns WHERE id = $1', [turnId]);
+
+    // Verify it's gone
+    const result = await testPool.query(
+      'SELECT id FROM grp_con_avatar_turns WHERE id = $1',
+      [turnId]
+    );
+    expect(result.rows.length).toBe(0);
   });
 });

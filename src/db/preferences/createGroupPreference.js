@@ -9,16 +9,16 @@ import { pool } from '../connection.js';
  * Creates or updates a group preference
  * @param {number} groupId - The ID of the group
  * @param {number} preferenceTypeId - The ID of the preference type
- * @param {object} value - The JSON value for the preference
+ * @param {number} value - The BIGINT value for the preference
  * @param {object} [customPool=pool] - Database connection pool (for testing)
  * @returns {Promise<object>} The newly created or updated group preference
  * @throws {Error} If an error occurs during creation/update
  */
-export async function createGroupPreference(groupId, preferenceTypeId, value, customPool = pool) {
+export async function createGroupPreference(groupId, preferenceTypeId, value) {
   try {
     // Use upsert (INSERT ... ON CONFLICT ... DO UPDATE) to handle both creation and update
     const query = `
-      INSERT INTO public.group_preferences
+      INSERT INTO group_preferences
         (group_id, preference_type_id, value, updated_at)
       VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
       ON CONFLICT (group_id, preference_type_id) 
@@ -29,7 +29,7 @@ export async function createGroupPreference(groupId, preferenceTypeId, value, cu
     `;
     const values = [groupId, preferenceTypeId, value];
 
-    const { rows } = await customPool.query(query, values);
+    const { rows } = await pool.query(query, values);
     return rows[0];
   } catch (error) {
     throw new Error(`Failed to create/update group preference: ${error.message}`);

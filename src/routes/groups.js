@@ -11,7 +11,7 @@ const router = express.Router();
 
 // all routes are now mounted under `/api/groups`
 router
-  .post(   '/',      (req, res, next) => groupCtrl.createGroup(req.body.name, req.clientSchema).then(r => res.status(201).json(r)).catch(next))
+  .post(   '/',      (req, res, next) => groupCtrl.createGroup(req.body.name, req.clientPool).then(r => res.status(201).json(r)).catch(next))
   .get(    '/',      async (req, res, next) => {
     try {
       // If participantId is provided, get groups for that participant
@@ -25,22 +25,22 @@ router
       }
       
       // Otherwise, get all groups
-      const groups = await groupCtrl.getAllGroups(req.clientSchema);
+      const groups = await groupCtrl.getAllGroups(req.clientPool);
       return res.json(groups);
     } catch (err) {
       next(err);
     }
   })
-  .get(    '/:id',   (req, res, next) => groupCtrl.getGroupById(+req.params.id, req.clientSchema).then(r => r ? res.json(r) : res.sendStatus(404)).catch(next))
+  .get(    '/:id',   (req, res, next) => groupCtrl.getGroupById(+req.params.id, req.clientPool).then(r => r ? res.json(r) : res.sendStatus(404)).catch(next))
   .put(    '/:id',   (req, res, next) => {
     // Create updates object with properties from request body
     const updates = {};
     if (req.body.name !== undefined) updates.name = req.body.name;
     
-    return groupCtrl.updateGroup(+req.params.id, updates, req.clientSchema)
+    return groupCtrl.updateGroup(+req.params.id, updates, req.clientPool)
       .then(r => r ? res.json(r) : res.sendStatus(404))
       .catch(next);
   })
-  .delete( '/:id',   (req, res, next) => groupCtrl.deleteGroup(+req.params.id, req.clientSchema).then(ok => res.json({ success: ok })).catch(next));
+  .delete( '/:id',   (req, res, next) => groupCtrl.deleteGroup(+req.params.id, req.clientPool).then(ok => res.json({ success: ok })).catch(next));
 
 export default router;

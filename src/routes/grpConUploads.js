@@ -134,8 +134,7 @@ router.post('/', requireAuth, upload.single('file'), async (req, res) => {
     const fileBuffer = file.buffer;
     const fileName = file.originalname;
     const mimeType = file.mimetype;
-    const clientSchema = req.clientSchema;
-    console.log('clientSchema before passing to functions:', clientSchema);
+  
     
     const uploadResult = await uploadFile(
       fileBuffer,
@@ -183,8 +182,8 @@ router.post('/', requireAuth, upload.single('file'), async (req, res) => {
       `File: ${fileName}`,
       emptyVector,
       TURN_KIND_UPLOAD,
-      null, // messageTypeId parameter
-      clientSchema // schemaOrPool parameter
+      null // messageTypeId parameter
+     
     );
     
     // Create record in database with the new turn ID
@@ -228,7 +227,7 @@ router.post('/', requireAuth, upload.single('file'), async (req, res) => {
         contentVector: embedding
       };
       
-      await createGrpConUploadVector(vectorData, clientSchema);
+      await createGrpConUploadVector(vectorData);
     }
     
     // Add chunk count to the response
@@ -259,7 +258,7 @@ router.get('/:id', requireAuth, async (req, res) => {
     const clientSchema = req.clientSchema;
     
     // Get upload record from database
-    const upload = await getGrpConUploadById(id, clientSchema);
+    const upload = await getGrpConUploadById(id);
     
     if (!upload) {
       return res.status(404).json({ error: 'File not found' });
@@ -270,7 +269,7 @@ router.get('/:id', requireAuth, async (req, res) => {
     
     if (includeVectors) {
       // Get vectors for this upload
-      const vectors = await getGrpConUploadVectorsByUpload(id, clientSchema);
+      const vectors = await getGrpConUploadVectorsByUpload(id);
       
       // Add vectors to the response
       const response = {
@@ -281,7 +280,7 @@ router.get('/:id', requireAuth, async (req, res) => {
       res.json(response);
     } else {
       // Get file from Supabase Storage
-      const fileData = await getFile(upload.file_path, clientSchema);
+      const fileData = await getFile(upload.file_path);
       
       // Set appropriate headers
       res.setHeader('Content-Type', upload.mime_type);
@@ -310,7 +309,7 @@ router.get('/conversation/:grpConId', requireAuth, async (req, res) => {
     const clientSchema = req.clientSchema;
     
     // Get all upload records for the conversation
-    const uploads = await getGrpConUploadsByConversation(grpConId, clientSchema);
+    const uploads = await getGrpConUploadsByConversation(grpConId);
     
     res.json(uploads);
   } catch (error) {
@@ -333,17 +332,17 @@ router.delete('/:id', requireAuth, async (req, res) => {
     const clientSchema = req.clientSchema;
     
     // Get upload record from database
-    const upload = await getGrpConUploadById(id, clientSchema);
+    const upload = await getGrpConUploadById(id);
     
     if (!upload) {
       return res.status(404).json({ error: 'File not found' });
     }
     
     // Delete file from Supabase Storage
-    await deleteFile(upload.file_path, clientSchema);
+    await deleteFile(upload.file_path);
     
     // Delete record from database
-    const deleted = await deleteGrpConUpload(id, clientSchema);
+    const deleted = await deleteGrpConUpload(id);
     
     if (!deleted) {
       return res.status(404).json({ error: 'Failed to delete file record' });

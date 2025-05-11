@@ -17,8 +17,7 @@ import { pool } from '../connection.js';
 export async function createParticipantAvatar(
   participantId,
   avatarId,
-  createdByParticipantId = null,
-  customPool = pool
+  createdByParticipantId = null
 ) {
   try {
     const query = `
@@ -29,7 +28,7 @@ export async function createParticipantAvatar(
     `;
     
     const values = [participantId, avatarId, createdByParticipantId];
-    const { rows } = await customPool.query(query, values);
+    const { rows } = await pool.query(query, values);
     
     return rows[0];
   } catch (error) {

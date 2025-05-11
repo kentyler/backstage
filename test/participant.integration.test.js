@@ -1,49 +1,38 @@
 // @ts-check
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { pool as defaultPool } from '../src/db/connection.js';
 
-// Use the existing connection pool
-// This ensures we're using the same configuration as the rest of the application
-const testPool = defaultPool;
+// Import test setup to ensure correct schema
+import './setup.js';
 
-// Import participant functions but override the pool they use
-import * as participantModule from '../src/db/participants/createParticipant.js';
-import * as getByIdModule from '../src/db/participants/getParticipantById.js';
-import * as getByEmailModule from '../src/db/participants/getParticipantByEmail.js';
-import * as getAllModule from '../src/db/participants/getAllParticipants.js';
-import * as updateModule from '../src/db/participants/updateParticipant.js';
-import * as deleteModule from '../src/db/participants/deleteParticipant.js';
-import * as getByGroupModule from '../src/db/participants/getParticipantsByGroup.js';
+// Import dotenv to load environment variables
+import dotenv from 'dotenv';
+dotenv.config();
 
-// Override the pool in each module
-// This is a safer approach than mocking the pool import which can cause issues
-const createParticipant = async (name, email, password) => {
-  return participantModule.createParticipant(name, email, password, testPool);
-};
+// Import pg directly
+import pg from 'pg';
+const { Pool } = pg;
 
-const getParticipantById = async (id) => {
-  return getByIdModule.getParticipantById(id, testPool);
-};
+// Create a dedicated test pool with explicit schema
+const pool = new Pool({
+  connectionString: process.env.DB_HOST,
+  ssl: { rejectUnauthorized: false },
+});
 
-const getParticipantByEmail = async (email) => {
-  return getByEmailModule.getParticipantByEmail(email, testPool);
-};
+// Set the search path explicitly for all connections
+pool.on('connect', (client) => {
+  client.query('SET search_path TO dev, public;');
+});
 
-const getAllParticipants = async () => {
-  return getAllModule.getAllParticipants(testPool);
-};
+console.log('Created test pool with dev schema');
 
-const updateParticipant = async (id, updates) => {
-  return updateModule.updateParticipant(id, updates, testPool);
-};
-
-const deleteParticipant = async (id) => {
-  return deleteModule.deleteParticipant(id, testPool);
-};
-
-const getParticipantsByGroup = async (groupId) => {
-  return getByGroupModule.getParticipantsByGroup(groupId, testPool);
-};
+// Import participant functions directly
+import { createParticipant } from '../src/db/participants/createParticipant.js';
+import { getParticipantById } from '../src/db/participants/getParticipantById.js';
+import { getParticipantByEmail } from '../src/db/participants/getParticipantByEmail.js';
+import { getAllParticipants } from '../src/db/participants/getAllParticipants.js';
+import { updateParticipant } from '../src/db/participants/updateParticipant.js';
+import { deleteParticipant } from '../src/db/participants/deleteParticipant.js';
+import { getParticipantsByGroup } from '../src/db/participants/getParticipantsByGroup.js';
 
 /**
  * Test suite for participant database operations using real database
@@ -64,15 +53,48 @@ describe('Participant Database Integration Tests', () => {
   const TEST_EMAIL_PREFIX = 'test_integration_';
 
   /**
-   * Run before all tests to ensure database connection
+   * Run before all tests to ensure database connection and set schema
    */
   beforeAll(async () => {
     try {
-      // Test connection
-      const client = await testPool.connect();
-      const result = await client.query('SELECT NOW()');
-      console.log('Database connection established successfully');
-      client.release();
+      // Set schema to 'dev' for all tests
+      await pool.query('SET search_path TO dev, public;');
+      
+      // Verify the schema is set correctly
+      const schemaResult = await pool.query('SHOW search_path;');
+      console.log('Current search path:', schemaResult.rows[0].search_path);
+      
+      // Check if the schema exists
+      const schemaCheck = await pool.query(
+        "SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'dev'"
+      );
+      
+      console.log('Schema check result:', schemaCheck.rows);
+      
+      // Check if the participants table exists
+      try {
+        const tableResult = await pool.query(
+          "SELECT table_name FROM information_schema.tables WHERE table_schema = 'dev' AND table_name = 'participants'"
+        );
+        
+        console.log('Table check result:', tableResult.rows);
+        
+        // If table doesn't exist, create it
+        if (tableResult.rows.length === 0) {
+          console.log('Creating participants table in dev schema');
+          await pool.query(`
+            CREATE TABLE IF NOT EXISTS participants (
+              id SERIAL PRIMARY KEY,
+              name TEXT NOT NULL,
+              email TEXT NOT NULL UNIQUE,
+              password TEXT NOT NULL,
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            )
+          `);
+        }
+      } catch (err) {
+        console.error('Error checking or creating participants table:', err.message);
+      }
     } catch (error) {
       console.error('Database connection failed:', error.message);
       throw new Error('Failed to connect to database for tests');
@@ -87,15 +109,16 @@ describe('Participant Database Integration Tests', () => {
     for (const id of createdParticipantIds) {
       try {
         // Use direct pool query for cleanup to avoid potential issues with the function
-        await testPool.query('DELETE FROM participants WHERE id = $1', [id]);
+        await pool.query('DELETE FROM dev.participants WHERE id = $1', [id]);
         console.log(`Cleaned up test participant ID ${id}`);
       } catch (error) {
         console.error(`Failed to clean up test participant ID ${id}: ${error.message}`);
       }
     }
 
-    // Note: We don't close the pool since we're using the shared application pool
-    // This prevents issues with other parts of the application that might need the pool
+    // Close the pool when done
+    await pool.end();
+    console.log('Test pool closed');
   });
 
   /**
@@ -114,12 +137,17 @@ describe('Participant Database Integration Tests', () => {
 
       // Store ID for cleanup
       if (result && result.id) {
-        createdParticipantIds.push(result.id);
+        // Convert to number if it's a string (PostgreSQL may return numeric values as strings)
+        const id = typeof result.id === 'string' ? Number(result.id) : result.id;
+        createdParticipantIds.push(id);
       }
 
       // Assert the result
       expect(result).toBeDefined();
-      expect(result.id).toBeGreaterThan(0);
+      
+      // Convert to number for comparison if needed
+      const id = typeof result.id === 'string' ? Number(result.id) : result.id;
+      expect(id).toBeGreaterThan(0);
       expect(result.name).toBe('Test User');
       expect(result.email).toBe(testEmail);
     });
@@ -166,7 +194,12 @@ describe('Participant Database Integration Tests', () => {
 
       // Assert the result
       expect(result).toBeDefined();
-      expect(result.id).toBe(created.id);
+      
+      // Convert IDs to numbers for comparison
+      const resultId = typeof result.id === 'string' ? Number(result.id) : result.id;
+      const createdId = typeof created.id === 'string' ? Number(created.id) : created.id;
+      
+      expect(resultId).toBe(createdId);
       expect(result.name).toBe('Test Retrieval');
       expect(result.email).toBe(testEmail);
     });
@@ -216,7 +249,12 @@ describe('Participant Database Integration Tests', () => {
 
       // Assert the result
       expect(result).toBeDefined();
-      expect(result.id).toBe(created.id);
+      
+      // Convert IDs to numbers for comparison
+      const resultId = typeof result.id === 'string' ? Number(result.id) : result.id;
+      const createdId = typeof created.id === 'string' ? Number(created.id) : created.id;
+      
+      expect(resultId).toBe(createdId);
       expect(result.name).toBe('Email Test');
       expect(result.email).toBe(testEmail);
     });

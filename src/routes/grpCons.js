@@ -11,13 +11,11 @@ const router = express.Router();
 router.post('/', async (req, res, next) => {
   try {
     const { groupId, name, description, typeId } = req.body;
-    // Pass the client schema from the request object
     const conv = await convoCtrl.createGrpCon(
       groupId, 
       name, 
       description, 
-      typeId, // Optional type ID (1=conversation, 2=template)
-      req.clientSchema
+      typeId // Optional type ID (1=conversation, 2=template)
     );
     res.status(201).json(conv);
   } catch (err) {
@@ -30,10 +28,8 @@ router.post('/', async (req, res, next) => {
  */
 router.get('/:id', async (req, res, next) => {
   try {
-    // Pass the client schema from the request object
     const conv = await convoCtrl.getGrpConById(
-      Number(req.params.id),
-      req.clientSchema
+      Number(req.params.id)
     );
     if (!conv) return res.sendStatus(404);
     res.json(conv);
@@ -48,14 +44,10 @@ router.get('/:id', async (req, res, next) => {
  */
 router.get('/by-group/:groupId', async (req, res, next) => {
   try {
-    // Get typeId from query parameters if provided
     const typeId = req.query.typeId ? Number(req.query.typeId) : null;
-    
-    // Pass the client schema from the request object
     const list = await convoCtrl.getGrpConsByGroup(
       Number(req.params.groupId),
-      typeId, // Optional type ID filter
-      req.clientSchema
+      typeId // Optional type ID filter
     );
     res.json(list);
   } catch (err) {
@@ -70,13 +62,11 @@ router.get('/by-group/:groupId', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
   try {
     const { newName, newDescription, newTypeId } = req.body;
-    // Pass the client schema from the request object
     const updated = await convoCtrl.updateGrpCon(
       Number(req.params.id),
       newName,
       newDescription,
-      newTypeId, // Optional new type ID
-      req.clientSchema
+      newTypeId // Optional new type ID
     );
     if (!updated) return res.sendStatus(404);
     res.json(updated);
@@ -90,10 +80,8 @@ router.put('/:id', async (req, res, next) => {
  */
 router.delete('/:id', async (req, res, next) => {
   try {
-    // Pass the client schema from the request object
     const ok = await convoCtrl.deleteGrpCon(
-      Number(req.params.id),
-      req.clientSchema
+      Number(req.params.id)
     );
     res.json({ success: ok });
   } catch (err) {

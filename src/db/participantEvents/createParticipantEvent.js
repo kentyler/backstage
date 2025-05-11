@@ -3,8 +3,7 @@
  * @description Creates a new participant event record in the database.
  */
 
-import { pool, createPool } from '../connection.js';
-import { getDefaultSchema } from '../../config/schema.js';
+import { pool } from '../connection.js';
 
 /**
  * Creates a new participant event in the database
@@ -15,20 +14,8 @@ import { getDefaultSchema } from '../../config/schema.js';
  * @returns {Promise<object>} The newly created participant event record
  * @throws {Error} If an error occurs during creation
  */
-export async function createParticipantEvent(participantId, eventTypeId, details = null, schemaOrPool = null) {
+export async function createParticipantEvent(participantId, eventTypeId, details = null) {
   try {
-    // Determine which pool to use
-    let queryPool = pool;
-    
-    if (schemaOrPool) {
-      if (typeof schemaOrPool === 'string') {
-        // If a schema name is provided, create a pool for that schema
-        queryPool = createPool(schemaOrPool);
-      } else {
-        // If a pool object is provided, use it
-        queryPool = schemaOrPool;
-      }
-    }
     
     const query = `
       INSERT INTO participant_events
@@ -38,7 +25,7 @@ export async function createParticipantEvent(participantId, eventTypeId, details
     `;
     const values = [participantId, eventTypeId, details];
 
-    const { rows } = await queryPool.query(query, values);
+    const { rows } = await pool.query(query, values);
     return rows[0];
   } catch (error) {
     throw new Error(`Failed to create participant event: ${error.message}`);

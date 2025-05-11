@@ -1,6 +1,5 @@
 // src/db/grpConAvatarTurns/getGrpConAvatarTurnsByConversation.js
-import { pool, createPool } from '../connection.js';
-import { getDefaultSchema } from '../../config/schema.js';
+import { pool } from '../connection.js';
 
 /**
  * Parse a vector string from the database into an array of numbers
@@ -28,25 +27,7 @@ function parseVectorString(vectorStr) {
  * @param {string|object} [schemaOrPool=null] - Schema name or custom pool
  * @returns {Promise<Array>} List of avatar turns for the conversation
  */
-export async function getGrpConAvatarTurnsByConversation(conversationId, schemaOrPool = null) {
-  // Determine which pool to use
-  let customPool = pool;
-  
-  if (schemaOrPool) {
-    if (typeof schemaOrPool === 'string') {
-      // If a schema name is provided, create a pool for that schema
-      customPool = createPool(schemaOrPool);
-    } else {
-      // If a pool object is provided, use it
-      customPool = schemaOrPool;
-    }
-  } else {
-    // Use default schema if no schema or pool is provided
-    const defaultSchema = getDefaultSchema();
-    if (defaultSchema !== 'public') {
-      customPool = createPool(defaultSchema);
-    }
-  }
+export async function getGrpConAvatarTurnsByConversation(conversationId) {
   
   const query = `
     SELECT id, grp_con_id, avatar_id, turn_index, content_text, content_vector, created_at, turn_kind_id, message_type_id
@@ -56,7 +37,7 @@ export async function getGrpConAvatarTurnsByConversation(conversationId, schemaO
   `;
   
   try {
-    const { rows } = await customPool.query(query, [conversationId]);
+    const { rows } = await pool.query(query, [conversationId]);
     
     // Process each row to convert content_vector from string to array
     return rows.map(row => {

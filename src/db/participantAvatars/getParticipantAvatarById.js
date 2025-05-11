@@ -12,7 +12,7 @@ import { pool } from '../connection.js';
  * @returns {Promise<object|null>} The participant-avatar relationship or null if not found
  * @throws {Error} If the operation fails
  */
-export async function getParticipantAvatarById(id, customPool = pool) {
+export async function getParticipantAvatarById(id) {
   try {
     const query = `
       SELECT 
@@ -29,7 +29,7 @@ export async function getParticipantAvatarById(id, customPool = pool) {
       WHERE pa.id = $1
     `;
     
-    const { rows } = await customPool.query(query, [id]);
+    const { rows } = await pool.query(query, [id]);
     
     return rows.length > 0 ? rows[0] : null;
   } catch (error) {
