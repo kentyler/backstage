@@ -10,7 +10,31 @@
   <!-- X-Frame-Options removed: This header should be set server-side via Helmet middleware -->
   <title>Login</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; max-width: 400px; margin: auto; }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    
+    #debug-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #00ff00;
+      font-family: monospace;
+      padding: 20px;
+      z-index: 1000;
+      display: none;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
     label { display: block; margin-bottom: 1rem; }
     input { width: 100%; padding: .5rem; margin-top: .25rem; }
     button { padding: .75rem 1.5rem; }
@@ -36,7 +60,45 @@
     <div id="error" class="error" aria-live="assertive"></div>
   </form>
 
+  <!-- Debug overlay for authentication diagnostics -->
+  <div id="debug-overlay"></div>
+
   <script>
+    // Debug helper function
+    function showDebug(message, data) {
+      const debugEl = document.getElementById('debug-overlay');
+      const timestamp = new Date().toISOString();
+      
+      // Create a new message element
+      const msgEl = document.createElement('div');
+      msgEl.style.borderBottom = '1px solid #333';
+      msgEl.style.paddingBottom = '5px';
+      msgEl.style.marginBottom = '5px';
+      
+      // Format the message with timestamp
+      msgEl.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+      
+      // Add data if provided
+      if (data) {
+        const dataEl = document.createElement('pre');
+        try {
+          dataEl.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+        } catch (e) {
+          dataEl.textContent = 'Error stringifying data: ' + e.message;
+        }
+        msgEl.appendChild(dataEl);
+      }
+      
+      // Append to debug overlay
+      debugEl.appendChild(msgEl);
+      
+      // Make sure the overlay is visible
+      debugEl.style.display = 'block';
+      
+      // Also log to console
+      console.log(`DEBUG: ${message}`, data);
+    }
+
     // Get the API base URL - using relative URL to avoid port issues
     function getApiBaseUrl() {
       // Always use relative URLs to avoid port confusion
@@ -48,16 +110,21 @@
       console.log('Login form initialized - CSRF validation bypassed for login');
     });
 
-    document.getElementById('login-form').addEventListener('submit', async event => {
-      event.preventDefault();
+    document.getElementById('login-form').addEventListener('submit', async e => {
+      e.preventDefault();
       const errorEl = document.getElementById('error');
-      errorEl.textContent = '';
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      
-      // Show loading indicator
       const loadingEl = document.getElementById('loading-indicator');
+      
+      // Show the debug overlay
+      document.getElementById('debug-overlay').style.display = 'block';
+      showDebug('Login form submitted', { email: document.getElementById('email').value, timestamp: new Date().toISOString() });
+      
       if (loadingEl) loadingEl.style.display = 'block';
+      errorEl.textContent = '';
+      
+      const formData = new FormData(e.target);
+      const email = formData.get('email');
+      const password = formData.get('password');
       
       try {
         const apiBaseUrl = getApiBaseUrl();
@@ -77,68 +144,89 @@
         });
 
         // Log the response for debugging
-        console.log('Login response status:', response.status);
-        console.log('Login response headers:', response.headers);
+        // Log everything to both console and debug overlay
+        showDebug('Login response received', { status: response.status });
         
         // Check if the response includes a Set-Cookie header
         const setCookie = response.headers.get('Set-Cookie');
-        console.log('Set-Cookie header:', setCookie);
+        showDebug('Set-Cookie header', setCookie || 'Not present');
         
+        // Show all response headers for debugging
+        const headers = {};
+        response.headers.forEach((value, key) => {
+          headers[key] = value;
+        });
+        showDebug('All response headers', headers);
+
         if (!response.ok) {
-          const errorData = await response.json();
-          errorEl.textContent = errorData.error || errorData.message || 'Login failed';
-          // Hide loading indicator on error
+          const errorText = await response.text();
+          showDebug('Login failed', { status: response.status, error: errorText });
+          errorEl.textContent = 'Login failed. See console for details.';
           if (loadingEl) loadingEl.style.display = 'none';
           return;
         }
-
+          
         // Get the response data
         let responseData;
+        let token;
         try {
           responseData = await response.json();
-          console.log('Login response data:', responseData);
+          showDebug('Login response data received', responseData);
           
-          // DUAL AUTHENTICATION APPROACH
-          // 1. Store the JWT token in localStorage as a fallback authentication mechanism
-          // This helps when cookies don't work properly in some environments
-          if (responseData && responseData.token) {
-            localStorage.setItem('auth_token', responseData.token);
-            console.log('Stored JWT token in localStorage as fallback authentication mechanism');
+          // Extract the token for dual authentication
+          token = responseData.token;
+          if (token) {
+            showDebug('JWT token received', { tokenLength: token.length });
           } else {
-            console.warn('No token received from server in login response');
+            showDebug('WARNING: No token in response', null);
           }
         } catch (parseError) {
-          console.warn('Could not parse response as JSON:', parseError);
-          // Still proceed with redirect even if JSON parsing fails
+          showDebug('ERROR: Failed to parse response JSON', parseError.message);
+          // Still proceed but with debug info
           responseData = null;
+          token = null;
         }
 
-        // Store login information in localStorage to help with cross-environment authentication
+        // Store login information in localStorage with enhanced debugging
         try {
-          // Store authentication data in localStorage - critical for our dual auth approach
-          localStorage.setItem('jwt_token', token); // Store the actual JWT token
+          showDebug('Storing authentication data in localStorage', { timestamp: new Date().toISOString() });
+          
+          // CRITICAL: Store JWT token with consistent key name
+          if (token) {
+            localStorage.setItem('jwt_token', token);
+            showDebug('✅ JWT token stored in localStorage', { keyName: 'jwt_token', tokenLength: token.length });
+          } else {
+            showDebug('❌ No JWT token available to store', { error: 'Missing token in response' });
+          }
+          
+          // Set login markers
+          const now = Date.now().toString();
           localStorage.setItem('just_logged_in', 'true');
-          localStorage.setItem('login_time', Date.now().toString());
+          localStorage.setItem('login_time', now);
+          showDebug('Login markers set in localStorage', { just_logged_in: true, login_time: now });
           
           // Store the participant data if available
           if (responseData && responseData.participant) {
             localStorage.setItem('participant_data', JSON.stringify(responseData.participant));
+            showDebug('Participant data stored in localStorage', { participantId: responseData.participant.id });
+          } else {
+            showDebug('No participant data available to store');
           }
           
-          // Store the hostname to handle different environments
+          // Store hostname for environment tracking
           localStorage.setItem('login_hostname', window.location.hostname);
-          console.log('Successfully set JWT token and auth markers in localStorage');
+          showDebug('Environment hostname stored', { hostname: window.location.hostname });
         } catch (storageError) {
-          console.warn('Could not access localStorage:', storageError);
+          showDebug('❌ ERROR accessing localStorage', { error: storageError.message });
         }
 
-        // Log success but don't display visible messages that might flash
-        console.log('Authentication successful');
-        console.log('Redirecting to application...');
+        // SUCCESS PATH - Add extensive debugging during the redirect process
+        showDebug('🎉 Authentication successful! Beginning redirect process...', { timestamp: new Date().toISOString() });
         
-        // Immediately hide the login form to prevent any flashing content
-        document.getElementById('login-form').style.display = 'none';
-        document.body.style.visibility = 'hidden'; // Hide everything during transition
+        // Don't hide the login form immediately so we can see debug info
+        // Instead, show a success message
+        errorEl.textContent = 'Login successful - preparing redirect...';
+        errorEl.style.color = 'green';
         
         // Get the path to the index file by replacing the current filename
         // This works regardless of domain, subdomain, or directory structure
@@ -157,18 +245,31 @@
         
         // Get the appropriate index path
         const indexPath = getIndexPath();
-        console.log('Calculated index path: ' + indexPath);
+        showDebug('Calculated redirect path', { indexPath });
         
-        // Use a short delay to ensure cookie/localStorage are properly set
-        console.log('Redirecting to index page...');
+        // Add parameters to indicate this is coming from login and the auth mechanism
+        const redirectURL = indexPath + '?source=login&auth=dual&t=' + Date.now();
+        showDebug('Full redirect URL', { redirectURL });
         
-        // Direct redirect to the index page with parameters for tracking source
+        // Wait longer to ensure all debugging info is visible - 5 seconds
+        showDebug('⏳ Waiting 5 seconds before redirecting...', { redirectAt: new Date(Date.now() + 5000).toISOString() });
+        
         setTimeout(function() {
-          // Add parameters to indicate this is coming from login and the auth mechanism
-          const redirectURL = indexPath + '?source=login&auth=dual&t=' + Date.now();
-          console.log('Redirecting to: ' + redirectURL);
+          showDebug('🚀 REDIRECTING NOW!', { url: redirectURL, timestamp: new Date().toISOString() });
+          // Explicitly check localStorage one more time
+          try {
+            const storedToken = localStorage.getItem('jwt_token');
+            showDebug('Final localStorage check', { 
+              jwt_token: storedToken ? `Present (${storedToken.length} chars)` : 'MISSING',
+              just_logged_in: localStorage.getItem('just_logged_in')
+            });
+          } catch(e) {
+            showDebug('Error in final localStorage check', e.message);
+          }
+          
+          // Now redirect
           window.location.replace(redirectURL);
-        }, 500);
+        }, 5000); // 5 second delay for debugging
       } catch (err) {
         console.error('Login error:', err);
         errorEl.textContent = 'An unexpected error occurred. Please try again.';
