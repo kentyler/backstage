@@ -2342,11 +2342,16 @@
         // Fetch CSRF token first
         await fetchCsrfToken();
         
-        // Fetch current user data
-        await fetchCurrentUser();
+        // Fetch current user data - this only returns true if authentication is successful
+        const authSuccess = await fetchCurrentUser();
         
-        // Fetch groups for the user
-        await fetchGroups();
+        // Only fetch groups if authentication was successful
+        if (authSuccess) {
+          console.log('Authentication successful, now fetching groups...');
+          await fetchGroups();
+        } else {
+          console.log('Authentication failed, not fetching groups');
+        }
         
         // Add event listener for logout
         document.getElementById('logout-link').addEventListener('click', handleLogout);
