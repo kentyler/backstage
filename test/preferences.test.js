@@ -210,7 +210,8 @@ describe('Preferences Module', () => {
       const preference = await createParticipantPreference(
         testParticipantId,
         testPreferenceTypeId,
-        TEST_PREFERENCE_VALUE
+        TEST_PREFERENCE_VALUE,
+        testPool
       );
       
       // Verify the result
@@ -251,7 +252,8 @@ describe('Preferences Module', () => {
       const preference = await createGroupPreference(
         testGroupId,
         testPreferenceTypeId,
-        TEST_PREFERENCE_VALUE
+        TEST_PREFERENCE_VALUE,
+        testPool
       );
       
       // Verify the result
@@ -291,7 +293,8 @@ describe('Preferences Module', () => {
       // Call the function
       const preference = await createSitePreference(
         testPreferenceTypeId,
-        TEST_PREFERENCE_VALUE
+        TEST_PREFERENCE_VALUE,
+        testPool
       );
       
       // Verify the result
@@ -344,8 +347,9 @@ describe('Preferences Module', () => {
       
       // Call the function with participant and group IDs
       const preference = await getPreferenceWithFallback(
-        TEST_PREFERENCE_TYPE.name,
-        { participantId: testParticipantId, groupId: testGroupId }
+        testPreferenceType.name,
+        testParticipantId,
+        testPool
       );
       
       // Verify the result - should get participant level
@@ -369,8 +373,9 @@ describe('Preferences Module', () => {
       
       // Call the function with participant and group IDs
       const preference = await getPreferenceWithFallback(
-        TEST_PREFERENCE_TYPE.name,
-        { participantId: testParticipantId, groupId: testGroupId }
+        testPreferenceType.name,
+        testParticipantId,
+        testPool
       );
       
       // Verify the result - should fall back to group level
@@ -388,8 +393,9 @@ describe('Preferences Module', () => {
       
       // Call the function with participant and group IDs
       const preference = await getPreferenceWithFallback(
-        TEST_PREFERENCE_TYPE.name,
-        { participantId: testParticipantId, groupId: testGroupId }
+        testPreferenceType.name,
+        testParticipantId,
+        testPool
       );
       
       // Verify the result - should fall back to site level
@@ -401,8 +407,9 @@ describe('Preferences Module', () => {
     it('returns default value when no preferences are available', async () => {
       // Call the function with participant and group IDs but no preferences exist
       const preference = await getPreferenceWithFallback(
-        TEST_PREFERENCE_TYPE.name,
-        { participantId: testParticipantId, groupId: testGroupId }
+        testPreferenceType.name,
+        testParticipantId,
+        testPool
       );
       
       // Verify the result - should use default

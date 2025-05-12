@@ -31,7 +31,8 @@ router.post('/', requireAuth, async (req, res) => {
     const relationship = await createParticipantAvatar(
       participantId,
       avatarId,
-      createdByParticipantId
+      createdByParticipantId,
+      req.clientPool
     );
     
     res.status(201).json(relationship);
@@ -46,7 +47,7 @@ router.post('/', requireAuth, async (req, res) => {
  */
 router.get('/:id', requireAuth, async (req, res) => {
   try {
-    const relationship = await getParticipantAvatarById(Number(req.params.id));
+    const relationship = await getParticipantAvatarById(Number(req.params.id), req.clientPool);
     
     if (!relationship) {
       return res.status(404).json({ error: 'Relationship not found' });
@@ -64,7 +65,7 @@ router.get('/:id', requireAuth, async (req, res) => {
  */
 router.get('/participant/:participantId', requireAuth, async (req, res) => {
   try {
-    const relationships = await getParticipantAvatarsByParticipant(Number(req.params.participantId));
+    const relationships = await getParticipantAvatarsByParticipant(Number(req.params.participantId), req.clientPool);
     res.json(relationships);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -77,7 +78,7 @@ router.get('/participant/:participantId', requireAuth, async (req, res) => {
  */
 router.get('/avatar/:avatarId', requireAuth, async (req, res) => {
   try {
-    const relationships = await getParticipantAvatarsByAvatar(Number(req.params.avatarId));
+    const relationships = await getParticipantAvatarsByAvatar(Number(req.params.avatarId), req.clientPool);
     res.json(relationships);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -90,7 +91,7 @@ router.get('/avatar/:avatarId', requireAuth, async (req, res) => {
  */
 router.delete('/:id', requireAuth, async (req, res) => {
   try {
-    const relationship = await deleteParticipantAvatar(Number(req.params.id));
+    const relationship = await deleteParticipantAvatar(Number(req.params.id), req.clientPool);
     
     if (!relationship) {
       return res.status(404).json({ error: 'Relationship not found' });

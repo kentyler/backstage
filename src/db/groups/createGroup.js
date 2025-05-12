@@ -4,15 +4,13 @@
  * @description Creates a new group record in the database.
  */
 
-import { pool } from '../connection.js';
-
 /**
  * Creates a new group with the given name.
- *
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @param {string} name - The name of the group.
  * @returns {Promise<{id: number, name: string, created_at: string}>} The newly created group record.
  */
-export async function createGroup(name) {
+export async function createGroup(name, pool) {
   const query = `
     INSERT INTO groups (name)
     VALUES ($1)

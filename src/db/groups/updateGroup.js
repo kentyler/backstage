@@ -1,21 +1,19 @@
 // src/db/group/updateGroup.js
-import { pool } from '../connection.js';
 
 /**
  * @file src/db/group/updateGroup.js
  * @description Updates a group's properties in the database.
  */
 
-
 /**
  * Updates an existing group's properties.
- *
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @param {number} groupId - The ID of the group to update.
  * @param {Object} updates - The properties to update.
  * @param {string} [updates.name] - The new name for the group.
  * @returns {Promise<{id: number, name: string, created_at: string}|null>} The updated group record, or null if not found.
  */
-export async function updateGroup(groupId, updates = {}) {
+export async function updateGroup(groupId, updates = {}, pool) {
   // Build the SET clause and values array dynamically based on provided updates
   const setClauses = [];
   const values = [groupId]; // First parameter is always the group ID

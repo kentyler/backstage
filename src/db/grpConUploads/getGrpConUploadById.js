@@ -3,15 +3,13 @@
  * @module db/grpConUploads/getGrpConUploadById
  */
 
-import { pool, createPool } from '../connection.js';
-
 /**
  * Get a group conversation upload by ID
  * @param {number} id - The upload ID
- * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<Object|null>} - The upload record or null if not found
  */
-const getGrpConUploadById = async (id, customPoolOrSchema = null) => {
+const getGrpConUploadById = async (id, pool) => {
   // Determine which pool to use
   let currentPool = pool;
   

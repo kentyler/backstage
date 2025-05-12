@@ -3,14 +3,13 @@
  * @module db/grpConUploadVectors/getGrpConUploadVectorsByUpload
  */
 
-import { pool } from '../connection.js';
-
 /**
  * Get group conversation upload vectors by upload ID
  * @param {number} uploadId - The upload ID
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<Array<Object>>} - The vector records
  */
-const getGrpConUploadVectorsByUpload = async (uploadId) => {
+const getGrpConUploadVectorsByUpload = async (uploadId, pool) => {
   
   
   const query = `

@@ -4,17 +4,13 @@
  */
 
 /**
- * The database connection pool and pool factory
- */
-import { pool } from '../connection.js';
-
-/**
  * Retrieves a participant by their ID
  * @param {number} id - The ID of the participant to retrieve
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<object|null>} The participant record, or null if not found
  * @throws {Error} If a database error occurs
  */
-export async function getParticipantById(id) {
+export async function getParticipantById(id, pool) {
 
   try {
     const query = `

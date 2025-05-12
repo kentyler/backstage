@@ -21,7 +21,7 @@ describe('Comments Feature', () => {
   // Setup: Create a test conversation and turns
   beforeAll(async () => {
     // Create a test conversation
-    const testConversation = await createGrpCon(1, 'Test Conversation', 'For testing comments');
+    const testConversation = await createGrpCon(1, 'Test Conversation', 'For testing comments', 1, pool);
     testConversationId = testConversation.id;
 
     // Create two regular turns
@@ -31,7 +31,8 @@ describe('Comments Feature', () => {
       22, // turnIndex
       'This is a regular turn',
       [], // empty vector for testing
-      TURN_KIND.REGULAR
+      TURN_KIND.REGULAR,
+      pool
     );
 
     regularTurn2 = await createGrpConAvatarTurn(
@@ -40,14 +41,15 @@ describe('Comments Feature', () => {
       21, // turnIndex
       'This is another regular turn',
       [], // empty vector for testing
-      TURN_KIND.REGULAR
+      TURN_KIND.REGULAR,
+      pool
     );
   });
 
   // Cleanup: Delete the test conversation
   afterAll(async () => {
     if (testConversationId) {
-      await deleteGrpCon(testConversationId);
+      await deleteGrpCon(testConversationId,);
     }
     await pool.end();
   });
@@ -60,7 +62,8 @@ describe('Comments Feature', () => {
       21.5, // turnIndex (between 22 and 21)
       'This is a comment on the first turn',
       [], // empty vector for testing
-      TURN_KIND.COMMENT
+      TURN_KIND.COMMENT,
+      pool
     );
 
     // Verify the comment was created with the correct properties
@@ -78,7 +81,8 @@ describe('Comments Feature', () => {
       21.75, // turnIndex (between 22 and 21.5)
       'This is a nested comment',
       [], // empty vector for testing
-      TURN_KIND.COMMENT
+      TURN_KIND.COMMENT,
+      pool
     );
 
     // Verify the nested comment was created with the correct properties
@@ -90,7 +94,7 @@ describe('Comments Feature', () => {
 
   it('should retrieve turns in the correct order', async () => {
     // Get all turns in the conversation
-    const turns = await getGrpConAvatarTurnsByConversation(testConversationId);
+    const turns = await getGrpConAvatarTurnsByConversation(testConversationId, pool);
     
     // Verify we have all the turns
     expect(turns.length).toBe(4);

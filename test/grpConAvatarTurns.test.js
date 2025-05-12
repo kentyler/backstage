@@ -9,6 +9,14 @@ const { Pool } = pg;
 // Import vitest
 import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
+// Import database functions
+import {
+  createGrpConAvatarTurn,
+  getGrpConAvatarTurnById,
+  updateGrpConAvatarTurn,
+  deleteGrpConAvatarTurn
+} from '../src/db/grpConAvatarTurns/index.js';
+
 // Create a dedicated test pool with explicit schema
 const testPool = new Pool({
   connectionString: process.env.DB_HOST,
@@ -93,12 +101,8 @@ describe('Group Conversation Avatar Turns', () => {
     );
     const turnId = insertResult.rows[0].id;
     
-    // Get it back
-    const result = await testPool.query(
-      'SELECT id, grp_con_id, avatar_id, turn_index, content_text, content_vector FROM grp_con_avatar_turns WHERE id = $1',
-      [turnId]
-    );
-    const retrieved = result.rows[0];
+    // Get it back using the actual function
+    const retrieved = await getGrpConAvatarTurnById(turnId, testPool);
     expect(retrieved).not.toBeNull();
     expect(Number(retrieved.id)).toBe(Number(turnId));
     expect(Number(retrieved.grp_con_id)).toBe(Number(convId));
@@ -144,26 +148,28 @@ describe('Group Conversation Avatar Turns', () => {
 
   it('updates a turn', async () => {
     // Create a test turn
-    const insertResult = await testPool.query(
-      'INSERT INTO grp_con_avatar_turns (grp_con_id, avatar_id, turn_index, content_text, content_vector, turn_kind_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-      [convId, 1, 0, 'old-text', `[${createTestVector().join(',')}]`, 1]
+    const insertResult = await createGrpConAvatarTurn(
+      convId,
+      1,
+      0,
+      'old-text',
+      `[${createTestVector().join(',')}]`,
+      1,
+      testPool
     );
     const turnId = insertResult.rows[0].id;
     
-    // Update it
-    await testPool.query(
-      'UPDATE grp_con_avatar_turns SET content_text = $1, content_vector = $2 WHERE id = $3',
-      ['new-text', `[${createTestVector().join(',')}]`, turnId]
+    // Update it using the actual function
+    await updateGrpConAvatarTurn(
+      turnId,
+      { contentText: 'updated-text' },
+      testPool
     );
-
-    // Verify the update
-    const result = await testPool.query(
-      'SELECT id, content_text, content_vector FROM grp_con_avatar_turns WHERE id = $1',
-      [turnId]
-    );
-    const updated = result.rows[0];
+    
+    // Get it back
+    const updated = await getGrpConAvatarTurnById(turnId, testPool);
     expect(updated).not.toBeNull();
-    expect(updated.content_text).toBe('new-text');
+    expect(updated.content_text).toBe('updated-text');
     // PostgreSQL returns vector as string, so we need to parse it
     const parsedVector = parseVector(updated.content_vector);
     expect(Array.isArray(parsedVector)).toBe(true);
@@ -172,20 +178,22 @@ describe('Group Conversation Avatar Turns', () => {
 
   it('deletes a turn', async () => {
     // Create a test turn
-    const insertResult = await testPool.query(
-      'INSERT INTO grp_con_avatar_turns (grp_con_id, avatar_id, turn_index, content_text, content_vector, turn_kind_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-      [convId, 1, 0, 'test-text', `[${createTestVector().join(',')}]`, 1]
+    const insertResult = await createGrpConAvatarTurn(
+      convId,
+      1,
+      0,
+      'test-text',
+      `[${createTestVector().join(',')}]`,
+      1,
+      testPool
     );
     const turnId = insertResult.rows[0].id;
     
-    // Delete it
-    await testPool.query('DELETE FROM grp_con_avatar_turns WHERE id = $1', [turnId]);
-
-    // Verify it's gone
-    const result = await testPool.query(
-      'SELECT id FROM grp_con_avatar_turns WHERE id = $1',
-      [turnId]
-    );
-    expect(result.rows.length).toBe(0);
+    // Delete it using the actual function
+    await deleteGrpConAvatarTurn(turnId, testPool);
+    
+    // Try to get it back
+    const deleted = await getGrpConAvatarTurnById(turnId, testPool);
+    expect(deleted).toBeNull();
   });
 });

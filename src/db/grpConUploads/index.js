@@ -15,9 +15,3 @@ export {
   deleteGrpConUpload
 };
 
-export default {
-  createGrpConUpload,
-  getGrpConUploadById,
-  getGrpConUploadsByConversation,
-  deleteGrpConUpload
-};

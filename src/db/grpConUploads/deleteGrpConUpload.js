@@ -3,15 +3,13 @@
  * @module db/grpConUploads/deleteGrpConUpload
  */
 
-import { pool } from '../connection.js';
-
 /**
  * Delete a group conversation upload record
  * @param {number} id - The upload ID
- * 
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<boolean>} - True if deletion was successful
  */
-const deleteGrpConUpload = async (id) => {
+const deleteGrpConUpload = async (id, pool) => {
  
   
   const query = `

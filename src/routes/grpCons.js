@@ -15,7 +15,8 @@ router.post('/', async (req, res, next) => {
       groupId, 
       name, 
       description, 
-      typeId // Optional type ID (1=conversation, 2=template)
+      typeId, // Optional type ID (1=conversation, 2=template)
+      req.clientPool
     );
     res.status(201).json(conv);
   } catch (err) {
@@ -29,7 +30,8 @@ router.post('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const conv = await convoCtrl.getGrpConById(
-      Number(req.params.id)
+      Number(req.params.id),
+      req.clientPool
     );
     if (!conv) return res.sendStatus(404);
     res.json(conv);
@@ -47,7 +49,8 @@ router.get('/by-group/:groupId', async (req, res, next) => {
     const typeId = req.query.typeId ? Number(req.query.typeId) : null;
     const list = await convoCtrl.getGrpConsByGroup(
       Number(req.params.groupId),
-      typeId // Optional type ID filter
+      typeId,
+      req.clientPool
     );
     res.json(list);
   } catch (err) {
@@ -66,7 +69,8 @@ router.put('/:id', async (req, res, next) => {
       Number(req.params.id),
       newName,
       newDescription,
-      newTypeId // Optional new type ID
+      newTypeId,
+      req.clientPool
     );
     if (!updated) return res.sendStatus(404);
     res.json(updated);
@@ -81,7 +85,8 @@ router.put('/:id', async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
   try {
     const ok = await convoCtrl.deleteGrpCon(
-      Number(req.params.id)
+      Number(req.params.id),
+      req.clientPool
     );
     res.json({ success: ok });
   } catch (err) {

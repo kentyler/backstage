@@ -28,17 +28,15 @@ export async function loginHandler(req, res) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Log request properties that might affect schema detection
+    // Log hostname for debugging
     console.log('Request properties for schema detection:', {
       hostname: req.hostname,
       subdomain: req.hostname.split('.')[0],
-      hasClientSchema: !!req.clientSchema,
-      clientSchema: req.clientSchema,
       defaultSchema: getDefaultSchema()
     });
 
-    // Get the client schema from the request or use the default schema
-    let clientSchema = req.clientSchema || getDefaultSchema();
+    // Use the default schema
+    let clientSchema = getDefaultSchema();
     console.log(`Using schema: ${clientSchema} for login request`);
     console.log(`looking up email: ${email} for login request`); 
 
@@ -69,7 +67,7 @@ export async function loginHandler(req, res) {
     // Log unsuccessful login attempt (participant not found - type 3)
     // Using system participant ID since the database requires a valid participant_id
     // Don't log the password for security reasons
-    await createParticipantEvent(SYSTEM_PARTICIPANT_ID, 3, { email });
+    await createParticipantEvent(SYSTEM_PARTICIPANT_ID, 3, { email }, req.clientPool);
       return res.status(401).json({ error: 'Login failed.' });
     }
 
@@ -77,23 +75,21 @@ export async function loginHandler(req, res) {
     if (!isPasswordValid) {
       // Log unsuccessful login attempt (invalid password - type 2)
       // Don't log the password for security reasons
-      await createParticipantEvent(participant.id, 2, { email });
+      await createParticipantEvent(participant.id, 2, { email }, req.clientPool);
       return res.status(401).json({ error: 'Login failed.' });
     }
 
     // Log successful login (type 1)
-    await createParticipantEvent(participant.id, 1, { email });
+    await createParticipantEvent(participant.id, 1, { email }, req.clientPool);
 
     const { password: _, ...participantData } = participant;
     
-    // Get the participant's avatar ID from preferences
-    try {
-      const avatarIdPreference = await getPreferenceWithFallback('avatar_id', {
-        participantId: participant.id
-      });
-      console.log(`Retrieved avatar_id preference for participant ${participant.id}:`, avatarIdPreference);
-      
-      // Add the current_avatar_id to the participant data from preferences
+  // Get the participant's avatar ID from preferences
+  try {
+    const avatarIdPreference = await getPreferenceWithFallback('avatar_id', participant.id, req.clientPool);
+    console.log(`Retrieved avatar_id preference for participant ${participant.id}:`, avatarIdPreference);
+    
+    // Add the current_avatar_id to the participant data from preferences
       if (avatarIdPreference && avatarIdPreference.value) {
         participantData.current_avatar_id = avatarIdPreference.value;
         console.log(`Set current_avatar_id to ${participantData.current_avatar_id} for participant ${participant.id}`);
@@ -169,7 +165,9 @@ export async function loginHandler(req, res) {
     // Initialize the LLM service with the participant's preferences
     try {
       const { initLLMService } = await import('../../services/llmService.js');
-      await initLLMService(participant.id, { schema: clientSchema });
+      // Determine schema from hostname for LLM service
+      const schema = determineClientSchema(participant, { isLocalhost });
+      await initLLMService(participant.id, { schema, pool: req.clientPool });
       // No longer passing current_group_id as it has been removed from the participants table
     } catch (llmError) {
       console.warn(`Failed to initialize LLM service for participant ${participant.id}: ${llmError.message}`);

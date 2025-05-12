@@ -6,15 +6,15 @@
 /**
  * The database connection pool
  */
-import { pool } from '../connection.js';
 
 /**
  * Deletes a participant from the database
  * @param {number} id - The ID of the participant to delete
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<boolean>} True if a participant was deleted, false otherwise
  * @throws {Error} If a database error occurs
  */
-export async function deleteParticipant(id) {
+export async function deleteParticipant(id, pool) {
   try {
     // Check if it's the test participant (ID: 1) - optional protection
     // if (id === 1) {

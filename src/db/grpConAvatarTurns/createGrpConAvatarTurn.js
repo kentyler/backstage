@@ -1,6 +1,4 @@
 // src/db/grpConAvatarTurns/createGrpConAvatarTurn.js
-import { pool, createPool } from '../connection.js';
-import { getDefaultSchema } from '../../config/schema.js';
 
 const VECTOR_DIM = 1536;
 
@@ -23,7 +21,7 @@ function toVectorLiteral(arr) {
 
 /**
  * Creates a new avatar turn in a group conversation
- * 
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @param {number} conversationId - The ID of the conversation
  * @param {number} avatarId - The ID of the avatar
  * @param {number|string} turnIndex - The index of the turn (can be decimal for comments)
@@ -41,26 +39,23 @@ export async function createGrpConAvatarTurn(
   contentText, 
   contentVector, 
   turnKindId = TURN_KIND.REGULAR,
-  messageTypeId = null,
-  schemaOrPool = null
+  messageTypeId = null, 
+  clientPool = null
 ) {
   // Determine which pool to use
-  let customPool = pool;
+  let customPool = clientPool;
   
-  console.log('createGrpConAvatarTurn called with schemaOrPool:', schemaOrPool);
+  console.log('createGrpConAvatarTurn called with clientPool:', clientPool ? 'provided' : 'not provided');
   
-  if (schemaOrPool) {
-    if (typeof schemaOrPool === 'string') {
-      // If a schema name is provided, create a pool for that schema
-      console.log('Creating pool with schema:', schemaOrPool);
-      customPool = createPool(schemaOrPool);
-    } else {
-      // If a pool object is provided, use it
-      console.log('Using provided pool object');
-      customPool = schemaOrPool;
-    }
+  if (clientPool) {
+    // If a pool object is provided, use it
+    console.log('Using provided client pool');
+    customPool = clientPool;
   } else {
     // Use default schema if no schema or pool is provided
+    const { getDefaultSchema } = await import('../../config/schema.js');
+    const { createPool } = await import('../connection.js');
+    
     const defaultSchema = getDefaultSchema();
     console.log('No schema or pool provided, using default schema:', defaultSchema);
     if (defaultSchema !== 'public') {

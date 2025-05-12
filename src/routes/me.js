@@ -5,7 +5,8 @@
  * @module routes/me
  */
 import express from 'express';
-import { authWithSchema } from '../middleware/authWithSchema.js';
+import { requireAuth } from '../middleware/auth.js';
+import { setClientPool } from '../middleware/setClientPool.js';
 import { getParticipantById } from '../db/participants/index.js';
 import { getPreferenceWithFallback } from '../db/preferences/getPreferenceWithFallback.js';
 import { getAvailableLLMs, getLLMId } from '../services/llmService.js';
@@ -23,7 +24,7 @@ const router = express.Router();
  * @middleware requireAuth
  * @returns {Object} 200 - User object with participant details
  */
-router.get('/', authWithSchema, async (req, res) => {
+router.get('/', [requireAuth, setClientPool], async (req, res) => {
   try {
     // Get participant ID from the JWT payload
     const { participantId } = req.user;
@@ -32,11 +33,9 @@ router.get('/', authWithSchema, async (req, res) => {
       return res.json({ user: req.user });
     }
     
-    // Get client schema from the request (set by setClientSchema middleware)
-    const schema = req.clientSchema || 'public';
-    
+        
     // Fetch participant details from the database using the client schema
-    const participant = await getParticipantById(participantId, schema);
+    const participant = await getParticipantById(participantId, req.clientPool);
     
     if (!participant) {
       return res.json({ user: req.user });
@@ -47,10 +46,7 @@ router.get('/', authWithSchema, async (req, res) => {
     
     // Get the participant's avatar ID from preferences
     try {
-      const avatarIdPreference = await getPreferenceWithFallback('avatar_id', {
-        participantId: participantId,
-        schema: schema // Pass the client schema to getPreferenceWithFallback
-      });
+      const avatarIdPreference = await getPreferenceWithFallback('avatar_id', participantId, req.clientPool);
       console.log(`Retrieved avatar_id preference for participant ${participantId}:`, avatarIdPreference);
       
       // Add the current_avatar_id to the participant data from preferences
@@ -72,7 +68,7 @@ router.get('/', authWithSchema, async (req, res) => {
     // Get the participant's current LLM ID from preferences
     let currentLLMId = null;
     try {
-      currentLLMId = await getLLMId(participantId, null, schema);
+      currentLLMId = await getLLMId(participantId, null, req.clientPool);
       console.log(`Retrieved current LLM ID for participant ${participantId}: ${currentLLMId}`);
       safeParticipant.current_llm_id = currentLLMId;
     } catch (llmError) {
@@ -83,11 +79,11 @@ router.get('/', authWithSchema, async (req, res) => {
     // Get available LLMs for the client schema
     let availableLLMs = [];
     try {
-      // Use the schema name as the subdomain for the getAvailableLLMs function
-      availableLLMs = await getAvailableLLMs(schema);
-      console.log(`Retrieved ${availableLLMs.length} available LLMs for schema ${schema}`);
+      // Pass the client pool to getAvailableLLMs
+      availableLLMs = await getAvailableLLMs(req.clientPool);
+      console.log(`Retrieved ${availableLLMs.length} available LLMs`);
     } catch (llmsError) {
-      console.error(`Error retrieving available LLMs for schema ${schema}:`, llmsError.message);
+      console.error(`Error retrieving available LLMs:`, llmsError.message);
       // Don't fail the request if we can't get the available LLMs, just log the error
     }
     

@@ -3,19 +3,16 @@
  * @description Creates or updates a participant preference in the database.
  */
 
-import { pool } from '../connection.js';
-
-
-
 /**
  * Creates or updates a participant preference
  * @param {number} participantId - The ID of the participant
  * @param {number} preferenceTypeId - The ID of the preference type
  * @param {number} value - The BIGINT value for the preference
-  * @returns {Promise<object>} The newly created or updated participant preference
+ * @param { Pool } pool - The PostgreSQL connection pool.
+ * @returns {Promise<object>} The newly created or updated participant preference
  * @throws {Error} If an error occurs during creation/update
  */
-export async function createParticipantPreference(participantId, preferenceTypeId, value) {
+export async function createParticipantPreference(participantId, preferenceTypeId, value, pool) {
   try {
         
     // Use upsert (INSERT ... ON CONFLICT ... DO UPDATE) to handle both creation and update

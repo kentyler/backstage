@@ -3,14 +3,13 @@
  * @module db/grpConUploads/getGrpConUploadsByConversation
  */
 
-import { pool } from '../connection.js';
-
 /**
  * Get all uploads for a specific group conversation
  * @param {number} grpConId - The group conversation ID
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<Array>} - Array of upload records
  */
-const getGrpConUploadsByConversation = async (grpConId) => {
+const getGrpConUploadsByConversation = async (grpConId, pool) => {
     
   const query = `
     SELECT * FROM grp_con_uploads

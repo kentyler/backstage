@@ -24,14 +24,10 @@ let currentConfig = null;
  * @returns {Promise<number>} The ID of the preferred LLM
  * @throws {Error} If no LLM ID is found in the preference cascade
  */
-export async function getLLMId(participantId = null, groupId = null, schema = null) {
+export async function getLLMId(participantId = null, groupId = null, schema = null, pool = null) {
   try {
     // Use the preference cascade: participant > group > site
-    const preference = await getPreferenceWithFallback('llm_selection', {
-      participantId: participantId,
-      groupId: groupId,
-      schema: schema || getDefaultSchema()
-    });
+    const preference = await getPreferenceWithFallback('llm_selection', participantId, pool);
     
     // Get the LLM ID from the preference (assuming it's stored as a number)
     const llmId = preference?.value;
@@ -155,10 +151,10 @@ export async function getLLMConfig(llmId, schema = null) {
  * @param {string} [schema=null] - The schema to use for database operations (optional)
  * @returns {Promise<Object|null>} The LLM configuration or null if not found
  */
-export async function getLLMConfigByParticipantId(participantId, schema = null) {
+export async function getLLMConfigByParticipantId(participantId, schema = null, pool = null) {
   try {
     // Get the LLM ID from preferences
-    const llmId = await getLLMId(participantId, null, schema);
+    const llmId = await getLLMId(participantId, null, schema, pool);
     
     // Get the LLM configuration based on the LLM ID
     const llmConfig = await getLLMConfig(llmId);
@@ -170,10 +166,10 @@ export async function getLLMConfigByParticipantId(participantId, schema = null) 
     
     // If no configuration found, get the default LLM configuration
     console.warn(`No LLM configuration found for LLM ID ${llmId}, using default LLM`);
-    return await getDefaultLLMConfig(schema);
+    return await getDefaultLLMConfig(schema, pool);
   } catch (error) {
     console.error(`Error getting LLM configuration for participant ID ${participantId}:`, error);
-    return await getDefaultLLMConfig(schema);
+    return await getDefaultLLMConfig(schema, pool);
   }
 }
 
@@ -184,10 +180,10 @@ export async function getLLMConfigByParticipantId(participantId, schema = null) 
  * @returns {Promise<Object>} The default LLM configuration
  * @throws {Error} If no default LLM configuration is found
  */
-export async function getDefaultLLMConfig(schema = null) {
+export async function getDefaultLLMConfig(schema = null, pool = null) {
   try {
     // Get the default LLM ID from site preferences
-    const defaultLLMId = await getLLMId(null, null, schema);
+    const defaultLLMId = await getLLMId(null, null, schema, pool);
     
     // Get the LLM configuration for the default LLM ID
     const config = await getLLMConfig(defaultLLMId);
@@ -206,11 +202,31 @@ export async function getDefaultLLMConfig(schema = null) {
 /**
  * Get a list of available LLMs for a specific site
  * 
- * @param {string} subdomain - The subdomain of the site
+ * @param {Object|string} poolOrSchema - Either a connection pool object or a schema name string
  * @returns {Promise<Array>} Array of available LLMs for the site
  */
-export async function getAvailableLLMs(subdomain) {
+export async function getAvailableLLMs(poolOrSchema) {
   try {
+    // Determine if we were passed a pool object or a schema name
+    let queryPool = pool; // Default to the global pool
+    let schema = 'dev';   // Default schema
+    
+    if (poolOrSchema) {
+      if (typeof poolOrSchema === 'string') {
+        // If a string was passed, it's a schema name
+        schema = poolOrSchema;
+      } else if (typeof poolOrSchema === 'object' && poolOrSchema.query) {
+        // If an object with a query method was passed, it's a pool
+        queryPool = poolOrSchema;
+        
+        // Try to extract the schema from the pool's options if available
+        // This is a best-effort approach and might not work for all pool implementations
+        if (poolOrSchema.options && poolOrSchema.options.schema) {
+          schema = poolOrSchema.options.schema;
+        }
+      }
+    }
+    
     // Query the public.llms table with a compound WHERE clause
     const query = `
       SELECT l.*, t.name as type_name, t.api_handler
@@ -220,10 +236,10 @@ export async function getAvailableLLMs(subdomain) {
       ORDER BY l.name
     `;
     
-    // Use the default pool (which connects to the public schema)
-    const { rows } = await pool.query(query, [subdomain]);
+    // Use the provided pool or the default pool
+    const { rows } = await queryPool.query(query, [schema]);
     
-    console.log(`Found ${rows.length} available LLMs for subdomain ${subdomain}`);
+    console.log(`Found ${rows.length} available LLMs for schema ${schema}`);
     
     // Return the list of available LLMs
     return rows.map(llm => ({
@@ -236,7 +252,7 @@ export async function getAvailableLLMs(subdomain) {
       is_public: llm.subdomain === 'public'
     }));
   } catch (error) {
-    console.error(`Error getting available LLMs for subdomain ${subdomain}:`, error);
+    console.error(`Error getting available LLMs for schema ${schema}:`, error);
     return [];
   }
 }
@@ -249,14 +265,10 @@ export async function getAvailableLLMs(subdomain) {
  * @param {string} [schema=null] - The schema to use for database operations (optional)
  * @returns {Promise<string>} The name of the LLM or default name ('Anthropic Claude-3-Opus')
  */
-export async function getLLMName(participantId = null, groupId = null, schema = null) {
+export async function getLLMName(participantId = null, groupId = null, schema = null, pool = null) {
   try {
     // Get the LLM ID from the preference system
-    const preference = await getPreferenceWithFallback('llm_selection', {
-      participantId,
-      groupId,
-      schema: schema || getDefaultSchema()
-    });
+    const preference = await getPreferenceWithFallback('llm_selection', participantId, pool);
     
     // Get the LLM ID from the preference (assuming it's stored as a number)
     const llmId = preference?.value || 1;
@@ -267,8 +279,10 @@ export async function getLLMName(participantId = null, groupId = null, schema = 
       WHERE id = $1
     `;
     
-    // Use the default pool (which connects to the public schema)
-    const { rows } = await pool.query(query, [llmId]);
+    // Use the provided pool if available, otherwise use default pool
+    const { pool: defaultPool } = await import('../db/connection.js');
+    const dbPool = pool || defaultPool;
+    const { rows } = await dbPool.query(query, [llmId]);
     
     if (rows.length > 0 && rows[0].name) {
       console.log(`Using LLM name from database: "${rows[0].name}" (ID: ${llmId}, source: ${preference?.source || 'default'})`);
@@ -295,12 +309,13 @@ export async function getLLMName(participantId = null, groupId = null, schema = 
  * @returns {Promise<boolean>} Whether the initialization was successful
  */
 export async function initLLMService(configOrParticipantId = null, options = {}) {
+  const pool = options.pool;
   let config = null;
   const schema = options.schema || getDefaultSchema();
   
   // If a number is provided, treat it as a participant ID
   if (typeof configOrParticipantId === 'number') {
-    config = await getLLMConfigByParticipantId(configOrParticipantId, schema);
+    config = await getLLMConfigByParticipantId(configOrParticipantId, schema, pool);
   } 
   // If an object is provided, treat it as a configuration
   else if (configOrParticipantId && typeof configOrParticipantId === 'object') {
@@ -311,10 +326,7 @@ export async function initLLMService(configOrParticipantId = null, options = {})
     // If a group ID is provided, try to get the group preference
     if (options.groupId) {
       try {
-        const preference = await getPreferenceWithFallback('llm_selection', {
-          groupId: options.groupId,
-          schema
-        });
+        const preference = await getPreferenceWithFallback('llm_selection', null, pool);
         
         if (preference && preference.value) {
           config = await getLLMConfig(preference.value);
@@ -327,7 +339,7 @@ export async function initLLMService(configOrParticipantId = null, options = {})
     
     // If no config was found from group preference, use default
     if (!config) {
-      config = await getDefaultLLMConfig(schema);
+      config = await getDefaultLLMConfig(schema, pool);
     }
   }
   
@@ -634,7 +646,7 @@ export async function getLLMResponse(prompt, options = {}) {
   if (options.config && (!currentConfig || 
       options.config.provider !== currentProvider || 
       options.config.api_key !== currentConfig.api_key)) {
-    const initialized = initLLMService(options.config, { schema: options.schema });
+    const initialized = initLLMService(options.config, { schema: options.schema, pool: options.pool });
     if (!initialized) {
       throw new Error(`Failed to initialize LLM service with provided configuration`);
     }

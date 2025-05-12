@@ -3,18 +3,16 @@
  * @file src/db/grpConAvatars/deleteGrpConAvatar.js
  * @description Removes an avatar from a conversation.
  */
-import { pool, createPool } from '../connection.js';
-import { getDefaultSchema } from '../../config/schema.js';
 
 /**
  * Deletes the link between an avatar and a conversation.
- *
+ *  @param { Pool } pool - The PostgreSQL connection pool.
  * @param {number} conversationId
  * @param {number} avatarId
  * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
  * @returns {Promise<boolean>} true if deleted, false otherwise
  */
-export async function deleteGrpConAvatar(conversationId, avatarId, customPoolOrSchema = null) {
+export async function deleteGrpConAvatar(conversationId, avatarId, pool) {
   // Determine which pool to use
   let customPool = pool;
   

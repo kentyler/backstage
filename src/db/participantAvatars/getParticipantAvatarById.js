@@ -2,17 +2,15 @@
  * @file src/db/participantAvatars/getParticipantAvatarById.js
  * @description Retrieves a participant-avatar relationship by ID.
  */
-import { pool } from '../connection.js';
 
 /**
  * Retrieves a participant-avatar relationship by ID.
- *
  * @param {number} id - The ID of the participant-avatar relationship
- * @param {object} [customPool=pool] - Database connection pool (for testing)
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<object|null>} The participant-avatar relationship or null if not found
  * @throws {Error} If the operation fails
  */
-export async function getParticipantAvatarById(id) {
+export async function getParticipantAvatarById(id, pool) {
   try {
     const query = `
       SELECT 

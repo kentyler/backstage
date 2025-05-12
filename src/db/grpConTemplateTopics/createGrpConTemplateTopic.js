@@ -3,12 +3,10 @@
  * @file src/db/grpConTemplateTopics/createGrpConTemplateTopic.js
  * @description Creates a new topic for a template.
  */
-import { pool, createPool } from '../connection.js';
-import { getDefaultSchema } from '../../config/schema.js';
 
 /**
  * Inserts a new row into grp_con_template_topics.
- *
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @param {number} templateId - The ID of the template
  * @param {string} title - The title of the topic
  * @param {string} content - The content of the topic (can be empty)
@@ -16,7 +14,7 @@ import { getDefaultSchema } from '../../config/schema.js';
  * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
  * @returns {Promise<{id: number, template_id: number, title: string, content: string, topic_index: number}>}
  */
-export async function createGrpConTemplateTopic(templateId, title, content, topicIndex, customPoolOrSchema = null) {
+export async function createGrpConTemplateTopic(templateId, title, content, topicIndex, pool) {
   // Determine which pool to use
   let customPool = pool;
   

@@ -1,12 +1,12 @@
 // deleteGrpConAvatarTurnRelationship.js
-import { pool } from '../connection.js';
 
 /**
  * Deletes a relationship by its ID.
  * @param {number} id
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<boolean>}
  */
-export async function deleteGrpConAvatarTurnRelationship(id) {
+export async function deleteGrpConAvatarTurnRelationship(id, pool) {
   const sql = `
     DELETE FROM grp_con_avatar_turn_relationships
      WHERE id = $1

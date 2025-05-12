@@ -21,7 +21,7 @@ const router = express.Router();
  */
 router.get('/', requireAuth, async (req, res) => {
   try {
-    const events = await getParticipantEventsByParticipant(req.user.id);
+    const events = await getParticipantEventsByParticipant(req.user.id, req.clientPool);
     res.json(events);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -35,7 +35,7 @@ router.get('/', requireAuth, async (req, res) => {
  */
 router.get('/:id', requireAuth, async (req, res) => {
   try {
-    const event = await getParticipantEventById(req.params.id);
+    const event = await getParticipantEventById(req.params.id, req.clientPool);
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
@@ -60,7 +60,7 @@ router.get('/type/:typeId', requireAuth, async (req, res) => {
   try {
     // This route would typically have additional admin authorization
     // For now, we'll just implement the basic functionality
-    const events = await getParticipantEventsByType(req.params.typeId);
+    const events = await getParticipantEventsByType(req.params.typeId, req.clientPool);
     res.json(events);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -80,7 +80,7 @@ router.post('/', requireAuth, async (req, res) => {
       return res.status(400).json({ message: 'Event type ID is required' });
     }
     
-    const event = await createParticipantEvent(req.user.id, eventTypeId, details);
+    const event = await createParticipantEvent(req.user.id, eventTypeId, details, req.clientPool  );
     res.status(201).json(event);
   } catch (error) {
     res.status(500).json({ message: error.message });

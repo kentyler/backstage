@@ -6,18 +6,17 @@
 /**
  * The database connection pool
  */
-import { pool as defaultPool } from '../connection.js';
 
 /**
  * Creates a new participant in the database
  * @param {string} name - The name of the participant
  * @param {string} email - The email of the participant (must be unique)
  * @param {string} password - The hashed password for the participant
- * @param {object} [pool=defaultPool] - Database connection pool (for testing)
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<object>} The newly created participant record
  * @throws {Error} If email already exists or another error occurs
  */
-export async function createParticipant(name, email, password, pool = defaultPool) {
+export async function createParticipant(name, email, password, pool) {
   try {
     // Check if email already exists
     const existingEmail = await pool.query(

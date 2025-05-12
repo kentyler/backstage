@@ -1,14 +1,12 @@
 // src/db/grpConAvatarTurns/getGrpConAvatarTurnById.js
-import { pool, createPool } from '../connection.js';
-import { getDefaultSchema } from '../../config/schema.js';
 
 /**
  * Get a group conversation avatar turn by ID
  * @param {number} id - The ID of the turn to retrieve
- * @param {string|object} schemaOrPool - Either a schema name or a pool object
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<object|null>} The turn object or null if not found
  */
-export async function getGrpConAvatarTurnById(id, schemaOrPool = null) {
+export async function getGrpConAvatarTurnById(id, pool) {
   // Determine which pool to use
   let customPool = pool;
   if (schemaOrPool) {

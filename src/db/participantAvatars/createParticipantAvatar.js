@@ -2,22 +2,20 @@
  * @file src/db/participantAvatars/createParticipantAvatar.js
  * @description Creates a new participant-avatar relationship.
  */
-import { pool } from '../connection.js';
 
 /**
  * Creates a new participant-avatar relationship.
- *
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @param {number} participantId - The ID of the participant
  * @param {number} avatarId - The ID of the avatar
  * @param {number} [createdByParticipantId=null] - The ID of the participant who created this relationship
- * @param {object} [customPool=pool] - Database connection pool (for testing)
  * @returns {Promise<object>} The newly created participant-avatar relationship
  * @throws {Error} If the operation fails
  */
 export async function createParticipantAvatar(
   participantId,
   avatarId,
-  createdByParticipantId = null
+  createdByParticipantId = null, pool
 ) {
   try {
     const query = `

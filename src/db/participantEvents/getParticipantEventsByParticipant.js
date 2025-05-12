@@ -3,15 +3,14 @@
  * @description Retrieves all events for a specific participant.
  */
 
-import { pool } from '../connection.js';
-
 /**
  * Retrieves all events for a specific participant
  * @param {number} participantId - The ID of the participant
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<Array>} Array of participant event records
  * @throws {Error} If an error occurs during retrieval
  */
-export async function getParticipantEventsByParticipant(participantId) {
+export async function getParticipantEventsByParticipant(participantId, pool) {
   try {
     
     const query = `

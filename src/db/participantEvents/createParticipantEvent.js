@@ -3,18 +3,16 @@
  * @description Creates a new participant event record in the database.
  */
 
-import { pool } from '../connection.js';
-
 /**
  * Creates a new participant event in the database
  * @param {number} participantId - The ID of the participant
  * @param {number} eventTypeId - The ID of the event type
  * @param {object} [details=null] - Optional JSON details about the event
- * @param {string|object} [schemaOrPool=null] - Schema name or database connection pool
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<object>} The newly created participant event record
  * @throws {Error} If an error occurs during creation
  */
-export async function createParticipantEvent(participantId, eventTypeId, details = null) {
+export async function createParticipantEvent(participantId, eventTypeId, details = null, pool) {
   try {
     
     const query = `

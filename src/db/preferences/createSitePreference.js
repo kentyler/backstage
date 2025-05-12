@@ -3,17 +3,15 @@
  * @description Creates or updates a site-wide preference in the database.
  */
 
-import { pool } from '../connection.js';
-
 /**
  * Creates or updates a site-wide preference
  * @param {number} preferenceTypeId - The ID of the preference type
  * @param {number} value - The BIGINT value for the preference
- * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<object>} The newly created or updated site preference
  * @throws {Error} If an error occurs during creation/update
  */
-export async function createSitePreference(preferenceTypeId, value) {
+export async function createSitePreference(preferenceTypeId, value, pool) {
   try {
     
     

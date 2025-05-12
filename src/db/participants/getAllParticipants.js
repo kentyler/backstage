@@ -3,17 +3,14 @@
  * @description Retrieves all participant records from the database.
  */
 
-/**
- * The database connection pool
- */
-import { pool } from '../connection.js';
 
 /**
  * Retrieves all participants from the database
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<object[]>} Array of participant records
  * @throws {Error} If a database error occurs
  */
-export async function getAllParticipants() {
+export async function getAllParticipants( pool) {
   try {
     const query = `
       SELECT * FROM participants

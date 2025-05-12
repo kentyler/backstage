@@ -6,7 +6,6 @@ import { getParticipantByEmail } from './getParticipantByEmail.js';
 
 /**
  * Handles request to get a participant by email
- * 
  * @param {object} req - Express request object
  * @param {object} req.query - Request query parameters
  * @param {string} req.query.email - Participant email

@@ -3,8 +3,6 @@
  * @module db/grpConUploads/createGrpConUpload
  */
 
-import { pool } from '../connection.js';
-
 /**
  * Create a new group conversation upload record
  * @param {Object} uploadData - The upload data
@@ -15,9 +13,10 @@ import { pool } from '../connection.js';
  * @param {string} uploadData.filePath - The file path in Supabase Storage
  * @param {string} [uploadData.publicUrl] - The public URL of the file (optional)
  * @param {string} [uploadData.bucketName] - The Supabase Storage bucket name (optional)
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<Object>} - The created upload record
  */
-const createGrpConUpload = async (uploadData) => {
+const createGrpConUpload = async (uploadData, pool) => {
   
   const {
     grpConId,

@@ -4,10 +4,6 @@
  */
 
 /**
- * The database connection pool
- */
-import { pool } from '../connection.js';
-/**
  * Updates a participant's information
  * @param {number} id - The ID of the participant to update
  * @param {object} updates - Object containing fields to update
@@ -15,10 +11,11 @@ import { pool } from '../connection.js';
  * @param {string} [updates.email] - Updated email
  * @param {string} [updates.password] - Updated password (should be hashed)
  * @param {number} [createdByParticipantId=null] - ID of participant making the change (for logging)
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<object|null>} The updated participant record, or null if not found
  * @throws {Error} If email already exists or another error occurs
  */
-export async function updateParticipant(id, updates, createdByParticipantId = null) {
+export async function updateParticipant(id, updates, createdByParticipantId = null, pool) {
   try {
     // Check if the participant exists
     const existingParticipant = await pool.query(

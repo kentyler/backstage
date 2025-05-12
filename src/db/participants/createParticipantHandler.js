@@ -10,11 +10,10 @@ import bcryptjs from 'bcryptjs';
 
 /**
  * Handles request to create a new participant
- * 
- * @param {object} req - Express request object
  * @param {object} req.body - Request body
  * @param {string} req.body.name - Participant name
  * @param {string} req.body.email - Participant email
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @param {string} req.body.password - Participant password (will be hashed)
  * @param {object} res - Express response object
  * @returns {Promise<void>}

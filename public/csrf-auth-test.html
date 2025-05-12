@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication and CSRF Token Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="email"],
+        input[type="password"],
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .info {
+            background-color: #d9edf7;
+            color: #31708f;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Authentication and CSRF Token Test</h1>
+    
+    <div class="section">
+        <h2>1. Login Form</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        <div id="loginStatus" class="status"></div>
+    </div>
+    
+    <div class="section">
+        <h2>2. CSRF Token Management</h2>
+        <button id="fetchTokenBtn">Fetch CSRF Token</button>
+        <div id="tokenStatus" class="status"></div>
+        <pre id="tokenDisplay"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>3. Test File Upload with CSRF Token</h2>
+        <form id="uploadForm">
+            <div class="form-group">
+                <label for="file">Select File:</label>
+                <input type="file" id="file" name="file" required>
+            </div>
+            <button type="submit" id="uploadBtn">Upload File</button>
+        </form>
+        <div id="uploadStatus" class="status"></div>
+    </div>
+    
+    <div class="section">
+        <h2>4. Test POST Request with CSRF Token</h2>
+        <button id="testPostBtn">Test POST Request</button>
+        <div id="postStatus" class="status"></div>
+    </div>
+    
+    <script>
+        // Global variables
+        let csrfToken = null;
+        let isAuthenticated = false;
+        
+        // DOM elements
+        const loginForm = document.getElementById('loginForm');
+        const loginStatus = document.getElementById('loginStatus');
+        const fetchTokenBtn = document.getElementById('fetchTokenBtn');
+        const tokenStatus = document.getElementById('tokenStatus');
+        const tokenDisplay = document.getElementById('tokenDisplay');
+        const uploadForm = document.getElementById('uploadForm');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const testPostBtn = document.getElementById('testPostBtn');
+        const postStatus = document.getElementById('postStatus');
+        
+        // Helper function to set status with appropriate class
+        function setStatus(element, message, type) {
+            element.textContent = message;
+            element.className = 'status ' + type;
+        }
+        
+        // Fetch CSRF token on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            await fetchCsrfTokenHandler();
+        });
+        
+        // Function to fetch CSRF token
+        async function fetchCsrfTokenHandler() {
+            try {
+                setStatus(tokenStatus, 'Fetching CSRF token...', 'info');
+                
+                const response = await fetch('/api/csrf-token', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    csrfToken = data.csrfToken;
+                    tokenDisplay.textContent = JSON.stringify(data, null, 2);
+                    setStatus(tokenStatus, 'CSRF token fetched successfully', 'success');
+                    console.log('CSRF token fetched successfully:', csrfToken);
+                    return true;
+                } else {
+                    const error = await response.json();
+                    setStatus(tokenStatus, `Failed to fetch CSRF token: ${error.error || 'Unknown error'}`, 'error');
+                    console.error('Failed to fetch CSRF token:', error);
+                    return false;
+                }
+            } catch (error) {
+                setStatus(tokenStatus, `Error fetching CSRF token: ${error.message}`, 'error');
+                console.error('Error fetching CSRF token:', error);
+                return false;
+            }
+        }
+        
+        // Login form submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Make sure we have a CSRF token before attempting login
+            if (!csrfToken) {
+                const success = await fetchCsrfTokenHandler();
+                if (!success) {
+                    setStatus(loginStatus, 'Cannot login without a CSRF token. Please try fetching a token first.', 'error');
+                    return;
+                }
+            }
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                setStatus(loginStatus, 'Logging in...', 'info');
+                
+                const response = await fetch('/api/participants/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-csrf-token': csrfToken
+                    },
+                    body: JSON.stringify({ email, password }),
+                    credentials: 'include'
+                });
+                    
+                    // Fetch a new CSRF token after successful login
+                    // This is important because the session has changed
+                    await fetchCsrfTokenHandler();
+                if (response.ok) {
+                    const data = await response.json();
+                    isAuthenticated = true;
+                    setStatus(loginStatus, 'Login successful! You are now authenticated.', 'success');
+                    console.log('Authentication successful:', data);
+                } else {
+                    const error = await response.json();
+                    setStatus(loginStatus, `Login failed: ${error.error || 'Unknown error'}`, 'error');
+                    console.error('Authentication failed:', error);
+                }
+            } catch (error) {
+                setStatus(loginStatus, `Login error: ${error.message}`, 'error');
+                console.error('Login error:', error);
+            }
+        });
+        
+        // Fetch CSRF token
+        fetchTokenBtn.addEventListener('click', fetchCsrfTokenHandler);
+        
+        // File upload with CSRF token
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!csrfToken) {
+                setStatus(uploadStatus, 'Please fetch a CSRF token first', 'error');
+                return;
+            }
+            
+            const fileInput = document.getElementById('file');
+            if (!fileInput.files.length) {
+                setStatus(uploadStatus, 'Please select a file', 'error');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('grpConId', '434'); // Using the conversation ID provided by the user
+            
+            try {
+                setStatus(uploadStatus, 'Uploading file...', 'info');
+                
+                const response = await fetch('/api/grp-con-uploads', {
+                    method: 'POST',
+                    headers: {
+                        'x-csrf-token': csrfToken
+                    },
+                    body: formData,
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    setStatus(uploadStatus, 'File uploaded successfully!', 'success');
+                    console.log('File upload successful:', data);
+                } else {
+                    let errorText = 'Unknown error';
+                    try {
+                        const error = await response.json();
+                        errorText = error.error || 'Unknown error';
+                    } catch (e) {
+                        errorText = `Status ${response.status}: ${response.statusText}`;
+                    }
+                    setStatus(uploadStatus, `File upload failed: ${errorText}`, 'error');
+                    console.error('File upload failed:', errorText);
+                }
+            } catch (error) {
+                setStatus(uploadStatus, `File upload error: ${error.message}`, 'error');
+                console.error('File upload error:', error);
+            }
+        });
+        
+        // Test POST request with CSRF token
+        testPostBtn.addEventListener('click', async () => {
+            if (!csrfToken) {
+                setStatus(postStatus, 'Please fetch a CSRF token first', 'error');
+                return;
+            }
+            
+            try {
+                setStatus(postStatus, 'Sending POST request...', 'info');
+                
+                // This is a simple test endpoint - you may need to adjust this to a valid endpoint in your API
+                const response = await fetch('/api/csrf-token', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-csrf-token': csrfToken
+                    },
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    setStatus(postStatus, 'POST request successful!', 'success');
+                    console.log('POST request successful:', data);
+                } else {
+                    const error = await response.json();
+                    setStatus(postStatus, `POST request failed: ${error.error || 'Unknown error'}`, 'error');
+                    console.error('POST request failed:', error);
+                }
+            } catch (error) {
+                setStatus(postStatus, `POST request error: ${error.message}`, 'error');
+                console.error('POST request error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

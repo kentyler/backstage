@@ -3,15 +3,14 @@
  * @file src/db/grpConTemplateTopics/getGrpConTemplateTopicsByTemplate.js
  * @description Lists all topics for a given template, ordered by topic_index.
  */
-import { pool } from '../connection.js';
 
 /**
  * Fetches topic entries for one template.
- *
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @param {number} templateId - The ID of the template
  * @returns {Promise<Array<{id: number, template_id: number, title: string, content: string, topic_index: number}>>}
  */
-export async function getGrpConTemplateTopicsByTemplate(templateId) {
+export async function getGrpConTemplateTopicsByTemplate(templateId, pool) {
   
   const query = `
     SELECT id, template_id, title, content, topic_index

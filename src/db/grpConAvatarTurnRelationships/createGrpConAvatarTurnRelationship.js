@@ -1,17 +1,18 @@
 // createGrpConAvatarTurnRelationship.js
-import { pool } from '../connection.js';
+
 
 /**
  * Creates a directed relationship between two avatar turns.
  * @param {number} turnId
  * @param {number} targetTurnId
  * @param {number} [relationshipTypeId=1]
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<object>}
  */
 export async function createGrpConAvatarTurnRelationship(
   turnId,
   targetTurnId,
-  relationshipTypeId = 1
+  relationshipTypeId = 1, pool
 ) {
   const sql = `
     INSERT INTO grp_con_avatar_turn_relationships

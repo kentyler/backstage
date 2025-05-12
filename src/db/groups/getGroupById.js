@@ -4,15 +4,15 @@
  * @description Retrieves a group record from the database by its ID.
  */
 
-import { pool } from '../connection.js';
+
 
 /**
  * Retrieves a single group by its ID.
- *
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @param {number} id - The ID of the group to retrieve.
  * @returns {Promise<{id: number, name: string, created_at: string}|null>} The group record, or null if not found.
  */
-export async function getGroupById(id) {
+export async function getGroupById(id, pool) {
   const query = `
     SELECT id, name, created_at
     FROM groups

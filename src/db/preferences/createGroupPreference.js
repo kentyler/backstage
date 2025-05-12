@@ -3,18 +3,16 @@
  * @description Creates or updates a group preference in the database.
  */
 
-import { pool } from '../connection.js';
-
 /**
  * Creates or updates a group preference
  * @param {number} groupId - The ID of the group
  * @param {number} preferenceTypeId - The ID of the preference type
  * @param {number} value - The BIGINT value for the preference
- * @param {object} [customPool=pool] - Database connection pool (for testing)
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<object>} The newly created or updated group preference
  * @throws {Error} If an error occurs during creation/update
  */
-export async function createGroupPreference(groupId, preferenceTypeId, value) {
+export async function createGroupPreference(groupId, preferenceTypeId, value, pool) {
   try {
     // Use upsert (INSERT ... ON CONFLICT ... DO UPDATE) to handle both creation and update
     const query = `

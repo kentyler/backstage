@@ -1,5 +1,4 @@
 // src/db/grpConAvatarTurns/updateGrpConAvatarTurn.js
-import { pool } from '../connection.js';
 
 const VECTOR_DIM = 1536;
 function normalizeVector(arr) { /* same as above */ }
@@ -7,13 +6,14 @@ function toVectorLiteral(arr) { /* same as above */ }
 
 /**
  * Update a group conversation avatar turn
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @param {number} id - The ID of the turn to update
  * @param {string} newText - The new text content
  * @param {Array<number>} newVector - The new vector content
  
  * @returns {Promise<object>} The updated turn
  */
-export async function updateGrpConAvatarTurn(id, newText, newVector) {
+export async function updateGrpConAvatarTurn(id, newText, newVector, pool) {
   
   const normalized = normalizeVector(newVector);
   const vecLit     = toVectorLiteral(normalized);

@@ -3,15 +3,14 @@
  * @description Retrieves a preference type by its name from the database.
  */
 
-import { pool } from '../connection.js';
-
 /**
  * Retrieves a preference type by its name
  * @param {string} name - The unique name of the preference type
- * * @returns {Promise<object|null>} The preference type or null if not found
+ * @param { Pool } pool - The PostgreSQL connection pool.
+ * @returns {Promise<object|null>} The preference type or null if not found
  * @throws {Error} If an error occurs during retrieval
  */
-export async function getPreferenceTypeByName(name) {
+export async function getPreferenceTypeByName(name, pool) {
  
   try {
     const query = `

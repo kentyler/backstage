@@ -4,17 +4,13 @@
  */
 
 /**
- * The database connection pool and schema utilities
- */
-import { pool } from '../connection.js';
-
-/**
  * Retrieves a participant by their email address
  * @param {string} email - The email of the participant to retrieve
-  * @returns {Promise<object|null>} The participant record, or null if not found
+ * @param { Pool } pool - The PostgreSQL connection pool.
+ * @returns {Promise<object|null>} The participant record, or null if not found
  * @throws {Error} If a database error occurs
  */
-export async function getParticipantByEmail(email) {
+export async function getParticipantByEmail(email, pool) {
   try {
         
     const query = `

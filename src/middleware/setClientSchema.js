@@ -1,9 +1,7 @@
 /**
- * Middleware to set the client schema for each request
- * This middleware extracts the client schema from:
- * 1. Subdomain (dev.example.com, first-congregational.example.com, etc.)
- * 2. JWT payload (req.user.clientSchema)
- * 3. Default schema ('dev')
+ * Utility functions for determining client schema
+ * This file provides functions for determining the schema to use
+ * based on hostname, participant attributes, etc.
  */
 
 import { getDefaultSchema } from '../config/schema.js';
@@ -59,51 +57,104 @@ export function extractSubdomain(hostname) {
 }
 
 /**
- * Sets the client schema on the request object
- * Priority order:
- * 1. Subdomain (dev.example.com, first-congregational.example.com, etc.)
- * 2. JWT payload (req.user.clientSchema)
- * 3. Default schema from configuration
+ * Determines the client schema based on the hostname
  * 
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next middleware function
+ * @param {string} hostname - The hostname from the request
+ * @returns {string} - The schema name
  */
-export function setClientSchema(req, res, next) {
-  console.log(`Request hostname: ${req.hostname}`);
+export function determineSchemaFromHostname(hostname) {
+  console.log(`Determining schema from hostname: ${hostname}`);
   
-  // Special case for conflict-club.localhost
-  if (req.hostname.includes('conflict-club')) {
-    req.clientSchema = 'conflict_club';
-    console.log(`Special case: Using schema for conflict-club: ${req.clientSchema}`);
+  // When in localhost, use 'dev' schema by default
+  if (hostname.includes('localhost')) {
+    // Extract subdomain from localhost (e.g., subdomain.localhost)
+    const subdomain = extractSubdomain(hostname);
+    
+    // If we have a valid subdomain and it's in our mapping, use that schema
+    if (subdomain && SUBDOMAIN_TO_SCHEMA[subdomain]) {
+      console.log(`Using schema from localhost subdomain (${subdomain}): ${SUBDOMAIN_TO_SCHEMA[subdomain]}`);
+      return SUBDOMAIN_TO_SCHEMA[subdomain];
+    }
+    
+    // Otherwise use 'dev' schema for localhost
+    console.log(`Development environment on localhost: Using dev schema for client tables`);
+    return 'dev';
   }
-  // First, check if schema can be determined from subdomain
+  // For non-localhost hostnames
   else {
-    const subdomain = extractSubdomain(req.hostname);
+    const subdomain = extractSubdomain(hostname);
     console.log(`Extracted subdomain: ${subdomain}`);
     
     if (subdomain && SUBDOMAIN_TO_SCHEMA[subdomain]) {
-      req.clientSchema = SUBDOMAIN_TO_SCHEMA[subdomain];
-      console.log(`Using schema from subdomain (${subdomain}): ${req.clientSchema}`);
+      console.log(`Using schema from subdomain (${subdomain}): ${SUBDOMAIN_TO_SCHEMA[subdomain]}`);
+      return SUBDOMAIN_TO_SCHEMA[subdomain];
     }
-    // Second, check if schema is specified in JWT payload
-    else if (req.user && req.user.clientSchema) {
-      req.clientSchema = req.user.clientSchema;
-      console.log(`Using schema from JWT payload: ${req.clientSchema}`);
-    }
-    // Special case for localhost in development
-    // The 'dev' schema contains all client tables including participants
-    // This ensures we can access these tables when developing locally
-    else if (req.hostname.includes('localhost') && process.env.NODE_ENV !== 'production') {
-      req.clientSchema = 'dev';
-      console.log(`Development environment on localhost: Using dev schema for client tables`);
-    }
-    // Finally, use default schema
+    // If no subdomain or unknown subdomain, use 'dev' as a fallback
     else {
-      req.clientSchema = getDefaultSchema();
-      console.log(`Using default schema: ${req.clientSchema}`);
+      console.log(`No subdomain or unknown subdomain: Using dev schema as fallback`);
+      return 'dev';
+    }
+  }
+}
+
+/**
+ * Determines the client schema for a participant
+ * Uses the SUBDOMAIN_TO_SCHEMA mapping to determine the schema
+ * based on the participant's organization or other attributes
+ * 
+ * @param {Object} participant - The participant object
+ * @param {Object} [options] - Additional options
+ * @param {boolean} [options.isLocalhost] - Whether the request is from localhost
+ * @returns {string} - The schema name for the participant
+ */
+export function determineClientSchema(participant, options = {}) {
+  // For localhost in development, use the dev schema
+  // This ensures that JWT tokens created during local development
+  // will use the dev schema, which contains the participants table
+  if (options.isLocalhost && process.env.NODE_ENV !== 'production') {
+    console.log('Development environment on localhost: Using dev schema for JWT token');
+    return 'dev';
+  }
+  
+  // If the participant has a clientSchema property, use that
+  if (participant.clientSchema) {
+    return participant.clientSchema;
+  }
+  
+  // If the participant has an organization property, use that to determine the schema
+  if (participant.organization) {
+    // Check if the organization matches a known subdomain
+    const subdomain = participant.organization.toLowerCase().replace(/\s+/g, '-');
+    if (SUBDOMAIN_TO_SCHEMA[subdomain]) {
+      return SUBDOMAIN_TO_SCHEMA[subdomain];
     }
   }
   
-  next();
+  // For development environment, use the dev schema
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Development environment: Using dev schema as fallback');
+    return 'dev';
+  }
+  
+  // Return the default schema as a last resort for production
+  return getDefaultSchema();
+}
+
+/**
+ * Gets a list of all client schemas
+ * This is used for operations that need to be performed across all schemas
+ * 
+ * @returns {Promise<string[]>} - A promise that resolves to an array of schema names
+ */
+export async function getAllClientSchemas() {
+  // Return all known schemas from the SUBDOMAIN_TO_SCHEMA mapping
+  const schemas = Object.values(SUBDOMAIN_TO_SCHEMA);
+  
+  // Add the default schema if it's not already included
+  const defaultSchema = getDefaultSchema();
+  if (!schemas.includes(defaultSchema)) {
+    schemas.push(defaultSchema);
+  }
+  
+  return schemas;
 }

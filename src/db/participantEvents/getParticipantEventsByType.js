@@ -3,15 +3,14 @@
  * @description Retrieves all events of a specific type.
  */
 
-import { pool } from '../connection.js';
-
 /**
  * Retrieves all events of a specific type
  * @param {number} eventTypeId - The ID of the event type
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<Array>} Array of participant event records
  * @throws {Error} If an error occurs during retrieval
  */
-export async function getParticipantEventsByType(eventTypeId) {
+export async function getParticipantEventsByType(eventTypeId, pool) {
   try {
     
     

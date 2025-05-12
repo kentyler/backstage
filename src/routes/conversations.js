@@ -41,7 +41,7 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
     }
     
     // Get the group to access its LLM avatar ID
-    const group = await getGroupById(conversation.group_id);
+    const group = await getGroupById(conversation.group_id, req.clientPool);
     if (!group) {
       return res.status(404).json({ error: 'Group not found' });
     }
@@ -51,7 +51,7 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
     let llmConfig;
     try {
       // Get the LLM ID using the preference cascade (participant > group > site)
-      llmId = await getLLMId(participantId, conversation.group_id);
+      llmId = await getLLMId(participantId, conversation.group_id, null, req.clientPool);
       llmConfig = await getLLMConfig(llmId);
       
       if (!llmConfig) {
@@ -68,14 +68,14 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
     let llmName;
     try {
       // Pass the participant ID, group ID to get the correct LLM name based on preferences
-      llmName = await getLLMName(participantId, conversation.group_id);
+      llmName = await getLLMName(participantId, conversation.group_id, null, req.clientPool);
     } catch (error) {
       console.error('Error getting LLM name:', error);
       llmName = 'Anthropic Claude-3-Opus'; // Fallback to hardcoded name if preference lookup fails
     }
     
     // Get the participant to access their avatar ID and name
-    const participant = await getParticipantById(participantId);
+    const participant = await getParticipantById(participantId, req.clientPool);
     if (!participant) {
       return res.status(404).json({ error: 'Participant not found' });
     }
@@ -89,10 +89,7 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
     try {
       // Use the preference cascade: participant > group > site
       const { getPreferenceWithFallback } = await import('../db/preferences/getPreferenceWithFallback.js');
-      const avatarPreference = await getPreferenceWithFallback('avatar_id', {
-        participantId: participantId,
-        groupId: conversation.group_id
-      });
+      const avatarPreference = await getPreferenceWithFallback('avatar_id', participantId, req.clientPool);
       
       participantAvatarId = avatarPreference?.value;
       
@@ -135,8 +132,8 @@ router.post('/:conversationId/turns', requireAuth, async (req, res) => {
       formattedPrompt,
       promptEmbedding,
       TURN_KIND.REGULAR,
-      1,// message_type_id = 1 for user messages
-     
+      1, // message_type_id = 1 for user messages
+      req.clientPool // Pass the client pool from the request
     );
     
     // Create an embedding database from existing turns, filtering out turns with invalid embeddings
@@ -424,8 +421,8 @@ IMPORTANT GUIDELINES:
       llmResponse,
       responseEmbedding,
       TURN_KIND.REGULAR,
-      2 // message_type_id = 2 for LLM messages
-      
+      2, // message_type_id = 2 for LLM messages
+      req.clientPool // Pass the client pool from the request
     );
     
     // Return both turns
@@ -450,7 +447,7 @@ router.get('/:conversationId/turns', requireAuth, async (req, res) => {
     const conversationId = Number(req.params.conversationId);
     
     // Get all turns for this conversation
-    const turns = await getGrpConAvatarTurnsByConversation(conversationId);
+    const turns = await getGrpConAvatarTurnsByConversation(conversationId, req.clientPool);
     
     res.json(turns);
   } catch (error) {

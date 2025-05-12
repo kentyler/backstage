@@ -32,7 +32,7 @@ router.post('/logout', requireAuth, logoutHandler);
 router.post('/', async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
-    const created = await participantCtrl.createParticipant(name, email, password);
+    const created = await participantCtrl.createParticipant(name, email, password, req.clientPool);
     res.status(201).json(created);
   } catch (err) {
     next(err);
@@ -45,7 +45,7 @@ router.post('/', async (req, res, next) => {
  */
 router.get('/', async (req, res, next) => {
   try {
-    const list = await participantCtrl.getAllParticipants();
+    const list = await participantCtrl.getAllParticipants(req.clientPool);
     res.json(list);
   } catch (err) {
     next(err);
@@ -64,7 +64,7 @@ router.get('/:id', async (req, res, next) => {
   }
 
   try {
-    const participant = await participantCtrl.getParticipantById(id);
+    const participant = await participantCtrl.getParticipantById(id, req.clientPool);
     if (!participant) {
       return res.status(404).json({ error: 'Participant not found' });
     }
@@ -87,7 +87,7 @@ router.put('/:id', async (req, res, next) => {
   }
 
   try {
-    const updated = await participantCtrl.updateParticipant(id, req.body);
+    const updated = await participantCtrl.updateParticipant(id, req.body, req.clientPool);
     if (!updated) {
       return res.status(404).json({ error: 'Participant not found' });
     }
@@ -108,7 +108,7 @@ router.delete('/:id', async (req, res, next) => {
   }
 
   try {
-    const success = await participantCtrl.deleteParticipant(id);
+    const success = await participantCtrl.deleteParticipant(id, req.clientPool );
     res.json({ success });
   } catch (err) {
     next(err);

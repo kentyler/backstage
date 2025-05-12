@@ -2,17 +2,15 @@
  * @file src/db/participantAvatars/deleteParticipantAvatar.js
  * @description Deletes a participant-avatar relationship.
  */
-import { pool } from '../connection.js';
 
 /**
  * Deletes a participant-avatar relationship by ID.
- *
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @param {number} id - The ID of the participant-avatar relationship to delete
- * @param {object} [customPool=pool] - Database connection pool (for testing)
  * @returns {Promise<object|null>} The deleted relationship or null if not found
  * @throws {Error} If the operation fails
  */
-export async function deleteParticipantAvatar(id) {
+export async function deleteParticipantAvatar(id, pool) {
   try {
     const query = `
       DELETE FROM participant_avatars

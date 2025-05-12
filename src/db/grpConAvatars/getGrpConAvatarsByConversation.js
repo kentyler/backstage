@@ -3,17 +3,15 @@
  * @file src/db/grpConAvatars/getGrpConAvatarsByConversation.js
  * @description Lists all avatars in a given conversation.
  */
-import { pool, createPool } from '../connection.js';
-import { getDefaultSchema } from '../../config/schema.js';
 
 /**
  * Fetches avatar entries for one conversation.
- *
+  *  @param { Pool } pool - The PostgreSQL connection pool.
  * @param {number} conversationId
  * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
  * @returns {Promise<Array<{avatar_id: number, added_at: string}>>}
  */
-export async function getGrpConAvatarsByConversation(conversationId, customPoolOrSchema = null) {
+export async function getGrpConAvatarsByConversation(conversationId, pool) {
   // Determine which pool to use
   let customPool = pool;
   

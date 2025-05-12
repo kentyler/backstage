@@ -3,15 +3,14 @@
  * @description Retrieves all groups that a specific participant belongs to.
  */
 
-import { pool } from '../connection.js';
-
 /**
  * Retrieves all groups that a specific participant belongs to
  * @param {number} participantId - The ID of the participant
  * @returns {Promise<Array<{id: number, name: string, created_at: string, role: string}>>} Array of group records
  * @throws {Error} If a database error occurs
+ * @param { Pool } pool - The PostgreSQL connection pool.
  */
-export async function getGroupsByParticipant(participantId) {
+export async function getGroupsByParticipant(participantId, pool) {
   try {
     const query = `
       SELECT 

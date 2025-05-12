@@ -3,15 +3,14 @@
  * @description Retrieves all preference types from the database.
  */
 
-import { pool } from '../connection.js';
-
 /**
  * Retrieves all preference types
  * @param {object} [customPool=pool] - Database connection pool (for testing)
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<Array>} Array of preference types
  * @throws {Error} If an error occurs during retrieval
  */
-export async function getAllPreferenceTypes() {
+export async function getAllPreferenceTypes( pool) {
   try {
     const query = `
       SELECT id, name, description, created_at, updated_at

@@ -3,17 +3,15 @@
  * @file src/db/grpConTemplateTopics/deleteGrpConTemplateTopic.js
  * @description Deletes a template topic.
  */
-import { pool, createPool } from '../connection.js';
-import { getDefaultSchema } from '../../config/schema.js';
 
 /**
  * Deletes a template topic by ID.
- *
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @param {number} topicId - The ID of the topic to delete
  * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
  * @returns {Promise<{id: number, template_id: number, title: string, content: string, topic_index: number}|null>}
  */
-export async function deleteGrpConTemplateTopic(topicId, customPoolOrSchema = null) {
+export async function deleteGrpConTemplateTopic(topicId, pool) {
   // Determine which pool to use
   let customPool = pool;
   

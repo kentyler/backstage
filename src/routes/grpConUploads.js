@@ -22,6 +22,7 @@ import {
 } from '../db/grpConUploadVectors/index.js';
 import { uploadFile, getFile, deleteFile } from '../services/supabaseService.js';
 import { generateEmbedding, initEmbeddingService } from '../services/embeddingService.js';
+import { determineSchemaFromHostname } from '../middleware/setClientSchema.js';
 
 // Turn kind for file uploads
 const TURN_KIND_UPLOAD = 6;
@@ -117,7 +118,7 @@ const chunkText = (text, maxChunkSize = MAX_CHUNK_SIZE, overlap = CHUNK_OVERLAP)
  */
 router.post('/', requireAuth, upload.single('file'), async (req, res) => {
   try {
-    console.log('POST /api/grp-con-uploads - req.clientSchema:', req.clientSchema);
+    console.log('File upload request received');
     
     const { grpConId, avatarId } = req.body;
     const file = req.file;
@@ -130,116 +131,204 @@ router.post('/', requireAuth, upload.single('file'), async (req, res) => {
       return res.status(400).json({ error: 'Conversation ID is required' });
     }
     
-    // Upload file to Supabase Storage
-    const fileBuffer = file.buffer;
-    const fileName = file.originalname;
-    const mimeType = file.mimetype;
-  
+    console.log(`Processing file upload for conversation ${grpConId}`);
     
-    const uploadResult = await uploadFile(
-      fileBuffer,
-      fileName,
-      mimeType,
-      clientSchema,
-      grpConId
-    );
+    try {
+      // Upload file to Supabase Storage
+      const fileBuffer = file.buffer;
+      const fileName = file.originalname;
+      const mimeType = file.mimetype;
     
-    // Convert buffer to text for processing
-    const fileContent = fileBuffer.toString('utf-8');
-    
-    // Create a turn record for the file upload
-    // Use the participant's ID from req.user or a provided avatar ID
-    const participantId = req.user.participantId;
-    const effectiveAvatarId = avatarId || participantId;
-    
-    // Create a turn with the file name as the content
-    // Use an empty array for the content vector (or generate one if needed)
-    const emptyVector = new Array(1536).fill(0);
-    
-    // Get all existing turns for the conversation to determine the next turn index
-    const existingTurns = await getGrpConAvatarTurnsByConversation(grpConId, clientSchema);
-    
-    // Find the maximum turn index from existing turns
-    let maxTurnIndex = 0;
-    if (existingTurns.length > 0) {
-      maxTurnIndex = Math.max(...existingTurns.map(turn => parseFloat(turn.turn_index)));
-    }
-    
-    // Use the next available index (max + 1) or 1 if there are no existing turns
-    const turnIndex = maxTurnIndex + 1;
-    
-    // Create the turn record
-    console.log('About to call createGrpConAvatarTurn with clientSchema:', clientSchema);
-    if (!clientSchema) {
-      console.log('WARNING: clientSchema is null or undefined, forcing to "dev" for localhost');
-      clientSchema = 'dev';
-    }
-    
-    const turn = await createGrpConAvatarTurn(
-      grpConId,
-      effectiveAvatarId,
-      turnIndex,
-      `File: ${fileName}`,
-      emptyVector,
-      TURN_KIND_UPLOAD,
-      null // messageTypeId parameter
-     
-    );
-    
-    // Create record in database with the new turn ID
-    const uploadData = {
-      grpConId,
-      turnId: turn.id,
-      filename: fileName,
-      mimeType,
-      filePath: uploadResult.filePath,
-      publicUrl: uploadResult.publicUrl,
-      bucketName: uploadResult.bucketName
-    };
-    
-    const upload = await createGrpConUpload(uploadData, clientSchema);
-    
-    // Initialize the embedding service if needed
-    initEmbeddingService();
-    
-    // Determine if chunking is necessary based on file size
-    let chunks = [];
-    if (fileContent.length >= MIN_FILE_SIZE_FOR_CHUNKING) {
-      // Split the file into chunks
-      chunks = chunkText(fileContent);
-    } else {
-      // Use the entire file as a single chunk
-      chunks = [fileContent];
-    }
-    
-    // Process each chunk and store it in the database
-    for (let i = 0; i < chunks.length; i++) {
-      const chunk = chunks[i];
+      // Get schema name from hostname for Supabase storage
+      const schema = determineSchemaFromHostname(req.hostname);
+      console.log(`Using schema ${schema} for Supabase storage`);
       
-      // Generate embedding for the chunk
-      const embedding = await generateEmbedding(chunk);
+      let uploadResult;
+      try {
+        uploadResult = await uploadFile(
+          fileBuffer,
+          fileName,
+          mimeType,
+          schema,
+          grpConId
+        );
+        console.log('File uploaded to Supabase successfully');
+      } catch (supabaseError) {
+        console.error('Supabase upload error:', supabaseError);
+        return res.status(500).json({ 
+          error: 'Failed to upload file to storage',
+          details: supabaseError.message
+        });
+      }
       
-      // Create vector record in database
-      const vectorData = {
-        uploadId: upload.id,
-        chunkIndex: i,
-        contentText: chunk,
-        contentVector: embedding
-      };
+      // Convert buffer to text for processing
+      const fileContent = fileBuffer.toString('utf-8');
       
-      await createGrpConUploadVector(vectorData);
+      // Create a turn record for the file upload
+      try {
+        // Use the participant's ID from req.user or a provided avatar ID
+        const participantId = req.user.participantId;
+        const effectiveAvatarId = avatarId || participantId;
+        
+        // Create a turn with the file name as the content
+        // Use an empty array for the content vector (or generate one if needed)
+        const emptyVector = new Array(1536).fill(0);
+        
+        console.log(`Getting existing turns for conversation ${grpConId}`);
+        // Get all existing turns for the conversation to determine the next turn index
+        let existingTurns;
+        try {
+          existingTurns = await getGrpConAvatarTurnsByConversation(grpConId, req.clientPool);
+          console.log(`Found ${existingTurns.length} existing turns`);
+        } catch (turnsError) {
+          console.error('Error getting existing turns:', turnsError);
+          return res.status(500).json({ 
+            error: 'Failed to get existing turns',
+            details: turnsError.message
+          });
+        }
+        
+        // Find the maximum turn index from existing turns
+        let maxTurnIndex = 0;
+        if (existingTurns.length > 0) {
+          maxTurnIndex = Math.max(...existingTurns.map(turn => parseFloat(turn.turn_index)));
+        }
+        
+        // Use the next available index (max + 1) or 1 if there are no existing turns
+        const turnIndex = maxTurnIndex + 1;
+        console.log(`Creating turn with index ${turnIndex}`);
+        
+        let turn;
+        try {
+          turn = await createGrpConAvatarTurn(
+            grpConId,
+            effectiveAvatarId,
+            turnIndex,
+            `File: ${fileName}`,
+            emptyVector,
+            TURN_KIND_UPLOAD,
+            null,// messageTypeId parameter
+            req.clientPool
+          );
+          console.log(`Turn created with ID ${turn.id}`);
+        } catch (turnError) {
+          console.error('Error creating turn:', turnError);
+          return res.status(500).json({ 
+            error: 'Failed to create turn record',
+            details: turnError.message
+          });
+        }
+        
+        // Create record in database with the new turn ID
+        const uploadData = {
+          grpConId,
+          turnId: turn.id,
+          filename: fileName,
+          mimeType,
+          filePath: uploadResult.filePath,
+          publicUrl: uploadResult.publicUrl,
+          bucketName: uploadResult.bucketName
+        };
+        
+        let upload;
+        try {
+          upload = await createGrpConUpload(uploadData, req.clientPool);
+          console.log(`Upload record created with ID ${upload.id}`);
+        } catch (uploadError) {
+          console.error('Error creating upload record:', uploadError);
+          return res.status(500).json({ 
+            error: 'Failed to create upload record',
+            details: uploadError.message
+          });
+        }
+        
+        // Initialize the embedding service if needed
+        try {
+          console.log('Initializing embedding service');
+          initEmbeddingService();
+        } catch (embeddingInitError) {
+          console.error('Error initializing embedding service:', embeddingInitError);
+          // Continue anyway, as this is not critical for the upload itself
+        }
+        
+        // Determine if chunking is necessary based on file size
+        let chunks = [];
+        if (fileContent.length >= MIN_FILE_SIZE_FOR_CHUNKING) {
+          // Split the file into chunks
+          console.log(`File size ${fileContent.length} exceeds minimum for chunking, splitting into chunks`);
+          chunks = chunkText(fileContent);
+        } else {
+          // Use the entire file as a single chunk
+          console.log(`File size ${fileContent.length} is below minimum for chunking, using single chunk`);
+          chunks = [fileContent];
+        }
+        console.log(`Created ${chunks.length} chunks`);
+        
+        // Process each chunk and store it in the database
+        try {
+          for (let i = 0; i < chunks.length; i++) {
+            const chunk = chunks[i];
+            
+            // Generate embedding for the chunk
+            console.log(`Generating embedding for chunk ${i+1}/${chunks.length}`);
+            let embedding;
+            try {
+              embedding = await generateEmbedding(chunk);
+            } catch (embeddingError) {
+              console.error(`Error generating embedding for chunk ${i+1}:`, embeddingError);
+              // Use a zero vector as fallback
+              embedding = new Array(1536).fill(0);
+            }
+            
+            // Create vector record in database
+            const vectorData = {
+              uploadId: upload.id,
+              chunkIndex: i,
+              contentText: chunk,
+              contentVector: embedding
+            };
+            
+            try {
+              await createGrpConUploadVector(vectorData);
+              console.log(`Vector record created for chunk ${i+1}`);
+            } catch (vectorError) {
+              console.error(`Error creating vector record for chunk ${i+1}:`, vectorError);
+              // Continue with other chunks even if one fails
+            }
+          }
+        } catch (chunkProcessingError) {
+          console.error('Error processing chunks:', chunkProcessingError);
+          // Continue anyway, as the file is already uploaded
+        }
+        
+        // Add chunk count to the response
+        const response = {
+          ...upload,
+          chunkCount: chunks.length
+        };
+        
+        console.log('File upload completed successfully');
+        res.status(201).json(response);
+      } catch (turnCreationError) {
+        console.error('Error in turn creation process:', turnCreationError);
+        return res.status(500).json({ 
+          error: 'Failed to process file upload',
+          details: turnCreationError.message
+        });
+      }
+    } catch (processingError) {
+      console.error('Error processing file upload:', processingError);
+      return res.status(500).json({ 
+        error: 'Failed to process file upload',
+        details: processingError.message
+      });
     }
-    
-    // Add chunk count to the response
-    const response = {
-      ...upload,
-      chunkCount: chunks.length
-    };
-    
-    res.status(201).json(response);
   } catch (error) {
-    console.error('Error uploading file:', error);
-    res.status(500).json({ error: 'Failed to upload file' });
+    console.error('Unhandled error in file upload route:', error);
+    res.status(500).json({ 
+      error: 'Failed to upload file',
+      details: error.message
+    });
   }
 });
 
@@ -255,7 +344,8 @@ router.post('/', requireAuth, upload.single('file'), async (req, res) => {
 router.get('/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const clientSchema = req.clientSchema;
+    // Get schema name from hostname for Supabase storage
+    const schema = determineSchemaFromHostname(req.hostname);
     
     // Get upload record from database
     const upload = await getGrpConUploadById(id);
@@ -269,7 +359,7 @@ router.get('/:id', requireAuth, async (req, res) => {
     
     if (includeVectors) {
       // Get vectors for this upload
-      const vectors = await getGrpConUploadVectorsByUpload(id);
+      const vectors = await getGrpConUploadVectorsByUpload(id, req.clientPool);
       
       // Add vectors to the response
       const response = {
@@ -280,7 +370,7 @@ router.get('/:id', requireAuth, async (req, res) => {
       res.json(response);
     } else {
       // Get file from Supabase Storage
-      const fileData = await getFile(upload.file_path);
+      const fileData = await getFile(upload.file_path, schema);
       
       // Set appropriate headers
       res.setHeader('Content-Type', upload.mime_type);
@@ -306,10 +396,9 @@ router.get('/:id', requireAuth, async (req, res) => {
 router.get('/conversation/:grpConId', requireAuth, async (req, res) => {
   try {
     const { grpConId } = req.params;
-    const clientSchema = req.clientSchema;
     
     // Get all upload records for the conversation
-    const uploads = await getGrpConUploadsByConversation(grpConId);
+    const uploads = await getGrpConUploadsByConversation(grpConId, req.clientPool);
     
     res.json(uploads);
   } catch (error) {
@@ -329,20 +418,22 @@ router.get('/conversation/:grpConId', requireAuth, async (req, res) => {
 router.delete('/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const clientSchema = req.clientSchema;
+    // Get schema name from hostname for Supabase storage
+    const schema = determineSchemaFromHostname(req.hostname);
+    
     
     // Get upload record from database
-    const upload = await getGrpConUploadById(id);
+    const upload = await getGrpConUploadById(id, req.clientPool);
     
     if (!upload) {
       return res.status(404).json({ error: 'File not found' });
     }
     
     // Delete file from Supabase Storage
-    await deleteFile(upload.file_path);
+    await deleteFile(upload.file_path, schema);
     
     // Delete record from database
-    const deleted = await deleteGrpConUpload(id);
+    const deleted = await deleteGrpConUpload(id, req.clientPool);
     
     if (!deleted) {
       return res.status(404).json({ error: 'Failed to delete file record' });

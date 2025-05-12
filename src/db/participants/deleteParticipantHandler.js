@@ -6,10 +6,10 @@ import { deleteParticipant } from '../../db/participant/deleteParticipant.js';
 
 /**
  * Handles request to delete a participant
- * 
  * @param {object} req - Express request object
  * @param {object} req.params - Request parameters
  * @param {string} req.params.id - Participant ID
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @param {object} res - Express response object
  * @returns {Promise<void>}
  */

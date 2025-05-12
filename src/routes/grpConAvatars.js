@@ -15,7 +15,7 @@ router.post('/', async (req, res, next) => {
     const link = await avatarsCtrl.createGrpConAvatar(
       conversationId, 
       avatarId,
-      req.clientSchema
+       req.clientPool
     );
     res.status(201).json(link);
   } catch (err) {
@@ -31,7 +31,7 @@ router.get('/by-conversation/:conversationId', async (req, res, next) => {
     // Pass the client schema from the request object
     const list = await avatarsCtrl.getGrpConAvatarsByConversation(
       Number(req.params.conversationId),
-      req.clientSchema
+       req.clientPool
     );
     res.json(list);
   } catch (err) {
@@ -47,7 +47,7 @@ router.get('/by-avatar/:avatarId', async (req, res, next) => {
     // Pass the client schema from the request object
     const list = await avatarsCtrl.getGrpConsByAvatar(
       Number(req.params.avatarId),
-      req.clientSchema
+     req.clientPool
     );
     res.json(list);
   } catch (err) {
@@ -64,7 +64,7 @@ router.delete('/:conversationId/:avatarId', async (req, res, next) => {
     const ok = await avatarsCtrl.deleteGrpConAvatar(
       Number(req.params.conversationId),
       Number(req.params.avatarId),
-      req.clientSchema
+      req.clientPool
     );
     res.json({ success: ok });
   } catch (err) {

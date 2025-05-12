@@ -1,13 +1,13 @@
 // updateGrpConAvatarTurnRelationship.js
-import { pool } from '../connection.js';
 
 /**
  * Updates the relationship type of an existing relationship.
  * @param {number} id
  * @param {number} newTypeId
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<object|null>}
  */
-export async function updateGrpConAvatarTurnRelationship(id, newTypeId) {
+export async function updateGrpConAvatarTurnRelationship(id, newTypeId, pool) {
   const sql = `
     UPDATE grp_con_avatar_turn_relationships
        SET turn_relationship_type_id = $2

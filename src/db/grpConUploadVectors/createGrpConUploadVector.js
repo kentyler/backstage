@@ -3,7 +3,6 @@
  * @module db/grpConUploadVectors/createGrpConUploadVector
  */
 
-import { pool } from '../connection.js';
 /**
  * Create a new group conversation upload vector record
  * @param {Object} vectorData - The vector data
@@ -11,10 +10,10 @@ import { pool } from '../connection.js';
  * @param {number} vectorData.chunkIndex - The chunk index
  * @param {string} vectorData.contentText - The text content of the chunk
  * @param {Array<number>} [vectorData.contentVector] - The vector representation of the content (optional)
- * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name
+ * @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<Object>} - The created vector record
  */
-const createGrpConUploadVector = async (vectorData) => {
+const createGrpConUploadVector = async (vectorData, pool) => {
  
   const {
     uploadId,

@@ -74,26 +74,7 @@ describe('Participant Database Functions', () => {
 
   describe('getParticipantByEmail', () => {
     it('should retrieve a participant by email', async () => {
-      // Mock the implementation to use our test pool
-      const originalGetParticipantByEmail = getParticipantByEmail;
-      
-      // Create a wrapper function that uses our test pool
-      const testGetParticipantByEmail = async (email) => {
-        try {
-          const query = `
-            SELECT * FROM participants
-            WHERE email = $1
-          `;
-          const values = [email];
-          
-          const result = await testPool.query(query, values);
-          return result.rows[0] || null;
-        } catch (error) {
-          throw new Error(`Failed to get participant by email: ${error.message}`);
-        }
-      };
-      
-      const participant = await testGetParticipantByEmail(TEST_PARTICIPANT.email);
+      const participant = await getParticipantByEmail(TEST_PARTICIPANT.email, testPool);
       
       expect(participant).toBeDefined();
       expect(participant.email).toBe(TEST_PARTICIPANT.email);
@@ -101,50 +82,12 @@ describe('Participant Database Functions', () => {
     });
     
     it('should return null for non-existent email', async () => {
-      // Create a wrapper function that uses our test pool
-      const testGetParticipantByEmail = async (email) => {
-        try {
-          const query = `
-            SELECT * FROM participants
-            WHERE email = $1
-          `;
-          const values = [email];
-          
-          const result = await testPool.query(query, values);
-          return result.rows[0] || null;
-        } catch (error) {
-          throw new Error(`Failed to get participant by email: ${error.message}`);
-        }
-      };
-      
-      const participant = await testGetParticipantByEmail('non-existent@example.com');
-      
+      const participant = await getParticipantByEmail('non-existent@example.com', testPool);
       expect(participant).toBeNull();
     });
     
     it('should throw an error if email is not provided', async () => {
-      // Create a wrapper function that uses our test pool
-      const testGetParticipantByEmail = async (email) => {
-        // Validate that email is provided
-        if (!email) {
-          throw new Error('Email is required');
-        }
-        
-        try {
-          const query = `
-            SELECT * FROM participants
-            WHERE email = $1
-          `;
-          const values = [email];
-          
-          const result = await testPool.query(query, values);
-          return result.rows[0] || null;
-        } catch (error) {
-          throw new Error(`Failed to get participant by email: ${error.message}`);
-        }
-      };
-      
-      await expect(testGetParticipantByEmail()).rejects.toThrow('Email is required');
+      await expect(getParticipantByEmail(undefined, testPool)).rejects.toThrow('Email is required');
     });
   });
 });

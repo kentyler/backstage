@@ -16,7 +16,8 @@ router.post('/', async (req, res, next) => {
       template_id,
       title,
       content,
-      topic_index
+      topic_index,
+      req.clientPool
     );
     res.status(201).json(topic);
   } catch (err) {
@@ -31,7 +32,8 @@ router.get('/by-template/:templateId', async (req, res, next) => {
   try {
  
     const topics = await topicsCtrl.getGrpConTemplateTopicsByTemplate(
-      Number(req.params.templateId)
+      Number(req.params.templateId),
+      req.clientPool
     );
     res.json(topics);
   } catch (err) {
@@ -46,7 +48,8 @@ router.get('/:topicId', async (req, res, next) => {
   try {
     
     const topic = await topicsCtrl.getGrpConTemplateTopicById(
-      Number(req.params.topicId)
+      Number(req.params.topicId),
+      req.clientPool
     );
     if (!topic) {
       return res.status(404).json({ error: 'Topic not found' });
@@ -69,7 +72,8 @@ router.put('/:topicId', async (req, res, next) => {
       Number(req.params.topicId),
       title,
       content,
-      topic_index
+      topic_index,
+      req.clientPool
     );
     if (!topic) {
       return res.status(404).json({ error: 'Topic not found' });
@@ -85,9 +89,9 @@ router.put('/:topicId', async (req, res, next) => {
  */
 router.delete('/:topicId', async (req, res, next) => {
   try {
-  
     const topic = await topicsCtrl.deleteGrpConTemplateTopic(
-      Number(req.params.topicId)
+      Number(req.params.topicId),
+      req.clientPool
     );
     if (!topic) {
       return res.status(404).json({ error: 'Topic not found' });
