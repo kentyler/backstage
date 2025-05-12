@@ -44,25 +44,25 @@ router.get('/', [requireAuth, setClientPool], async (req, res) => {
     // Remove sensitive information
     const { password, ...safeParticipant } = participant;
     
-    // Get the participant's avatar ID from preferences
+    // Get the participant's avatar ID from preferences - be resilient if not found
     try {
       const avatarIdPreference = await getPreferenceWithFallback('avatar_id', participantId, req.clientPool);
-      console.log(`Retrieved avatar_id preference for participant ${participantId}:`, avatarIdPreference);
       
-      // Add the current_avatar_id to the participant data from preferences
+      // Add the current_avatar_id to the participant data from preferences if available
       if (avatarIdPreference && avatarIdPreference.value) {
         safeParticipant.current_avatar_id = avatarIdPreference.value;
         console.log(`Set current_avatar_id to ${safeParticipant.current_avatar_id} for participant ${participantId}`);
       } else {
-        // Throw an error if no avatar ID preference is found
-        throw new Error(`No avatar_id preference found for participant ${participantId}`);
+        // Use default avatar ID instead of throwing an error
+        safeParticipant.current_avatar_id = 1; // Default to first avatar
+        console.log(`No avatar_id preference found for participant ${participantId}, using default (1)`);
       }
     } catch (prefError) {
+      // Log the error but don't fail the request
       console.error(`Error retrieving avatar_id preference for participant ${participantId}:`, prefError.message);
-      return res.status(500).json({ 
-        error: 'Failed to retrieve avatar ID preference', 
-        details: prefError.message 
-      });
+      // Set a default avatar ID instead of returning an error
+      safeParticipant.current_avatar_id = 1;
+      console.log(`Using default avatar_id (1) for participant ${participantId} after preference lookup error`);
     }
     
     // Get the participant's current LLM ID from preferences
