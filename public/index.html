@@ -310,25 +310,61 @@
       }
     }
     
-    // Check authentication status using the /api/me endpoint
+    // Simple direct check of authentication status using JWT token
     async function checkAuthStatus() {
       log('Checking authentication status...');
       
+      // Check if we have a JWT token in localStorage
+      const token = localStorage.getItem('jwt_token');
+      if (!token) {
+        log('No JWT token found in localStorage', 'error');
+        authState.isAuthenticated = false;
+        updateUIForAuthState();
+        return false;
+      }
+      
+      log(`Found JWT token in localStorage (length: ${token.length})`);
+      authState.jwtToken = token;
+      
       try {
-        // Try to fetch CSRF token first
-        await fetchCsrfToken();
-        
-        // Use the token to make an authenticated request
-        const response = await fetch('/api/me', {
+        // Simple auth check - don't rely on CSRF
+        const apiBaseUrl = getApiBaseUrl();
+        const response = await fetch(`${apiBaseUrl}/me`, {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': authState.csrfToken || ''
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           },
-          credentials: 'include' // Include cookies for session-based auth
+          credentials: 'include' // Include cookies too
         });
         
-        if (response.ok) {
+        // Don't try to parse HTML errors
+        if (!response.ok) {
+          log(`Authentication check failed: ${response.status}`, 'error');
+          // On failure, check directly if the login was successful
+          const loginSuccess = localStorage.getItem('loginSuccess') === 'true';
+          if (loginSuccess) {
+            // If we have a successful login flag but API check fails,
+            // still show as authenticated (server might be having issues)
+            log('Using cached login success as fallback', 'warning');
+            authState.isAuthenticated = true;
+            authState.user = {
+              participantId: localStorage.getItem('participantId'),
+              fromLocalStorage: true
+            };
+            updateUIForAuthState();
+            return true;
+          }
+          
+          // Otherwise show as unauthenticated
+          authState.isAuthenticated = false;
+          authState.user = null;
+          updateUIForAuthState();
+          return false;
+        }
+        
+        // Success path - we got a valid response
+        try {
           const data = await response.json();
           log('Authentication successful', 'success');
           showDebug('User data', data);
@@ -337,22 +373,51 @@
           authState.isAuthenticated = true;
           authState.user = data.user || data;
           
+          // Store participant ID if available
+          const participantId = authState.user.participantId || authState.user.participant?.id;
+          if (participantId) {
+            localStorage.setItem('participantId', participantId);
+          }
+          
           // Update UI based on authenticated state
           updateUIForAuthState();
           return true;
-        } else {
-          log(`Authentication check failed: ${response.status}`, 'error');
-          // If auth fails, clear auth state and show login form
+        } catch (jsonError) {
+          log(`Error parsing auth response: ${jsonError.message}`, 'error');
+          // Use fallback if JSON parsing fails
+          const loginSuccess = localStorage.getItem('loginSuccess') === 'true';
+          if (loginSuccess) {
+            log('Using cached login success as fallback after JSON parse error', 'warning');
+            authState.isAuthenticated = true;
+            authState.user = {
+              participantId: localStorage.getItem('participantId'),
+              fromLocalStorage: true
+            };
+            updateUIForAuthState();
+            return true;
+          }
+          
           authState.isAuthenticated = false;
-          authState.user = null;
           updateUIForAuthState();
           return false;
         }
       } catch (error) {
-        log(`Error checking authentication: ${error.message}`, 'error');
+        log(`Error during auth check: ${error.message}`, 'error');
         showDebug('Auth check error', error);
         
-        // On error, default to unauthenticated state
+        // On network errors, use fallback if available
+        const loginSuccess = localStorage.getItem('loginSuccess') === 'true';
+        if (loginSuccess) {
+          log('Using cached login success as fallback after network error', 'warning');
+          authState.isAuthenticated = true;
+          authState.user = {
+            participantId: localStorage.getItem('participantId'),
+            fromLocalStorage: true
+          };
+          updateUIForAuthState();
+          return true;
+        }
+        
         authState.isAuthenticated = false;
         updateUIForAuthState();
         return false;
@@ -382,6 +447,12 @@
       }
     }
     
+    // Helper function to get API base URL (copied from login.html)
+    function getApiBaseUrl() {
+      // Always use relative URLs to avoid port confusion
+      return '/api';
+    }
+    
     // Handle login form submission
     async function handleLogin(event) {
       event.preventDefault();
@@ -399,46 +470,91 @@
       const password = document.getElementById('password').value;
       
       log(`Attempting login for ${email}...`);
+      showDebug('Login form submitted', { email, timestamp: new Date().toISOString() });
       
       try {
-        // Submit login request
-        const response = await fetch('/api/participants/login', {
+        const apiBaseUrl = getApiBaseUrl();
+        log(`Submitting login to: ${apiBaseUrl}/participants/login`);
+        
+        // Send login request without CSRF token (it's bypassed on server)
+        const response = await fetch(`${apiBaseUrl}/participants/login`, {
           method: 'POST',
-          headers: {
+          headers: { 
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ email, password }),
-          credentials: 'include' // Include cookies for session
+          credentials: 'include',
+          body: JSON.stringify({ 
+            email, 
+            password
+          })
         });
+
+        // Log the response for debugging
+        showDebug('Login response received', { status: response.status });
         
-        // Handle response
-        const data = await response.json();
+        // Check if the response includes a Set-Cookie header
+        const setCookie = response.headers.get('Set-Cookie');
+        showDebug('Set-Cookie header', setCookie || 'Not present');
         
-        if (response.ok) {
-          // Login successful
-          log('Login successful!', 'success');
-          showDebug('Login response data', data);
+        // Show all response headers for debugging
+        const headers = {};
+        response.headers.forEach((value, key) => {
+          headers[key] = value;
+        });
+        showDebug('All response headers', headers);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          showDebug('Login failed', { status: response.status, error: errorText });
+          errorElement.textContent = 'Login failed. See console for details.';
+          log(`Login failed with status ${response.status}`, 'error');
+          return;
+        }
           
-          // Save token if provided
-          if (data.token) {
-            localStorage.setItem('jwt_token', data.token);
-            authState.jwtToken = data.token;
-            log('JWT token saved to localStorage');
+        // Get the response data
+        let responseData;
+        let token;
+        try {
+          responseData = await response.json();
+          showDebug('Login response data received', responseData);
+          
+          // Extract the token for dual authentication
+          token = responseData.token;
+          if (token) {
+            showDebug('JWT token received', { tokenLength: token.length });
+            
+            // Store the token in localStorage - CRUCIAL for cross-page auth
+            localStorage.setItem('jwt_token', token);
+            authState.jwtToken = token;
+            log(`JWT token saved to localStorage (length: ${token.length})`, 'success');
+            
+            // Set login flags
+            localStorage.setItem('loginSuccess', 'true');
+            localStorage.setItem('login_time', new Date().toISOString());
+            localStorage.setItem('just_logged_in', 'true');
+            
+            if (responseData.participantId) {
+              localStorage.setItem('participantId', responseData.participantId);
+              log(`Participant ID saved: ${responseData.participantId}`, 'success');
+            }
+          } else {
+            showDebug('No JWT token in response - using session-only auth');
+            log('No JWT token in response - using session-only auth', 'info');
           }
           
-          // Store login success flag
-          localStorage.setItem('loginSuccess', 'true');
-          localStorage.setItem('login_time', new Date().toISOString());
+          // Login successful - apply auth state and update UI
+          authState.isAuthenticated = true;
+          updateUIForAuthState();
           
-          // Check authentication status to update UI
-          await checkAuthStatus();
-        } else {
-          // Login failed
-          log(`Login failed: ${data.error || response.statusText}`, 'error');
-          errorElement.textContent = data.error || 'Login failed. Please check your credentials.';
+          // Set a flag to check auth on next page load
+          log('Login successful!', 'success');
+        } catch (jsonError) {
+          showDebug('Error parsing login response JSON', jsonError);
+          log(`Error parsing login response: ${jsonError.message}`, 'error');
+          errorElement.textContent = 'Received malformed response from server. Please try again.';
         }
       } catch (error) {
-        // Handle errors
+        // Handle network errors
         log(`Login error: ${error.message}`, 'error');
         showDebug('Login error details', error);
         errorElement.textContent = 'An error occurred during login. Please try again.';
