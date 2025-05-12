@@ -678,6 +678,16 @@
       try {
         // Check how many times we've redirected between pages
         const redirectCount = parseInt(sessionStorage.getItem('redirectCount') || '0');
+        
+        // If we've redirected too many times, stop the loop
+        if (redirectCount > 3) {
+          console.error('Detected potential redirect loop, stopping automatic redirects');
+          // Reset counter but return true to indicate a loop
+          sessionStorage.setItem('redirectCount', '0');
+          return true;
+        }
+        
+        // Increment the counter
         sessionStorage.setItem('redirectCount', (redirectCount + 1).toString());
         return false; // No loop detected
       } catch (e) {
@@ -715,21 +725,23 @@
       }
     }
     
-    // Function to handle automatic retry for first-time login
+    // Function to handle automatic retry for first-time login - DISABLED to prevent loops
     async function retryAuthenticationProcess() {
-      console.log('Retrying authentication after detected first-time login');
+      console.log('Retry requested, but automatic reload is disabled to prevent loops');
       
-      // Wait a moment before retrying
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Show the auth error instead of reloading
+      showAuthError('Authentication Issue', {
+        message: 'Login detected but authentication failed.',
+        suggestion: 'Please use the buttons below to retry manually or return to login.',
+        timestamp: new Date().toISOString()
+      });
       
+      // Clear the 'just_logged_in' flag to prevent further automatic retries
       try {
-        // Force a refresh of the page to trigger a clean authentication check
-        window.location.reload();
-        return true;
-      } catch (err) {
-        console.error('Error during authentication retry:', err);
-        return false;
-      }
+        localStorage.removeItem('just_logged_in');
+      } catch (e) {}
+      
+      return false; // Don't continue with automatic reload
     }
     
     // Function to fetch current user data
@@ -811,12 +823,24 @@
             const jwtToken = localStorage.getItem('jwt_token');
             console.log('JWT token in localStorage:', jwtToken ? 'Present' : 'Not found');
             
-            // Auto retry with JWT token if available and we haven't tried yet
-            if (jwtToken && !window.hasTriedTokenAuth) {
-              console.log('Will try one more time with JWT token auth...');
+            // Check for redirect loop before attempting auto retry
+            if (checkRedirectLoop()) {
+              console.warn('Preventing automatic reload due to detected loop');
+              // Don't attempt reload if we're in a loop
+            } else if (jwtToken && !window.hasTriedTokenAuth) {
+              console.log('Will try ONE more time with JWT token auth...');
               window.hasTriedTokenAuth = true;
-              // Force reload to try authentication with localStorage token
-              setTimeout(() => window.location.reload(), 1000);
+              
+              // Instead of force reloading, just show diagnostic info to understand what's happening
+              showDebug('Authentication retry paused for diagnostics', {
+                tokenFound: !!jwtToken,
+                hasTriedBefore: window.hasTriedTokenAuth,
+                timestamp: new Date().toISOString()
+              });
+              
+              // Manual retry button is safer than automatic reload
+              document.getElementById('auth-retry-button').style.backgroundColor = '#4CAF50';
+              document.getElementById('auth-retry-button').style.color = 'white';
               return false;
             }
           } catch (e) {
