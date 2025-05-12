@@ -60,12 +60,11 @@
       if (loadingEl) loadingEl.style.display = 'block';
       
       try {
-        
         const apiBaseUrl = getApiBaseUrl();
         console.log(`Submitting login to: ${apiBaseUrl}/participants/login`);
         
         // Send login request without CSRF token (it's bypassed on server)
-        const res = await fetch(`${apiBaseUrl}/participants/login`, {
+        const response = await fetch(`${apiBaseUrl}/participants/login`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json'
@@ -78,72 +77,68 @@
         });
 
         // Log the response for debugging
-        console.log('Login response status:', res.status);
-        console.log('Login response headers:', res.headers);
+        console.log('Login response status:', response.status);
+        console.log('Login response headers:', response.headers);
         
         // Check if the response includes a Set-Cookie header
-        const setCookie = res.headers.get('Set-Cookie');
+        const setCookie = response.headers.get('Set-Cookie');
         console.log('Set-Cookie header:', setCookie);
         
-        if (!res.ok) {
-          const payload = await res.json();
-          errorEl.textContent = payload.error || payload.message || 'Login failed';
+        if (!response.ok) {
+          const errorData = await response.json();
+          errorEl.textContent = errorData.error || errorData.message || 'Login failed';
           // Hide loading indicator on error
           if (loadingEl) loadingEl.style.display = 'none';
           return;
         }
 
         // Get the response data
-        let data;
+        let responseData;
         try {
-          data = await res.json();
-          console.log('Login response data:', data);
+          responseData = await response.json();
+          console.log('Login response data:', responseData);
+          
+          // DUAL AUTHENTICATION APPROACH
+          // 1. Store the JWT token in localStorage as a fallback authentication mechanism
+          // This helps when cookies don't work properly in some environments
+          if (responseData && responseData.token) {
+            localStorage.setItem('auth_token', responseData.token);
+            console.log('Stored JWT token in localStorage as fallback authentication mechanism');
+          } else {
+            console.warn('No token received from server in login response');
+          }
         } catch (parseError) {
           console.warn('Could not parse response as JSON:', parseError);
           // Still proceed with redirect even if JSON parsing fails
+          responseData = null;
         }
 
-        // Set a flag to indicate successful login (helps with debugging)
-        try {
-          localStorage.setItem('loginSuccess', 'true');
-          localStorage.setItem('loginTime', new Date().toISOString());
-          if (data && data.participant) {
-            localStorage.setItem('participantId', data.participant.id);
-          }
-        } catch (storageError) {
-          console.warn('Could not access localStorage:', storageError);
-        }
-
-        // Use the simplest, most reliable approach for redirection
-        console.log('Login successful! Redirecting to index.html...');
-        
-        // Log success but don't display visible messages that might flash
-        console.log('Authentication successful');
-        console.log('JWT token received in cookie');
-        console.log('Redirecting to application...');
-        
-        // Immediately hide the login form to prevent any flashing content
-        document.getElementById('login-form').style.display = 'none';
-        document.body.style.visibility = 'hidden'; // Hide everything during transition
-        
-        // Store the login information in localStorage to help with the first-time login issue
+        // Store login information in localStorage to help with cross-environment authentication
         try {
           // Set a flag in localStorage that signals we just logged in
           localStorage.setItem('just_logged_in', 'true');
           localStorage.setItem('login_time', Date.now().toString());
           
           // Store the participant data if available
-          if (data && data.participant) {
-            localStorage.setItem('participant_data', JSON.stringify(data.participant));
+          if (responseData && responseData.participant) {
+            localStorage.setItem('participant_data', JSON.stringify(responseData.participant));
           }
           
           // Store the hostname to handle different environments
           localStorage.setItem('login_hostname', window.location.hostname);
           
           console.log('Stored login markers in localStorage to assist with redirect');
-        } catch (e) {
-          console.warn('Could not use localStorage:', e);
+        } catch (storageError) {
+          console.warn('Could not access localStorage:', storageError);
         }
+
+        // Log success but don't display visible messages that might flash
+        console.log('Authentication successful');
+        console.log('Redirecting to application...');
+        
+        // Immediately hide the login form to prevent any flashing content
+        document.getElementById('login-form').style.display = 'none';
+        document.body.style.visibility = 'hidden'; // Hide everything during transition
         
         // Get the path to the index file by replacing the current filename
         // This works regardless of domain, subdomain, or directory structure
@@ -164,17 +159,20 @@
         const indexPath = getIndexPath();
         console.log('Calculated index path: ' + indexPath);
         
-        // Use a short delay (just enough for cookie to be initially set)
+        // Use a short delay to ensure cookie/localStorage are properly set
         console.log('Redirecting to index page...');
         
-        // Direct and simple redirect to the index page
+        // Direct redirect to the index page with parameters for tracking source
         setTimeout(function() {
-          // Add a parameter to indicate this is coming from login
-          window.location.replace(indexPath + '?source=login&t=' + Date.now());
+          // Add parameters to indicate this is coming from login and the auth mechanism
+          const redirectURL = indexPath + '?source=login&auth=dual&t=' + Date.now();
+          console.log('Redirecting to: ' + redirectURL);
+          window.location.replace(redirectURL);
         }, 500);
       } catch (err) {
-        console.error(err);
+        console.error('Login error:', err);
         errorEl.textContent = 'An unexpected error occurred. Please try again.';
+        if (loadingEl) loadingEl.style.display = 'none';
       }
     });
   </script>

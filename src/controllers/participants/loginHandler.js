@@ -164,6 +164,16 @@ export async function loginHandler(req, res) {
       console.log(`Setting cookie domain to: ${cookieDomain} for cross-subdomain support`);
     }
     
+    // Also include the token in the response for the dual authentication approach
+    // This allows clients to store the token in localStorage as a fallback
+    // when cookies don't work properly in certain environments
+    const responseWithToken = {
+      participant: participantData,
+      token: token, // Include token in response body
+      message: 'Login successful',
+      supportsDualAuth: true
+    };
+    
     // Determine if we should use secure cookies based on environment and protocol
     const isProduction = process.env.NODE_ENV === 'production';
     const isHttps = req.secure || req.headers['x-forwarded-proto'] === 'https';
@@ -175,36 +185,32 @@ export async function loginHandler(req, res) {
     
     res.cookie('token', token, {
       httpOnly: true,
-      secure: useSecureCookies, // Use secure cookies when HTTPS is available and not on localhost
-      sameSite: useSecureCookies ? 'Strict' : 'Lax', // Stricter when using HTTPS
-      domain: cookieDomain, // Add domain property for subdomain support
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours (increased from 1 hour to reduce frequency of session timeouts)
+      secure: isHttps || isLocalhost === false,
+      sameSite: (isHttps || isLocalhost === false) ? 'none' : 'lax',
+      domain: cookieDomain,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      path: '/' // Available across all paths
     });
     
-    if (useSecureCookies) {
-      console.log('Using secure cookies with strict same-site policy');
-    } else {
-      if (isLocalhost) {
-        console.log('Using non-secure cookies for localhost development');
-      } else {
-        console.log('Using non-secure cookies with lax same-site policy (development mode)');
-      }
-    }
-
-    // Initialize the LLM service with the participant's preferences
+    // Check if cookie was set (for debugging)
+    const cookiesSet = res.getHeader('Set-Cookie');
+    console.log(`Set-Cookie header: ${cookiesSet}`);
+    
+    // Initialize the LLM service with the participant's preferences before responding
     try {
       const { initLLMService } = await import('../../services/llmService.js');
       // Determine schema from hostname for LLM service
       const schema = determineClientSchema(participant, { isLocalhost });
       await initLLMService(participant.id, { schema, pool: req.clientPool });
-      // No longer passing current_group_id as it has been removed from the participants table
+      console.log(`Successfully initialized LLM service for participant ${participant.id}`);
     } catch (llmError) {
       console.warn(`Failed to initialize LLM service for participant ${participant.id}: ${llmError.message}`);
       // Continue with login even if LLM initialization fails
     }
-
-    // Send back participant (token is in cookie)
-    res.json({ participant: participantData });
+    
+    console.log('Sending response with dual authentication support');
+    // Return the participant data and token for dual authentication
+    return res.status(200).json(responseWithToken);
   } catch (error) {
     console.error('Login error:', error.message);
     res.status(500).json({ error: 'An internal server error occurred.' });
