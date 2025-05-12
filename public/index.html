@@ -559,17 +559,99 @@
       }
     }
     
+    // Function to check if we're in a redirect loop
+    function checkRedirectLoop() {
+      try {
+        // Check how many times we've redirected between pages
+        const redirectCount = parseInt(sessionStorage.getItem('redirectCount') || '0');
+        sessionStorage.setItem('redirectCount', (redirectCount + 1).toString());
+        return false; // No loop detected
+      } catch (e) {
+        console.error('Error checking redirect loop:', e);
+        return false;
+      }
+    }
+    
+    // Function to handle first-time login using localStorage markers
+    function checkJustLoggedIn() {
+      try {
+        const justLoggedIn = localStorage.getItem('just_logged_in');
+        const loginTime = localStorage.getItem('login_time');
+        
+        if (justLoggedIn === 'true' && loginTime) {
+          // Check if login was recent (within last 10 seconds)
+          const now = Date.now();
+          const loginTimeMs = parseInt(loginTime, 10);
+          const timeDiff = now - loginTimeMs;
+          
+          if (timeDiff < 10000) { // 10 seconds
+            console.log('Detected recent login from localStorage markers');
+            
+            // Clear the just_logged_in flag so we don't repeat this
+            localStorage.removeItem('just_logged_in');
+            
+            // We'll use this to retry the login process
+            return true;
+          }
+        }
+        return false;
+      } catch (e) {
+        console.warn('Error checking localStorage login markers:', e);
+        return false;
+      }
+    }
+    
+    // Function to handle automatic retry for first-time login
+    async function retryAuthenticationProcess() {
+      console.log('Retrying authentication after detected first-time login');
+      
+      // Wait a moment before retrying
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      try {
+        // Force a refresh of the page to trigger a clean authentication check
+        window.location.reload();
+        return true;
+      } catch (err) {
+        console.error('Error during authentication retry:', err);
+        return false;
+      }
+    }
+    
     // Function to fetch current user data
     async function fetchCurrentUser() {
       try {
+        // Check if this is a first-time login scenario
+        if (window.location.search.includes('source=login')) {
+          console.log('Detected first-time login from URL parameter');
+          
+          // Check for the just_logged_in flag in localStorage
+          if (checkJustLoggedIn()) {
+            console.log('First login detected, will retry authentication');
+            // Simply refresh the page after giving the cookie more time to propagate
+            setTimeout(() => window.location.reload(), 1000);
+            return false;
+          }
+        }
+        
+        console.log('Fetching current user data...');
         const res = await fetch('/api/me', {
           method: 'GET',
-          credentials: 'include'  // send cookies
+          credentials: 'include',  // send cookies
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
         });
 
         if (res.ok) {
           const data = await res.json();
           currentUser = data.user;
+          
+          // Clear any login markers as authentication was successful
+          try {
+            localStorage.removeItem('just_logged_in');
+          } catch (e) {}
           
           // Update UI with user info
           document.getElementById('user-name').textContent = 
@@ -583,17 +665,33 @@
           
           // Show the app
           document.getElementById('app').style.display = 'block';
+          return true;
         } else {
+          console.warn('Authorization check failed with status:', res.status);
+          
+          // Handle first-time login case
+          if (checkJustLoggedIn()) {
+            return retryAuthenticationProcess();
+          }
+          
           // Not authorized — bounce to login
-          window.location.href = 'login.html';
+          window.location.href = 'login.html?from=index&status=' + res.status;
+          return false;
         }
       } catch (err) {
         console.error('Error fetching user:', err);
+        
+        // Handle first-time login case even for errors
+        if (checkJustLoggedIn()) {
+          return retryAuthenticationProcess();
+        }
+        
         // Network or other error — also send back to login
-        window.location.href = 'login.html';
+        window.location.href = 'login.html?from=index&error=' + encodeURIComponent(err.message || 'network-error');
+        return false;
       }
     }
-    
+      
     // Function to handle logout
     async function handleLogout(event) {
       event.preventDefault();

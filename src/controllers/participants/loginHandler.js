@@ -35,16 +35,45 @@ export async function loginHandler(req, res) {
       defaultSchema: getDefaultSchema()
     });
 
-    // Use the default schema
-    let clientSchema = getDefaultSchema();
-    console.log(`Using schema: ${clientSchema} for login request`);
-    console.log(`looking up email: ${email} for login request`); 
+    // Use the schema determined by the setClientPool middleware
+    // This ensures we use the same schema as the pool that's already attached
+    // to the request by the middleware
+    if (req.clientPool && req.clientPool.options && req.clientPool.options.schema) {
+      console.log(`Using schema from clientPool: ${req.clientPool.options.schema} for login request`);
+    } else {
+      // Determine schema from hostname directly
+      try {
+        const { determineSchemaFromHostname } = await import('../../middleware/setClientSchema.js');
+        const schema = determineSchemaFromHostname(req.hostname);
+        console.log(`Dynamically determined schema: ${schema} for login request`);
+      } catch (err) {
+        console.error('Error determining schema:', err.message);
+      }
+    }
+    
+    console.log(`Looking up email: ${email} for login request`);
 
     // Use the client-specific pool that was set by the setClientPool middleware
     // This ensures we use the correct schema for database operations
     if (!req.clientPool) {
+      // Enhanced error diagnostics
+      const errorDetail = {
+        hasClientPool: !!req.clientPool,
+        middlewareOrder: 'Check app.js',
+        hostname: req.hostname,
+        subdomain: req.hostname.split('.')[0],
+        requestPath: req.path,
+        cookieCount: Object.keys(req.cookies || {}).length,
+        sessionExists: !!req.session,
+        headerKeys: Object.keys(req.headers)
+      };
+      
+      console.error('Database connection error details:', errorDetail);
       console.error('No client pool available. The setClientPool middleware might not be applied.');
-      return res.status(500).json({ error: 'Database connection error' });
+      return res.status(500).json({ 
+        error: 'Database connection error', 
+        detail: 'Application configuration issue - contact support.'
+      });
     }
 
     let participant = null;

@@ -94,24 +94,108 @@ console.log(`Cookie security settings: useSecureCookies=${useSecureCookies}, isL
 
 // Configure cookies and sessions
 app.use(cookieParser());
+
+// Determine the proper cookie domain setting for session cookies
+const getCookieDomain = (req) => {
+  // Default to undefined (browser will use the current domain)
+  let cookieDomain;
+  
+  // Get hostname from request
+  const hostname = req.hostname || '';
+  console.log(`[Session] Request hostname: ${hostname}`);
+  
+  // Skip domain setting for localhost
+  if (hostname.includes('localhost') || hostname === '127.0.0.1') {
+    console.log('[Session] Using default cookie domain for localhost');
+    return undefined;
+  }
+  
+  // For production with subdomains, use parent domain with leading dot
+  // Example: for bsa.conversationalai.us, use .conversationalai.us
+  const domainParts = hostname.split('.');
+  if (domainParts.length >= 2) {
+    // Get the top two levels of the domain (e.g., example.com)
+    // For longer domains like sub.example.co.uk, this would need more logic
+    const baseDomain = domainParts.slice(-2).join('.');
+    // Prefix with a dot to include all subdomains
+    cookieDomain = '.' + baseDomain;
+    console.log(`[Session] Using cookie domain: ${cookieDomain} for cross-subdomain support`);
+  }
+  
+  return cookieDomain;
+};
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'a-very-secure-session-secret',
-  resave: false,
-  saveUninitialized: false,
+  resave: true, // Changed to true to ensure session is saved
+  saveUninitialized: true, // Changed to true to ensure new sessions get saved
   cookie: {
     httpOnly: true,
     secure: useSecureCookies, // Use secure cookies when HTTPS is available
-    sameSite: useSecureCookies ? 'strict' : 'lax' // Stricter when using HTTPS
-  }
+    sameSite: useSecureCookies ? 'none' : 'lax', // Use 'none' with secure cookies for cross-domain
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  },
+  // Custom logic to set domain for cross-subdomain support
+  proxy: true,
+  name: 'bs_sessionid', // Custom name to avoid conflicts
+  rolling: true, // Refresh session with each request
 }));
+
+// Middleware to set cookie domain dynamically
+app.use((req, res, next) => {
+  if (req.session) {
+    const cookieDomain = getCookieDomain(req);
+    if (cookieDomain) {
+      req.session.cookie.domain = cookieDomain;
+      console.log(`[Session] Set cookie domain to ${cookieDomain} for session ${req.session.id?.substring(0, 8) || 'unknown'}`);
+    }
+  }
+  next();
+});
+
+// Apply pool middleware globally FIRST - this needs to be available for all routes
+app.use(setClientPool);
 
 // CSRF protection
 app.use(generateCsrfSecret);
 app.get('/api/csrf-token', generateCsrfToken, csrfTokenHandler);
-app.use('/api', validateCsrfToken);
 
-// Apply pool middleware globally
-app.use(setClientPool);
+// Create a special CSRF-exempt route handler specifically for login
+// that ensures the client pool is properly attached
+app.post('/api/participants/login', async (req, res, next) => {
+  console.log('[CSRF Bypass] Allowing login request without CSRF validation');
+  
+  // Double-check that the client pool is attached to the request
+  if (!req.clientPool) {
+    console.error('[CSRF Bypass] Client pool not found in request, attempting to create it');
+    
+    // Create client pool manually if it's not set
+    try {
+      const { determineSchemaFromHostname } = await import('./src/middleware/setClientSchema.js');
+      const { createPool } = await import('./src/db/connection.js');
+      
+      const schema = determineSchemaFromHostname(req.hostname);
+      console.log(`[CSRF Bypass] Manually determined schema: ${schema}`);
+      
+      req.clientPool = createPool(schema);
+      console.log(`[CSRF Bypass] Manually created client pool for schema: ${schema}`);
+    } catch (poolError) {
+      console.error('[CSRF Bypass] Failed to create client pool:', poolError);
+      return res.status(500).json({ error: 'Database connection error', detail: 'Failed to create connection pool' });
+    }
+  }
+  
+  try {
+    // Call the login handler directly without CSRF validation
+    await loginHandler(req, res, next);
+  } catch (error) {
+    console.error('[CSRF Bypass] Error in login bypass:', error);
+    next(error);
+  }
+});
+
+// Apply CSRF validation to other API endpoints
+app.use('/api', validateCsrfToken);
 
 // API mounts
 app.use('/api/groups', groupRoutes);

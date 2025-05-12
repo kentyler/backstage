@@ -28,21 +28,32 @@ types.setTypeParser(types.builtins.INT8, val => {
  * @returns {Pool} - A PostgreSQL connection pool configured for the specified schema
  */
 export function createPool(schema = 'public') {
+  console.log(`Creating connection pool for schema: ${schema}`);
+  
   const pool = new Pool({
     connectionString: process.env.DB_HOST,
     ssl: { rejectUnauthorized: false }, // accept Neon's server cert
   });
 
+  // Store the schema name in the pool for reference
+  pool.options = pool.options || {};
+  pool.options.schema = schema;
+
   // Set the search_path for all connections from this pool
   pool.on('connect', (client) => {
     client.query(`SET search_path TO ${schema}, public;`);
+    console.log(`Connected client with search_path set to ${schema}`);
   });
 
   // Set up error handling for the pool
   pool.on('error', (err) => {
     console.error(`Unexpected error on idle client (schema: ${schema})`, err);
-    process.exit(-1);
+    // Don't exit process on errors - just log them
+    // process.exit(-1);
   });
+
+  // Add helper method to get the schema name
+  pool.getSchema = () => schema;
 
   return pool;
 }
