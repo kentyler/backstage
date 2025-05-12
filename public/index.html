@@ -838,9 +838,19 @@
                 timestamp: new Date().toISOString()
               });
               
-              // Manual retry button is safer than automatic reload
+              // Show the authentication error container with retry buttons
+              showAuthError('Authentication Not Completed', {
+                message: 'Login was detected but authentication could not be completed automatically.',
+                tokenStatus: jwtToken ? 'JWT token is present in localStorage' : 'No JWT token found in localStorage',
+                nextSteps: 'Click "Retry" to attempt authentication again or "Go to Login" to start over.'
+              });
+              
+              // Style the retry button to make it more noticeable
               document.getElementById('auth-retry-button').style.backgroundColor = '#4CAF50';
               document.getElementById('auth-retry-button').style.color = 'white';
+              document.getElementById('auth-retry-button').style.padding = '10px 15px';
+              document.getElementById('auth-retry-button').style.fontSize = '16px';
+              document.getElementById('auth-retry-button').focus();
               return false;
             }
           } catch (e) {
