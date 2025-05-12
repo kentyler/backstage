@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
+// PostgreSQL session store for better production reliability
 import pgSession from 'connect-pg-simple';
 import helmet from 'helmet';
 import { 
@@ -129,11 +130,11 @@ const getCookieDomain = (req) => {
 // Initialize PostgreSQL session store
 const PgStore = pgSession(session);
 
-// Use PostgreSQL for session storage in production to avoid memory leaks
+// Set up session configuration with options
 const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'a-very-secure-session-secret',
-  resave: false, // Set to false with a proper store
-  saveUninitialized: false, // Set to false for better performance with a proper store
+  resave: false, // Optimized for external session store
+  saveUninitialized: false, // Don't create sessions until needed
   cookie: {
     httpOnly: true,
     secure: useSecureCookies, // Use secure cookies when HTTPS is available
@@ -146,20 +147,45 @@ const sessionConfig = {
   rolling: true, // Refresh session with each request
 };
 
-// Only use PostgreSQL session store in production
-if (process.env.NODE_ENV === 'production') {
-  const pgConfig = {
-    conString: process.env.DATABASE_URL || `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
-    tableName: 'session', // Table name for sessions
-    createTableIfMissing: true, // Automatically create the sessions table if it doesn't exist
-  };
+// Enhanced DB connection with error handling and fallback
+try {
+  // When in production, use PostgreSQL for sessions
+  if (process.env.NODE_ENV === 'production') {
+    // Get database connection parameters from environment, with fallbacks
+    const pgConfig = {
+      // Instead of conString, use the pool config approach which is more reliable
+      pool: { 
+        // The error was likely because the connection string was using 'postgresql' as a hostname
+        // Instead, explicitly use the environment variables with proper fallbacks
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        host: process.env.DB_HOST, // This correctly uses the environment variable instead of hardcoded 'postgresql'
+        port: process.env.DB_PORT || 5432,
+        database: process.env.DB_NAME
+      },
+      tableName: 'session',
+      createTableIfMissing: true
+    };
+    
+    // Log connection info (without sensitive data)
+    console.log(`[Session] PostgreSQL session store connecting to: ${process.env.DB_HOST}:${process.env.DB_PORT || 5432} as ${process.env.DB_USER}`);
+    
+    // Use PostgreSQL session store
+    sessionConfig.store = new PgStore(pgConfig);
+    console.log('[Session] Using PostgreSQL session store for production');
+  } else {
+    // Use memory store for non-production
+    console.log('[Session] Using MemoryStore for development environment');
+  }
+} catch (error) {
+  // Detailed error logging for connection issues
+  console.error(`[Session] Error configuring PostgreSQL session store: ${error.message}`);
+  console.error('[Session] Falling back to MemoryStore - WARNING: not suitable for production');
   
-  console.log('Using PostgreSQL session store for production');
-  sessionConfig.store = new PgStore(pgConfig);
-} else {
-  console.log('Using MemoryStore for development (not recommended for production)');
+  // Continue with default MemoryStore if PostgreSQL store fails
 }
 
+// Apply the session middleware with our configuration
 app.use(session(sessionConfig));
 
 // Middleware to set cookie domain dynamically
