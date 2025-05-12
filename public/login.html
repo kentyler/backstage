@@ -137,10 +137,32 @@
             localStorage.setItem('participant_data', JSON.stringify(data.participant));
           }
           
+          // Store the hostname to handle different environments
+          localStorage.setItem('login_hostname', window.location.hostname);
+          
           console.log('Stored login markers in localStorage to assist with redirect');
         } catch (e) {
           console.warn('Could not use localStorage:', e);
         }
+        
+        // Get the path to the index file by replacing the current filename
+        // This works regardless of domain, subdomain, or directory structure
+        const getIndexPath = function() {
+          // Get the current full path including protocol, domain, and path
+          const currentPath = window.location.href;
+          
+          // Replace the filename portion with index.html
+          // This works with any path structure without assuming anything
+          const indexPath = currentPath.replace(/\/[^\/]*$/, '/index.html');
+          
+          // Convert back to a relative URL by removing origin
+          const url = new URL(indexPath);
+          return url.pathname;
+        };
+        
+        // Get the appropriate index path
+        const indexPath = getIndexPath();
+        console.log('Calculated index path: ' + indexPath);
         
         // Use a short delay (just enough for cookie to be initially set)
         console.log('Redirecting to index page...');
@@ -148,7 +170,7 @@
         // Direct and simple redirect to the index page
         setTimeout(function() {
           // Add a parameter to indicate this is coming from login
-          window.location.replace('/index.html?source=login&t=' + Date.now());
+          window.location.replace(indexPath + '?source=login&t=' + Date.now());
         }, 500);
       } catch (err) {
         console.error(err);

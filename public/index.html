@@ -674,8 +674,26 @@
             return retryAuthenticationProcess();
           }
           
+          // Get the path to the login file by replacing the current filename
+          // This works regardless of domain, subdomain, or directory structure
+          const getLoginPath = function() {
+            // Get the current full path including protocol, domain, and path
+            const currentPath = window.location.href;
+            
+            // Replace the filename portion with login.html
+            // This works with any path structure without assuming anything
+            const loginPath = currentPath.replace(/\/[^\/]*$/, '/login.html');
+            
+            // Convert back to a relative URL by removing origin
+            const url = new URL(loginPath);
+            return url.pathname;
+          };
+          
+          const loginPath = getLoginPath();
+          console.log('Redirecting to login page at: ' + loginPath);
+          
           // Not authorized — bounce to login
-          window.location.href = 'login.html?from=index&status=' + res.status;
+          window.location.href = loginPath + '?from=index&status=' + res.status;
           return false;
         }
       } catch (err) {
