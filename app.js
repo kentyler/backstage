@@ -172,30 +172,19 @@ app.post('/api/participants/login', async (req, res, next) => {
     const { determineSchemaFromHostname } = await import('./src/middleware/setClientSchema.js');
     const { createPool } = await import('./src/db/connection.js');
     
-    // Special handling for *.conversationalai.us domains
-    let schema;
+    // Determine schema normally - with participants table now in public schema,
+    // we just need a valid connection pool for other operations (like logging events)
     const hostname = req.hostname;
+    console.log(`[Login] Processing login for hostname: ${hostname}`);
     
-    if (hostname.includes('conversationalai.us')) {
-      // Parse the subdomain for conversationalai.us domains
-      const subdomain = hostname.split('.')[0];
-      console.log(`[Login] Detected conversationalai.us domain with subdomain: ${subdomain}`);
-      
-      // Map specific subdomains to schemas
-      // This is a hardcoded approach for reliability
-      if (subdomain === 'bsa') {
-        schema = 'dev'; // For bsa.conversationalai.us use 'dev' schema
-        console.log(`[Login] Using hardcoded schema '${schema}' for subdomain ${subdomain}`);
-      } else {
-        // For other subdomains, fall back to dynamic determination
-        schema = determineSchemaFromHostname(hostname);
-        console.log(`[Login] Dynamically determined schema: ${schema} for subdomain ${subdomain}`);
-      }
-    } else {
-      // For localhost or other domains, use the default determination logic
-      schema = determineSchemaFromHostname(hostname);
-      console.log(`[Login] Determined schema: ${schema} for hostname ${hostname}`);
-    }
+    // Determine schema using the standard logic for this hostname
+    // We don't need special case handling now that participants is in public schema
+    const schema = determineSchemaFromHostname(hostname);
+    console.log(`[Login] Using schema '${schema}' for hostname ${hostname}`);
+    
+    // Note that even though we get a schema-specific connection pool,
+    // the participants table will be accessed from public schema
+    // This gives us a valid DB connection while maintaining uniform auth
     
     if (!schema) {
       console.error(`[Login] Could not determine schema for hostname: ${hostname}`);

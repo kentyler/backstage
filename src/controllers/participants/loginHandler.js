@@ -3,7 +3,7 @@ import { getParticipantByEmail } from '../../db/participants/getParticipantByEma
 import bcryptjs from 'bcryptjs';
 import { signToken } from '../../services/authService.js';
 import { createParticipantEvent } from '../../db/participantEvents/index.js';
-import { getPreferenceWithFallback } from '../../db/preferences/getPreferenceWithFallback.js';
+// Removed getPreferenceWithFallback import - no longer needed in login process
 import { determineClientSchema } from '../../utils/clientSchema.js';
 import { getDefaultSchema, setDefaultSchema } from '../../config/schema.js';
 
@@ -79,15 +79,23 @@ export async function loginHandler(req, res) {
     let participant = null;
     
     try {
-      // Query the database directly using the client-specific pool
+      // Query the participants table from the public schema
+      // This table has been moved to public schema to be accessible across all environments
       const query = `
-        SELECT * FROM participants
+        SELECT * FROM public.participants
         WHERE email = $1
       `;
       const values = [email];
       
+      console.log(`Looking up participant with email ${email} in public.participants table`);
       const result = await req.clientPool.query(query, values);
       participant = result.rows[0] || null;
+      
+      if (participant) {
+        console.log(`Found participant with ID: ${participant.id} in public schema`);
+      } else {
+        console.log('No participant found with that email in public schema');
+      }
     } catch (dbError) {
       console.error(`Database error when looking up participant by email: ${dbError.message}`);
       return res.status(500).json({ error: 'Database error when looking up participant' });
@@ -96,43 +104,49 @@ export async function loginHandler(req, res) {
     // Log unsuccessful login attempt (participant not found - type 3)
     // Using system participant ID since the database requires a valid participant_id
     // Don't log the password for security reasons
-    await createParticipantEvent(SYSTEM_PARTICIPANT_ID, 3, { email }, req.clientPool);
-      return res.status(401).json({ error: 'Login failed.' });
+    try {
+      await createParticipantEvent(SYSTEM_PARTICIPANT_ID, 3, { email }, req.clientPool);
+      console.log(`Logged unsuccessful login attempt (no participant found) for email: ${email}`);
+    } catch (eventError) {
+      console.error(`Failed to log login event: ${eventError.message}`);
+      // Continue with login failure response even if logging fails
+    }
+    return res.status(401).json({ error: 'Login failed.' });
     }
 
     const isPasswordValid = await bcryptjs.compare(password, participant.password);
     if (!isPasswordValid) {
       // Log unsuccessful login attempt (invalid password - type 2)
       // Don't log the password for security reasons
-      await createParticipantEvent(participant.id, 2, { email }, req.clientPool);
+      try {
+        await createParticipantEvent(participant.id, 2, { email }, req.clientPool);
+        console.log(`Logged unsuccessful login attempt (invalid password) for participant ID: ${participant.id}`);
+      } catch (eventError) {
+        console.error(`Failed to log invalid password event: ${eventError.message}`);
+        // Continue with login failure response even if logging fails
+      }
       return res.status(401).json({ error: 'Login failed.' });
     }
 
     // Log successful login (type 1)
-    await createParticipantEvent(participant.id, 1, { email }, req.clientPool);
+    try {
+      await createParticipantEvent(participant.id, 1, { email }, req.clientPool);
+      console.log(`Logged successful login for participant ID: ${participant.id}`);
+    } catch (eventError) {
+      console.error(`Failed to log successful login event: ${eventError.message}`);
+      // Continue with login process even if logging fails
+    }
 
     const { password: _, ...participantData } = participant;
     
-  // Get the participant's avatar ID from preferences
-  try {
-    const avatarIdPreference = await getPreferenceWithFallback('avatar_id', participant.id, req.clientPool);
-    console.log(`Retrieved avatar_id preference for participant ${participant.id}:`, avatarIdPreference);
-    
-    // Add the current_avatar_id to the participant data from preferences
-      if (avatarIdPreference && avatarIdPreference.value) {
-        participantData.current_avatar_id = avatarIdPreference.value;
-        console.log(`Set current_avatar_id to ${participantData.current_avatar_id} for participant ${participant.id}`);
-      } else {
-        // Throw an error if no avatar ID preference is found
-        throw new Error(`No avatar_id preference found for participant ${participant.id}`);
-      }
-    } catch (prefError) {
-      console.error(`Error retrieving avatar_id preference for participant ${participant.id}:`, prefError.message);
-      return res.status(500).json({ 
-        error: 'Failed to retrieve avatar ID preference', 
-        details: prefError.message 
-      });
-    }
+  // Clean separation of concerns - no preference or avatar handling during login
+  // All schema-specific data will be loaded when the user hits the index page with proper schema context
+  console.log(`Authenticated participant ID: ${participant.id} - preferences will be loaded in index.html`);
+  
+  // Note: We're completely removing preference lookups from the login process
+  // This provides a cleaner separation between:
+  // 1. Authentication (using public.participants)
+  // 2. Personalization (using schema-specific tables like preferences)
 
     // Check if we're on localhost for schema and cookie settings
     const isLocalhost = req.hostname.includes('localhost');
