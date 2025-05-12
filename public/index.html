@@ -4,6 +4,53 @@
   <meta charset="UTF-8"/>
   <title>Conversational AI</title>
   <style>
+    /* Some basic styling */
+    body { font-family: sans-serif; margin: 0; padding: 0; }
+    #app { display: none; }
+    
+    /* Debug overlay styling */
+    #auth-debug-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: rgba(0, 0, 0, 0.85);
+      color: #00ff00;
+      font-family: monospace;
+      padding: 20px;
+      z-index: 1000;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    #auth-error-container {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      max-width: 80%;
+      z-index: 999;
+    }
+    
+    #auth-error-container h2 {
+      color: #d9534f;
+      margin-top: 0;
+    }
+    
+    #auth-error-details {
+      white-space: pre-wrap;
+      background: #f8f8f8;
+      padding: 10px;
+      border: 1px solid #ddd;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -422,6 +469,17 @@
   </style>
 </head>
 <body>
+  <!-- Debug overlay for authentication diagnostics -->
+  <div id="auth-debug-overlay" style="display: none;"></div>
+  
+  <!-- Authentication error container -->
+  <div id="auth-error-container" style="display: none;">
+    <h2>Authentication Failed</h2>
+    <p>The system could not verify your authentication. Details below:</p>
+    <div id="auth-error-details"></div>
+    <button id="auth-retry-button" style="margin-top: 15px;">Retry</button>
+    <button id="auth-login-button" style="margin-top: 15px; margin-left: 10px;">Go to Login</button>
+  </div>
   <div id="app" style="display:none">
     <!-- Header with user dropdown -->
     <header>
@@ -528,13 +586,69 @@
   </div>
 
   <script>
-    // Store user data, groups, LLMs, and CSRF token globally
+    // Debug helper functions
+    function showDebug(message, data) {
+      const debugEl = document.getElementById('auth-debug-overlay');
+      const timestamp = new Date().toISOString();
+      
+      // Create a new message element
+      const msgEl = document.createElement('div');
+      msgEl.style.borderBottom = '1px solid #333';
+      msgEl.style.paddingBottom = '5px';
+      msgEl.style.marginBottom = '5px';
+      
+      // Format the message with timestamp
+      msgEl.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+      
+      // Add data if provided
+      if (data) {
+        const dataEl = document.createElement('pre');
+        try {
+          dataEl.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+        } catch (e) {
+          dataEl.textContent = 'Error stringifying data: ' + e.message;
+        }
+        msgEl.appendChild(dataEl);
+      }
+      
+      // Append to debug overlay
+      debugEl.appendChild(msgEl);
+      
+      // Make sure the overlay is visible
+      debugEl.style.display = 'block';
+      
+      // Also log to console
+      console.log(`DEBUG: ${message}`, data);
+    }
+    
+    function showAuthError(title, details) {
+      // Show the error container
+      const errorContainer = document.getElementById('auth-error-container');
+      const errorDetails = document.getElementById('auth-error-details');
+      
+      if (title) {
+        const titleEl = errorContainer.querySelector('h2');
+        if (titleEl) titleEl.textContent = title;
+      }
+      
+      // Set the error details
+      if (details) {
+        errorDetails.textContent = typeof details === 'object' ? JSON.stringify(details, null, 2) : details;
+      }
+      
+      // Show the container
+      errorContainer.style.display = 'block';
+    }
+    
+    // Authentication state variables
     let currentUser = null;
-    let userGroups = [];
-    let selectedGroup = null;
-    let availableLLMs = [];
-    let selectedLLM = null;
     let csrfToken = null;
+    let currentAvatar = null;
+    let availableLLMs = [];
+    let availableGroups = [];
+    let selectedGroupId = null;
+    let conversations = [];
+    let selectedConversationId = null;
     
     // Function to fetch CSRF token
     async function fetchCsrfToken() {
@@ -715,29 +829,46 @@
             return retryAuthenticationProcess();
           }
           
-          // If all recovery mechanisms fail, redirect to login
-          console.warn('All authentication attempts failed, redirecting to login page');
+          // Instead of redirecting, show detailed debug information
+          showDebug('AUTHENTICATION FAILURE', { status: res.status, timestamp: new Date().toISOString() });
           
-          // Get the path to the login file by replacing the current filename
-          // This works regardless of domain, subdomain, or directory structure
-          const getLoginPath = function() {
-            // Get the current full path including protocol, domain, and path
-            const currentPath = window.location.href;
-            
-            // Replace the filename portion with login.html
-            // This works with any path structure without assuming anything
-            const loginPath = currentPath.replace(/\/[^\/]*$/, '/login.html');
-            
-            // Convert back to a relative URL by removing origin
-            const url = new URL(loginPath);
-            return url.pathname;
+          // Gather all diagnostic information
+          const diagnosticInfo = {
+            status: res.status,
+            url: window.location.href,
+            timestamp: new Date().toISOString(),
+            localStorage: {}
           };
           
-          const loginPath = getLoginPath();
-          console.log('Redirecting to login page at: ' + loginPath);
+          // Check localStorage for auth tokens
+          try {
+            // Collect all localStorage keys related to authentication
+            const relevantKeys = ['jwt_token', 'auth_token', 'just_logged_in', 'login_time', 'participant_data'];
+            relevantKeys.forEach(key => {
+              const value = localStorage.getItem(key);
+              diagnosticInfo.localStorage[key] = value ? 
+                (key.includes('token') ? `Present (${value.length} chars)` : value) : 
+                'Missing';
+            });
+          } catch (e) {
+            diagnosticInfo.localStorageError = e.message;
+          }
           
-          // Not authorized — bounce to login
-          window.location.href = loginPath + '?from=index&status=' + res.status;
+          // Show authentication error with all diagnostic details
+          showAuthError('Authentication Failed', diagnosticInfo);
+          
+          // Set up retry and login buttons
+          document.getElementById('auth-retry-button').onclick = function() {
+            showDebug('Retrying authentication...', { timestamp: new Date().toISOString() });
+            window.location.reload();
+          };
+          
+          document.getElementById('auth-login-button').onclick = function() {
+            const loginPath = window.location.href.replace(/\/[^\/]*$/, '/login.html');
+            showDebug('Navigating to login page...', { loginPath });
+            window.location.href = loginPath;
+          };
+          
           return false;
         }
       } catch (err) {
