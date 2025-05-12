@@ -115,7 +115,8 @@
 
         // Store login information in localStorage to help with cross-environment authentication
         try {
-          // Set a flag in localStorage that signals we just logged in
+          // Store authentication data in localStorage - critical for our dual auth approach
+          localStorage.setItem('jwt_token', token); // Store the actual JWT token
           localStorage.setItem('just_logged_in', 'true');
           localStorage.setItem('login_time', Date.now().toString());
           
@@ -126,8 +127,7 @@
           
           // Store the hostname to handle different environments
           localStorage.setItem('login_hostname', window.location.hostname);
-          
-          console.log('Stored login markers in localStorage to assist with redirect');
+          console.log('Successfully set JWT token and auth markers in localStorage');
         } catch (storageError) {
           console.warn('Could not access localStorage:', storageError);
         }

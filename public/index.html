@@ -635,23 +635,42 @@
         }
         
         console.log('Fetching current user data...');
+        
+        // Set up headers with potential JWT token from localStorage (dual auth approach)
+        const headers = {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        };
+        
+        // Add Authorization header with JWT token if available in localStorage
+        try {
+          const jwtToken = localStorage.getItem('jwt_token');
+          if (jwtToken) {
+            console.log('Adding JWT token from localStorage to Authorization header');
+            headers['Authorization'] = `Bearer ${jwtToken}`;
+          }
+        } catch (e) {
+          console.warn('Could not access localStorage for JWT token:', e);
+        }
+        
         const res = await fetch('/api/me', {
           method: 'GET',
           credentials: 'include',  // send cookies
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
+          headers: headers
         });
 
         if (res.ok) {
           const data = await res.json();
           currentUser = data.user;
+          console.log('Successfully authenticated user:', currentUser.id);
           
           // Clear any login markers as authentication was successful
           try {
             localStorage.removeItem('just_logged_in');
-          } catch (e) {}
+            console.log('Cleared login markers from localStorage');
+          } catch (e) {
+            console.warn('Could not clear localStorage markers:', e);
+          }
           
           // Update UI with user info
           document.getElementById('user-name').textContent = 
@@ -667,12 +686,37 @@
           document.getElementById('app').style.display = 'block';
           return true;
         } else {
-          console.warn('Authorization check failed with status:', res.status);
+          // === FAILED AUTHENTICATION - ENHANCED DIAGNOSTICS AND RECOVERY ===
+          console.error(`Authentication failed with status: ${res.status}`);
           
-          // Handle first-time login case
+          try {
+            const errorText = await res.text();
+            console.error('Error response:', errorText);
+            
+            // Check if we have a JWT token in localStorage for our dual auth approach
+            const jwtToken = localStorage.getItem('jwt_token');
+            console.log('JWT token in localStorage:', jwtToken ? 'Present' : 'Not found');
+            
+            // Auto retry with JWT token if available and we haven't tried yet
+            if (jwtToken && !window.hasTriedTokenAuth) {
+              console.log('Will try one more time with JWT token auth...');
+              window.hasTriedTokenAuth = true;
+              // Force reload to try authentication with localStorage token
+              setTimeout(() => window.location.reload(), 1000);
+              return false;
+            }
+          } catch (e) {
+            console.error('Error handling authentication failure:', e);
+          }
+          
+          // Handle first-time login case for smoother transitions
           if (checkJustLoggedIn()) {
+            console.log('Detected recent login, retrying authentication...');
             return retryAuthenticationProcess();
           }
+          
+          // If all recovery mechanisms fail, redirect to login
+          console.warn('All authentication attempts failed, redirecting to login page');
           
           // Get the path to the login file by replacing the current filename
           // This works regardless of domain, subdomain, or directory structure
