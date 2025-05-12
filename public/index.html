@@ -621,13 +621,23 @@
       console.log(`DEBUG: ${message}`, data);
     }
     
+    // Function to show authentication errors with action buttons
     function showAuthError(title, details) {
-      // Show the error container
       const errorContainer = document.getElementById('auth-error-container');
+      const titleEl = document.getElementById('error-title');
       const errorDetails = document.getElementById('auth-error-details');
       
+      // Create error actions container if it doesn't exist
+      let actionContainer = document.getElementById('error-actions');
+      if (!actionContainer) {
+        actionContainer = document.createElement('div');
+        actionContainer.id = 'error-actions';
+        actionContainer.className = 'error-actions';
+        errorContainer.appendChild(actionContainer);
+      }
+      
+      // Set the title
       if (title) {
-        const titleEl = errorContainer.querySelector('h2');
         if (titleEl) titleEl.textContent = title;
       }
       
@@ -725,18 +735,41 @@
       }
     }
     
-    // Function to handle automatic retry for first-time login - DISABLED to prevent loops
+    // Function to handle retry for authentication
     async function retryAuthenticationProcess() {
-      console.log('Retry requested, but automatic reload is disabled to prevent loops');
+      console.log('Authentication retry requested');
       
-      // Show the auth error instead of reloading
-      showAuthError('Authentication Issue', {
-        message: 'Login detected but authentication failed.',
-        suggestion: 'Please use the buttons below to retry manually or return to login.',
-        timestamp: new Date().toISOString()
+      // First, show a detailed diagnostic message for debugging
+      const jwtToken = localStorage.getItem('jwt_token') || localStorage.getItem('auth_token');
+      
+      showAuthError('Authentication Not Completed', {
+        message: 'Login was detected but authentication could not be completed automatically.',
+        tokenStatus: jwtToken ? 'JWT token is present in localStorage' : 'No JWT token found in localStorage',
+        nextSteps: 'Click "Retry" to attempt authentication again or "Go to Login" to start over.'
       });
       
-      // Clear the 'just_logged_in' flag to prevent further automatic retries
+      // Add manual retry buttons to the error container
+      const actionContainer = document.getElementById('error-actions');
+      if (actionContainer) {
+        actionContainer.innerHTML = `
+          <button id="retry-auth" class="error-btn primary">Retry</button>
+          <button id="go-to-login" class="error-btn secondary">Go to Login</button>
+        `;
+        
+        // Add event listeners to the buttons
+        document.getElementById('retry-auth').addEventListener('click', function() {
+          console.log('Manual retry requested');
+          // Force reload the page to retry the authentication
+          window.location.reload();
+        });
+        
+        document.getElementById('go-to-login').addEventListener('click', function() {
+          // Redirect to the login page
+          window.location.href = 'login.html';
+        });
+      }
+      
+      // Clear the 'just_logged_in' flag to prevent automatic retries
       try {
         localStorage.removeItem('just_logged_in');
       } catch (e) {}
@@ -768,15 +801,31 @@
           'Pragma': 'no-cache'
         };
         
-        // Add Authorization header with JWT token if available in localStorage
+        // CRITICAL: Enhanced JWT token handling with diagnostic information
         try {
-          const jwtToken = localStorage.getItem('jwt_token');
+          // Try both possible token key formats for backward compatibility
+          const jwtToken = localStorage.getItem('jwt_token') || localStorage.getItem('auth_token');
+          
           if (jwtToken) {
-            console.log('Adding JWT token from localStorage to Authorization header');
+            // Log detailed token information for diagnostics
+            console.log(`Found JWT token in localStorage (length: ${jwtToken.length})`);
+            
+            // Add JWT token to header WITH EXACT Bearer format (space after Bearer is required)
             headers['Authorization'] = `Bearer ${jwtToken}`;
+            
+            // Also set a custom header to help with debugging
+            headers['X-Auth-Source'] = 'localStorage';
+            
+            // Print the actual header being sent (but truncate token for security)
+            const truncatedToken = jwtToken.substring(0, 12) + '...';
+            console.log(`Authorization header: Bearer ${truncatedToken}`);
+          } else {
+            // Explicitly note that no token was found
+            console.warn('No JWT token found in localStorage - this will likely fail authentication');
+            console.log('Available localStorage keys:', Object.keys(localStorage).join(', '));
           }
         } catch (e) {
-          console.warn('Could not access localStorage for JWT token:', e);
+          console.error('Error accessing localStorage:', e);
         }
         
         const res = await fetch('/api/me', {

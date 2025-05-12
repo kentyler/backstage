@@ -3,6 +3,7 @@ import { getParticipantByEmail } from '../../db/participants/getParticipantByEma
 import bcryptjs from 'bcryptjs';
 import { signToken } from '../../services/authService.js';
 import { createParticipantEvent } from '../../db/participantEvents/index.js';
+import jwt from 'jsonwebtoken';
 // Removed getPreferenceWithFallback import - no longer needed in login process
 import { determineClientSchema } from '../../utils/clientSchema.js';
 import { getDefaultSchema, setDefaultSchema } from '../../config/schema.js';
@@ -155,11 +156,40 @@ export async function loginHandler(req, res) {
     const participantSchema = determineClientSchema(participant, { isLocalhost });
     console.log(`Using schema ${participantSchema} for JWT token`);
     
-    // Include client schema in JWT payload
+    // Get JWT secret directly from environment for consistency with auth middleware
+    const JWT_SECRET = process.env.JWT_SECRET;
+    
+    // Check if JWT_SECRET is available
+    if (!JWT_SECRET) {
+      console.error('ERROR: JWT_SECRET environment variable is missing or empty');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+    
+    // Enhanced debug for token creation
+    console.log(`Creating JWT token for participant ${participant.id} with schema ${participantSchema}`);
+    
+    // Using the imported signToken function for consistency
     const token = signToken({ 
       participantId: participant.id,
       clientSchema: participantSchema
     });
+    
+    // Verify the token content to ensure JWT_SECRET is working
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      console.log('Token verification successful. Payload contains:', 
+        JSON.stringify({
+          participantId: decoded.participantId,
+          clientSchema: decoded.clientSchema,
+          // Log exp as human-readable date
+          expiresAt: new Date(decoded.exp * 1000).toISOString()
+        }));
+    } catch (e) {
+      console.error('CRITICAL: Token verification failed immediately after creation:', e.message);
+      // If token verification fails here, the JWT_SECRET used to sign might be different
+      // from the one used to verify, which would indicate an environment variable issue
+      console.error('This suggests JWT_SECRET may be inconsistent across the application');
+    }
 
     // Set JWT in an HttpOnly cookie
     // Extract the parent domain from the request hostname for subdomain support
