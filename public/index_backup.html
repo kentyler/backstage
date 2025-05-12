@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minimal Authentication Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+      color: #333;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      margin-top: 0;
+      color: #333;
+    }
+    #log-container {
+      background: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 20px 0;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-right: 10px;
+    }
+    button.secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+    .error {
+      color: #d9534f;
+      font-weight: bold;
+    }
+    .success {
+      color: #5cb85c;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Authentication Test Page</h1>
+    <p>This page only tests authentication with no other functionality.</p>
+    
+    <div id="log-container">Starting authentication test sequence...</div>
+    
+    <div id="buttons">
+      <button id="test-csrf">Test CSRF Token</button>
+      <button id="test-auth">Test Authentication</button>
+      <button id="goto-login" class="secondary">Go to Login</button>
+    </div>
+  </div>
+
+  <script>
+    // Log function to simplify debugging
+    function log(message, type = 'info') {
+      const logContainer = document.getElementById('log-container');
+      const timestamp = new Date().toISOString();
+      let className = '';
+      
+      if (type === 'error') className = 'error';
+      if (type === 'success') className = 'success';
+      
+      // Log to console as well
+      console.log(`[${type.toUpperCase()}] ${message}`);
+      
+      // Create log entry
+      const logEntry = document.createElement('div');
+      logEntry.className = className;
+      logEntry.textContent = `[${timestamp}] ${message}`;
+      
+      // Add to log container and scroll to bottom
+      logContainer.appendChild(logEntry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+    
+    // Function to inspect localStorage for tokens
+    function checkLocalStorage() {
+      log('Checking localStorage for tokens...');
+      
+      try {
+        // Check for JWT token
+        const jwtToken = localStorage.getItem('jwt_token');
+        if (jwtToken) {
+          log(`Found jwt_token in localStorage (length: ${jwtToken.length})`, 'success');
+          
+          // Print the first few characters for debugging (don't expose full token)
+          const truncatedToken = jwtToken.substring(0, 10) + '...';
+          log(`Token preview: ${truncatedToken}`);
+          
+          return jwtToken;
+        } else {
+          log('No jwt_token found in localStorage', 'error');
+          
+          // Check for alternative token name
+          const authToken = localStorage.getItem('auth_token');
+          if (authToken) {
+            log(`Found auth_token in localStorage (length: ${authToken.length})`, 'success');
+            return authToken;
+          }
+        }
+        
+        // Check for login flag
+        const justLoggedIn = localStorage.getItem('just_logged_in');
+        if (justLoggedIn) {
+          log(`Found just_logged_in flag: ${justLoggedIn}`);
+        }
+        
+        // Check all localStorage keys for diagnostic purposes
+        log(`All localStorage keys: ${Object.keys(localStorage).join(', ')}`);
+        
+        return null;
+      } catch (e) {
+        log(`Error accessing localStorage: ${e.message}`, 'error');
+        return null;
+      }
+    }
+    
+    // Function to test CSRF token
+    async function testCsrfToken() {
+      log('Testing CSRF token endpoint...');
+      
+      try {
+        const response = await fetch('/api/csrf-token', {
+          method: 'GET',
+          credentials: 'include' // Include cookies
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          log(`CSRF token fetched successfully: ${data.csrfToken.substring(0, 5)}...`, 'success');
+          return data.csrfToken;
+        } else {
+          const errorText = await response.text();
+          log(`CSRF token fetch failed with status ${response.status}`, 'error');
+          log(`Response: ${errorText}`, 'error');
+          return null;
+        }
+      } catch (e) {
+        log(`Error fetching CSRF token: ${e.message}`, 'error');
+        return null;
+      }
+    }
+    
+    // Function to test authentication
+    async function testAuthentication() {
+      log('Testing authentication with /api/me endpoint...');
+      
+      try {
+        // Create headers
+        const headers = {
+          'Cache-Control': 'no-cache'
+        };
+        
+        // Try to add JWT token from localStorage if available
+        const jwtToken = checkLocalStorage();
+        if (jwtToken) {
+          headers['Authorization'] = `Bearer ${jwtToken}`;
+          log('Added JWT token to Authorization header');
+        }
+        
+        // Make the request to /api/me
+        const response = await fetch('/api/me', {
+          method: 'GET',
+          credentials: 'include', // Include cookies for cookie-based auth
+          headers: headers
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          log('Authentication successful!', 'success');
+          log(`User ID: ${data.user.participantId}`);
+          
+          if (data.user.participant) {
+            log(`User name: ${data.user.participant.name || 'Anonymous'}`);
+          }
+          
+          // Clear login marker since auth was successful
+          localStorage.removeItem('just_logged_in');
+          log('Cleared just_logged_in flag from localStorage');
+          
+          return true;
+        } else {
+          // Try to get error response
+          try {
+            const errorText = await response.text();
+            log(`Authentication failed with status ${response.status}`, 'error');
+            log(`Response: ${errorText}`, 'error');
+          } catch (parseError) {
+            log(`Could not parse error response: ${parseError.message}`, 'error');
+          }
+          
+          return false;
+        }
+      } catch (e) {
+        log(`Error during authentication: ${e.message}`, 'error');
+        return false;
+      }
+    }
+    
+    // Button event listeners
+    document.getElementById('test-csrf').addEventListener('click', testCsrfToken);
+    document.getElementById('test-auth').addEventListener('click', testAuthentication);
+    document.getElementById('goto-login').addEventListener('click', function() {
+      window.location.href = 'login.html';
+    });
+    
+    // Check URL for source=login parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('source') === 'login') {
+      log('Detected login redirect - checking localStorage tokens');
+      
+      // If we just logged in, let's auto-test authentication
+      if (localStorage.getItem('just_logged_in') === 'true') {
+        log('Found just_logged_in flag - will attempt authentication');
+        setTimeout(testAuthentication, 1000); // Short delay to ensure cookies are available
+      }
+    } else {
+      // For direct access, just check localStorage
+      checkLocalStorage();
+    }
+  </script>
+</body>
+</html>
