@@ -163,34 +163,77 @@ app.get('/api/csrf-token', generateCsrfToken, csrfTokenHandler);
 // Create a special CSRF-exempt route handler specifically for login
 // that ensures the client pool is properly attached
 app.post('/api/participants/login', async (req, res, next) => {
-  console.log('[CSRF Bypass] Allowing login request without CSRF validation');
+  console.log('[Login] Processing login request for hostname:', req.hostname);
+  console.log('[Login] Request headers:', JSON.stringify(req.headers));
   
-  // Double-check that the client pool is attached to the request
-  if (!req.clientPool) {
-    console.error('[CSRF Bypass] Client pool not found in request, attempting to create it');
+  // Forcibly determine the schema based on hostname for subdomains
+  try {
+    // Import needed modules
+    const { determineSchemaFromHostname } = await import('./src/middleware/setClientSchema.js');
+    const { createPool } = await import('./src/db/connection.js');
     
-    // Create client pool manually if it's not set
-    try {
-      const { determineSchemaFromHostname } = await import('./src/middleware/setClientSchema.js');
-      const { createPool } = await import('./src/db/connection.js');
+    // Special handling for *.conversationalai.us domains
+    let schema;
+    const hostname = req.hostname;
+    
+    if (hostname.includes('conversationalai.us')) {
+      // Parse the subdomain for conversationalai.us domains
+      const subdomain = hostname.split('.')[0];
+      console.log(`[Login] Detected conversationalai.us domain with subdomain: ${subdomain}`);
       
-      const schema = determineSchemaFromHostname(req.hostname);
-      console.log(`[CSRF Bypass] Manually determined schema: ${schema}`);
-      
-      req.clientPool = createPool(schema);
-      console.log(`[CSRF Bypass] Manually created client pool for schema: ${schema}`);
-    } catch (poolError) {
-      console.error('[CSRF Bypass] Failed to create client pool:', poolError);
-      return res.status(500).json({ error: 'Database connection error', detail: 'Failed to create connection pool' });
+      // Map specific subdomains to schemas
+      // This is a hardcoded approach for reliability
+      if (subdomain === 'bsa') {
+        schema = 'dev'; // For bsa.conversationalai.us use 'dev' schema
+        console.log(`[Login] Using hardcoded schema '${schema}' for subdomain ${subdomain}`);
+      } else {
+        // For other subdomains, fall back to dynamic determination
+        schema = determineSchemaFromHostname(hostname);
+        console.log(`[Login] Dynamically determined schema: ${schema} for subdomain ${subdomain}`);
+      }
+    } else {
+      // For localhost or other domains, use the default determination logic
+      schema = determineSchemaFromHostname(hostname);
+      console.log(`[Login] Determined schema: ${schema} for hostname ${hostname}`);
     }
+    
+    if (!schema) {
+      console.error(`[Login] Could not determine schema for hostname: ${hostname}`);
+      return res.status(500).json({ 
+        error: 'Database configuration error', 
+        detail: `Could not determine database schema for hostname: ${hostname}`, 
+        subdomain: hostname.split('.')[0] 
+      });
+    }
+    
+    // Create a fresh pool specifically for this login request
+    console.log(`[Login] Creating connection pool for schema: ${schema}`);
+    req.clientPool = createPool(schema);
+    console.log(`[Login] Successfully created client pool for schema: ${schema}`);
+  } catch (poolError) {
+    console.error('[Login] Failed to create client pool:', poolError);
+    return res.status(500).json({ 
+      error: 'Database connection error', 
+      detail: poolError.message, 
+      stack: process.env.NODE_ENV !== 'production' ? poolError.stack : undefined 
+    });
   }
   
   try {
-    // Call the login handler directly without CSRF validation
+    console.log('[Login] Calling login handler with schema:', req.clientPool?.options?.schema);
     await loginHandler(req, res, next);
   } catch (error) {
-    console.error('[CSRF Bypass] Error in login bypass:', error);
-    next(error);
+    console.error('[Login] Error during login process:', error);
+    
+    // Enhanced error response with more diagnostics
+    res.status(500).json({ 
+      error: 'Login process failed', 
+      message: error.message,
+      hostname: req.hostname,
+      schema: req.clientPool?.options?.schema || 'unknown',
+      stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined,
+      time: new Date().toISOString()
+    });
   }
 });
 
