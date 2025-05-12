@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
+import pgSession from 'connect-pg-simple';
 import helmet from 'helmet';
 import { 
   generateCsrfSecret, 
@@ -125,10 +126,14 @@ const getCookieDomain = (req) => {
   return cookieDomain;
 };
 
-app.use(session({
+// Initialize PostgreSQL session store
+const PgStore = pgSession(session);
+
+// Use PostgreSQL for session storage in production to avoid memory leaks
+const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'a-very-secure-session-secret',
-  resave: true, // Changed to true to ensure session is saved
-  saveUninitialized: true, // Changed to true to ensure new sessions get saved
+  resave: false, // Set to false with a proper store
+  saveUninitialized: false, // Set to false for better performance with a proper store
   cookie: {
     httpOnly: true,
     secure: useSecureCookies, // Use secure cookies when HTTPS is available
@@ -139,7 +144,23 @@ app.use(session({
   proxy: true,
   name: 'bs_sessionid', // Custom name to avoid conflicts
   rolling: true, // Refresh session with each request
-}));
+};
+
+// Only use PostgreSQL session store in production
+if (process.env.NODE_ENV === 'production') {
+  const pgConfig = {
+    conString: process.env.DATABASE_URL || `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
+    tableName: 'session', // Table name for sessions
+    createTableIfMissing: true, // Automatically create the sessions table if it doesn't exist
+  };
+  
+  console.log('Using PostgreSQL session store for production');
+  sessionConfig.store = new PgStore(pgConfig);
+} else {
+  console.log('Using MemoryStore for development (not recommended for production)');
+}
+
+app.use(session(sessionConfig));
 
 // Middleware to set cookie domain dynamically
 app.use((req, res, next) => {
