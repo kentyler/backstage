@@ -1,0 +1,2414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Conversational AI</title>
+  <style>
+    /* Some basic styling */
+    body { font-family: sans-serif; margin: 0; padding: 0; }
+    #app { display: none; }
+    
+    /* Debug overlay styling */
+    #auth-debug-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: rgba(0, 0, 0, 0.85);
+      color: #00ff00;
+      font-family: monospace;
+      padding: 20px;
+      z-index: 1000;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    #auth-error-container {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      max-width: 80%;
+      z-index: 999;
+    }
+    
+    #auth-error-container h2 {
+      color: #d9534f;
+      margin-top: 0;
+    }
+    
+    #auth-error-details {
+      white-space: pre-wrap;
+      background: #f8f8f8;
+      padding: 10px;
+      border: 1px solid #ddd;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    
+    header {
+      background-color: #f8f9fa;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .app-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+    }
+    
+    .user-dropdown, .group-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .group-dropdown {
+      margin-left: 10px;
+    }
+    
+    .dropdown-button {
+      background-color: #E0FFFF; /* LightCyan */
+      color: #333; /* Darker text for better contrast */
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      font-size: 1.25rem; /* Increased font size for dropdown buttons */
+    }
+    
+    .dropdown-button:hover {
+      background-color: #C0EBEB; /* Slightly darker shade of LightCyan */
+    }
+    
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #f9f9f9;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+      border-radius: 4px;
+    }
+    
+    /* Position dropdown content */
+    .user-dropdown .dropdown-content {
+      right: 0;
+    }
+    
+    .group-dropdown .dropdown-content {
+      left: 0;
+    }
+    
+    .dropdown-content a, .dropdown-content .group-item {
+      color: black;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+      cursor: pointer;
+      font-size: 1rem; /* Set font size for dropdown items */
+    }
+    
+    .dropdown-content a:hover, .dropdown-content .group-item:hover {
+      background-color: #f1f1f1;
+    }
+    
+    .user-dropdown:hover .dropdown-content,
+    .group-dropdown:hover .dropdown-content {
+      display: block;
+    }
+    
+    .dropdown-button::after {
+      content: "▼";
+      margin-left: 8px;
+      font-size: 0.7rem;
+    }
+    
+    .app-container {
+      display: flex;
+      height: calc(100vh - 60px); /* Subtract header height */
+    }
+    
+    .conversations-column, .topics-column {
+      width: 250px;
+      border-right: 1px solid #dee2e6;
+      display: flex;
+      flex-direction: column;
+      background-color: #f8f9fa;
+      position: relative;
+    }
+    
+    /* Hide topics column by default */
+    .topics-column {
+      display: none; /* Will be shown when a template is selected */
+    }
+    
+    .conversations-header {
+      padding: 1rem;
+      border-bottom: 1px solid #dee2e6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .conversations-title {
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    
+    .new-conversation-btn {
+      background-color: #E0FFFF; /* LightCyan */
+      color: #333; /* Darker text for better contrast */
+      border: none;
+      border-radius: 4px;
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .new-conversation-btn:hover {
+      background-color: #C0EBEB; /* Slightly darker shade of LightCyan */
+    }
+    
+    .new-conversation-container {
+      padding: 0.8rem;
+      border-top: 1px solid #dee2e6;
+      margin-top: auto; /* Push to bottom */
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .conversations-list {
+      overflow-y: auto;
+      flex-grow: 1;
+    }
+    
+    .conversation-item {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+    }
+    
+    .conversation-item:hover {
+      background-color: #e9ecef;
+    }
+    
+    .conversation-item.selected {
+      background-color: #e6f2ff;
+      font-weight: bold;
+    }
+    
+    .main-content {
+      flex-grow: 1;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    
+    .dropdown-header {
+      font-weight: normal;
+      padding: 8px 16px;
+      color: #6c757d;
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .dropdown-divider {
+      height: 0;
+      margin: 0.5rem 0;
+      overflow: hidden;
+      border-top: 1px solid #dee2e6;
+    }
+    
+    .group-item {
+      padding: 8px 16px 8px 24px;
+    }
+    
+    .group-name {
+      color: #007bff;
+      font-weight: normal;
+      margin-left: 5px;
+    }
+    
+    .group-item.selected {
+      background-color: #e6f2ff;
+      font-weight: bold;
+    }
+    
+    /* Conversation UI styles */
+    .transcript-area {
+      height: calc(100% - 150px);
+      overflow-y: auto;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background-color: #f9f9f9;
+    }
+    
+    .input-table {
+      width: 100%;
+      margin-top: 10px;
+      border-collapse: collapse;
+    }
+    
+    .input-table td {
+      padding: 0;
+      vertical-align: top;
+    }
+    
+    .input-table .file-cell {
+      width: 40px;
+      text-align: center;
+      padding-bottom: 5px;
+    }
+    
+    .input-table .send-cell {
+      width: 80px;
+      text-align: center;
+    }
+    
+    .input-table .input-cell {
+      padding-right: 10px;
+    }
+    
+    .file-upload-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background-color: #f0f0f0;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .file-upload-label:hover {
+      background-color: #e0e0e0;
+    }
+    
+    .file-upload-icon {
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+      position: relative;
+    }
+    
+    .file-upload-icon::before {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 14px;
+      border: 2px solid #666;
+      border-radius: 4px 4px 0 0;
+      border-bottom: none;
+      top: 0;
+      left: 4px;
+    }
+    
+    .file-upload-icon::after {
+      content: '';
+      position: absolute;
+      width: 4px;
+      height: 8px;
+      border: 2px solid #666;
+      border-radius: 0 0 4px 4px;
+      border-top: none;
+      bottom: 0;
+      left: 6px;
+    }
+    
+    .file-upload-input {
+      display: none;
+    }
+    
+    .file-message {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .file-link {
+      color: #0066cc;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    
+    .user-input {
+      flex-grow: 1;
+      padding: 10px;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      min-height: 100px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: inherit;
+      font-size: 1rem;
+      background-color: white;
+      margin-top: -40px; /* Negative top margin to align with the paper clip icon */
+    }
+    
+    /* Style for placeholder in contenteditable div */
+    [contenteditable=true]:empty:before {
+      content: attr(placeholder);
+      color: #6c757d;
+      cursor: text;
+    }
+    
+    .send-button {
+      padding: 0 20px;
+      background-color: #E0FFFF;
+      color: #333;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      align-self: flex-end;
+      height: 40px;
+    }
+    
+    .send-button:hover {
+      background-color: #C0EBEB;
+    }
+    
+    .message {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 4px;
+      max-width: 80%;
+    }
+    
+    .user-message {
+      background-color: #E0FFFF;
+      margin-left: 0; /* Align to left edge like responses */
+      margin-right: auto; /* Keep width constrained */
+      border-top-right-radius: 0;
+    }
+    
+    .response-message {
+      background-color: #f0f0f0;
+      margin-right: auto;
+      margin-left: 0; /* Ensure no left margin for response messages */
+      border-top-left-radius: 0;
+    }
+    
+    /* Comment styles */
+    .comment-link {
+      font-size: 0.8rem;
+      color: #6c757d;
+      cursor: pointer;
+      margin-top: 5px;
+      display: inline-block;
+    }
+    
+    .comment-link:hover {
+      text-decoration: underline;
+    }
+    
+    .comment-input-area {
+      margin-top: 5px;
+      margin-left: 20px;
+      display: none;
+    }
+    
+    .comment-textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      resize: vertical;
+      min-height: 60px;
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+    
+    .comment-button {
+      margin-top: 5px;
+      padding: 5px 10px;
+      background-color: #E0FFFF;
+      color: #333;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    
+    .comment-button:hover {
+      background-color: #C0EBEB;
+    }
+    
+    .comment-message {
+      margin-left: 25px; /* Consistent indentation for all comments */
+      margin-top: 5px;
+      margin-bottom: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      background-color: #f8f9fa;
+      border-left: 3px solid #dee2e6;
+      max-width: calc(80% - 25px); /* Adjusted to match the new margin-left */
+    }
+  </style>
+</head>
+<body>
+  <!-- Debug overlay for authentication diagnostics -->
+  <div id="auth-debug-overlay" style="display: none;"></div>
+  
+  <!-- Authentication error container -->
+  <div id="auth-error-container" style="display: none;">
+    <h2>Authentication Failed</h2>
+    <p>The system could not verify your authentication. Details below:</p>
+    <div id="auth-error-details"></div>
+    <button id="auth-retry-button" style="margin-top: 15px;">Retry</button>
+    <button id="auth-login-button" style="margin-top: 15px; margin-left: 10px;">Go to Login</button>
+  </div>
+  <div id="app" style="display:none">
+    <!-- Header with user dropdown -->
+    <header>
+      <div class="app-title">
+        Conversational AI
+        <div class="group-dropdown">
+          <button id="group-button" class="dropdown-button">
+            <span id="group-name-display" class="group-name">Select Group</span>
+          </button>
+          <div class="dropdown-content">
+            <div id="groups-container">
+              <div class="dropdown-header">Groups</div>
+              <!-- Groups will be populated here -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="user-dropdown">
+        <button id="user-button" class="dropdown-button">
+          <span id="user-name">User</span>
+        </button>
+        <div class="dropdown-content">
+          <div id="llms-container">
+            <div class="dropdown-header">LLMs</div>
+            <!-- LLMs will be populated here -->
+          </div>
+          <div class="dropdown-divider"></div>
+          <a href="#" id="logout-link">Log out</a>
+        </div>
+      </div>
+    </header>
+    
+    <!-- App container with left column and main content -->
+    <div class="app-container">
+      <!-- Left column for conversations and templates -->
+      <div class="conversations-column">
+        <!-- Conversations section -->
+        <div class="conversations-header">
+          <div class="conversations-title">Conversations</div>
+        </div>
+        <div id="conversations-list" class="conversations-list">
+          <!-- Conversations will be populated here -->
+        </div>
+        <div class="new-conversation-container">
+          <button id="new-conversation-btn" class="new-conversation-btn">New Conversation</button>
+        </div>
+        
+        <!-- Templates section -->
+        <div class="conversations-header">
+          <div class="conversations-title">Templates</div>
+        </div>
+        <div id="templates-list" class="conversations-list">
+          <!-- templates will be populated here -->
+        </div>
+        <div class="new-conversation-container">
+          <button id="new-template-btn" class="new-conversation-btn">New template</button>
+        </div>
+      </div>
+      
+      <!-- Topics column - Only visible when a template is selected -->
+      <div id="topics-column" class="topics-column">
+        <div class="conversations-header">
+          <div class="conversations-title">Topics</div>
+        </div>
+        <div id="topics-list" class="conversations-list">
+          <!-- Topics will be populated here -->
+        </div>
+        <div class="new-conversation-container">
+          <button id="new-topic-btn" class="new-conversation-btn">New Topic</button>
+        </div>
+      </div>
+      
+      <!-- Main content - Conversation area -->
+      <div class="main-content">
+        <h1 id="conversation-title">Select a conversation</h1>
+        
+        <!-- Transcript area -->
+        <div id="transcript-area" class="transcript-area">
+          <!-- Conversation messages will appear here -->
+        </div>
+        
+        <!-- Input area -->
+        <table class="input-table">
+          <tr>
+            <td></td>
+            <td class="file-cell">
+              <label for="file-upload" class="file-upload-label">
+                <span class="file-upload-icon"></span>
+              </label>
+              <input type="file" id="file-upload" class="file-upload-input" accept="text/*">
+            </td>
+          </tr>
+          <tr>
+            <td class="input-cell">
+              <div id="user-input" class="user-input" contenteditable="true" placeholder="Type your message here..."></div>
+            </td>
+            <td class="send-cell">
+              <button id="send-button" class="send-button">Send</button>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Debug helper functions
+    function showDebug(message, data) {
+      const debugEl = document.getElementById('auth-debug-overlay');
+      const timestamp = new Date().toISOString();
+      
+      // Create a new message element
+      const msgEl = document.createElement('div');
+      msgEl.style.borderBottom = '1px solid #333';
+      msgEl.style.paddingBottom = '5px';
+      msgEl.style.marginBottom = '5px';
+      
+      // Format the message with timestamp
+      msgEl.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+      
+      // Add data if provided
+      if (data) {
+        const dataEl = document.createElement('pre');
+        try {
+          dataEl.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+        } catch (e) {
+          dataEl.textContent = 'Error stringifying data: ' + e.message;
+        }
+        msgEl.appendChild(dataEl);
+      }
+      
+      // Append to debug overlay
+      debugEl.appendChild(msgEl);
+      
+      // Make sure the overlay is visible
+      debugEl.style.display = 'block';
+      
+      // Also log to console
+      console.log(`DEBUG: ${message}`, data);
+    }
+    
+    // Function to show authentication errors with action buttons
+    function showAuthError(title, details) {
+      const errorContainer = document.getElementById('auth-error-container');
+      const titleEl = document.getElementById('error-title');
+      const errorDetails = document.getElementById('auth-error-details');
+      
+      // Create error actions container if it doesn't exist
+      let actionContainer = document.getElementById('error-actions');
+      if (!actionContainer) {
+        actionContainer = document.createElement('div');
+        actionContainer.id = 'error-actions';
+        actionContainer.className = 'error-actions';
+        errorContainer.appendChild(actionContainer);
+      }
+      
+      // Set the title
+      if (title) {
+        if (titleEl) titleEl.textContent = title;
+      }
+      
+      // Set the error details
+      if (details) {
+        errorDetails.textContent = typeof details === 'object' ? JSON.stringify(details, null, 2) : details;
+      }
+      
+      // Show the container
+      errorContainer.style.display = 'block';
+    }
+    
+    // Authentication state variables
+    let currentUser = null;
+    let csrfToken = null;
+    let currentAvatar = null;
+    let availableLLMs = [];
+    let availableGroups = [];
+    let selectedGroupId = null;
+    let conversations = [];
+    let selectedConversationId = null;
+    
+    // Function to fetch CSRF token
+    async function fetchCsrfToken() {
+      try {
+        const res = await fetch('/api/csrf-token', {
+          method: 'GET',
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          csrfToken = data.csrfToken;
+          console.log('CSRF token fetched successfully');
+          return csrfToken;
+        } else {
+          console.error('Failed to fetch CSRF token');
+          return null;
+        }
+      } catch (err) {
+        console.error('Error fetching CSRF token:', err);
+        return null;
+      }
+    }
+    
+    // Function to check if we're in a redirect loop
+    function checkRedirectLoop() {
+      try {
+        // Check how many times we've redirected between pages
+        const redirectCount = parseInt(sessionStorage.getItem('redirectCount') || '0');
+        
+        // If we've redirected too many times, stop the loop
+        if (redirectCount > 3) {
+          console.error('Detected potential redirect loop, stopping automatic redirects');
+          // Reset counter but return true to indicate a loop
+          sessionStorage.setItem('redirectCount', '0');
+          return true;
+        }
+        
+        // Increment the counter
+        sessionStorage.setItem('redirectCount', (redirectCount + 1).toString());
+        return false; // No loop detected
+      } catch (e) {
+        console.error('Error checking redirect loop:', e);
+        return false;
+      }
+    }
+    
+    // Function to handle first-time login using localStorage markers
+    function checkJustLoggedIn() {
+      try {
+        const justLoggedIn = localStorage.getItem('just_logged_in');
+        const loginTime = localStorage.getItem('login_time');
+        
+        if (justLoggedIn === 'true' && loginTime) {
+          // Check if login was recent (within last 10 seconds)
+          const now = Date.now();
+          const loginTimeMs = parseInt(loginTime, 10);
+          const timeDiff = now - loginTimeMs;
+          
+          if (timeDiff < 10000) { // 10 seconds
+            console.log('Detected recent login from localStorage markers');
+            
+            // Clear the just_logged_in flag so we don't repeat this
+            localStorage.removeItem('just_logged_in');
+            
+            // We'll use this to retry the login process
+            return true;
+          }
+        }
+        return false;
+      } catch (e) {
+        console.warn('Error checking localStorage login markers:', e);
+        return false;
+      }
+    }
+    
+    // Function to handle retry for authentication
+    async function retryAuthenticationProcess() {
+      console.log('Authentication retry requested');
+      
+      // First, show a detailed diagnostic message for debugging
+      const jwtToken = localStorage.getItem('jwt_token') || localStorage.getItem('auth_token');
+      
+      showAuthError('Authentication Not Completed', {
+        message: 'Login was detected but authentication could not be completed automatically.',
+        tokenStatus: jwtToken ? 'JWT token is present in localStorage' : 'No JWT token found in localStorage',
+        nextSteps: 'Click "Retry" to attempt authentication again or "Go to Login" to start over.'
+      });
+      
+      // Add manual retry buttons to the error container
+      const actionContainer = document.getElementById('error-actions');
+      if (actionContainer) {
+        actionContainer.innerHTML = `
+          <button id="retry-auth" class="error-btn primary">Retry</button>
+          <button id="go-to-login" class="error-btn secondary">Go to Login</button>
+        `;
+        
+        // Add event listeners to the buttons
+        document.getElementById('retry-auth').addEventListener('click', function() {
+          console.log('Manual retry requested');
+          // Force reload the page to retry the authentication
+          window.location.reload();
+        });
+        
+        document.getElementById('go-to-login').addEventListener('click', function() {
+          // Redirect to the login page
+          window.location.href = 'login.html';
+        });
+      }
+      
+      // Clear the 'just_logged_in' flag to prevent automatic retries
+      try {
+        localStorage.removeItem('just_logged_in');
+      } catch (e) {}
+      
+      return false; // Don't continue with automatic reload
+    }
+    
+    // Function to fetch current user data
+    async function fetchCurrentUser() {
+      try {
+        // Check if this is a first-time login scenario
+        if (window.location.search.includes('source=login')) {
+          console.log('Detected first-time login from URL parameter');
+          
+          // Check for the just_logged_in flag in localStorage
+          if (checkJustLoggedIn()) {
+            console.log('First login detected, will retry authentication');
+            // Simply refresh the page after giving the cookie more time to propagate
+            setTimeout(() => window.location.reload(), 1000);
+            return false;
+          }
+        }
+        
+        console.log('Fetching current user data...');
+        
+        // Set up headers with potential JWT token from localStorage (dual auth approach)
+        const headers = {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        };
+        
+        // CRITICAL: Enhanced JWT token handling with diagnostic information
+        try {
+          // Try both possible token key formats for backward compatibility
+          const jwtToken = localStorage.getItem('jwt_token') || localStorage.getItem('auth_token');
+          
+          if (jwtToken) {
+            // Log detailed token information for diagnostics
+            console.log(`Found JWT token in localStorage (length: ${jwtToken.length})`);
+            
+            // Add JWT token to header WITH EXACT Bearer format (space after Bearer is required)
+            headers['Authorization'] = `Bearer ${jwtToken}`;
+            
+            // Also set a custom header to help with debugging
+            headers['X-Auth-Source'] = 'localStorage';
+            
+            // Print the actual header being sent (but truncate token for security)
+            const truncatedToken = jwtToken.substring(0, 12) + '...';
+            console.log(`Authorization header: Bearer ${truncatedToken}`);
+          } else {
+            // Explicitly note that no token was found
+            console.warn('No JWT token found in localStorage - this will likely fail authentication');
+            console.log('Available localStorage keys:', Object.keys(localStorage).join(', '));
+          }
+        } catch (e) {
+          console.error('Error accessing localStorage:', e);
+        }
+        
+        const res = await fetch('/api/me', {
+          method: 'GET',
+          credentials: 'include',  // send cookies
+          headers: headers
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          currentUser = data.user;
+          console.log('Successfully authenticated user:', currentUser.id);
+          
+          // Clear any login markers as authentication was successful
+          try {
+            localStorage.removeItem('just_logged_in');
+            console.log('Cleared login markers from localStorage');
+          } catch (e) {
+            console.warn('Could not clear localStorage markers:', e);
+          }
+          
+          // Update UI with user info
+          document.getElementById('user-name').textContent = 
+            currentUser.participant?.name || (currentUser.participantId ? `User #${currentUser.participantId}` : 'User');
+          
+          // Get available LLMs from the response
+          if (data.availableLLMs && Array.isArray(data.availableLLMs)) {
+            availableLLMs = data.availableLLMs;
+            console.log('Fetched available LLMs:', availableLLMs);
+          }
+          
+          // Show the app
+          document.getElementById('app').style.display = 'block';
+          return true;
+        } else {
+          // === FAILED AUTHENTICATION - ENHANCED DIAGNOSTICS AND RECOVERY ===
+          console.error(`Authentication failed with status: ${res.status}`);
+          
+          try {
+            const errorText = await res.text();
+            console.error('Error response:', errorText);
+            
+            // Check if we have a JWT token in localStorage for our dual auth approach
+            const jwtToken = localStorage.getItem('jwt_token');
+            console.log('JWT token in localStorage:', jwtToken ? 'Present' : 'Not found');
+            
+            // Check for redirect loop before attempting auto retry
+            if (checkRedirectLoop()) {
+              console.warn('Preventing automatic reload due to detected loop');
+              // Don't attempt reload if we're in a loop
+            } else if (jwtToken && !window.hasTriedTokenAuth) {
+              console.log('Will try ONE more time with JWT token auth...');
+              window.hasTriedTokenAuth = true;
+              
+              // Instead of force reloading, just show diagnostic info to understand what's happening
+              showDebug('Authentication retry paused for diagnostics', {
+                tokenFound: !!jwtToken,
+                hasTriedBefore: window.hasTriedTokenAuth,
+                timestamp: new Date().toISOString()
+              });
+              
+              // Show the authentication error container with retry buttons
+              showAuthError('Authentication Not Completed', {
+                message: 'Login was detected but authentication could not be completed automatically.',
+                tokenStatus: jwtToken ? 'JWT token is present in localStorage' : 'No JWT token found in localStorage',
+                nextSteps: 'Click "Retry" to attempt authentication again or "Go to Login" to start over.'
+              });
+              
+              // Style the retry button to make it more noticeable
+              document.getElementById('auth-retry-button').style.backgroundColor = '#4CAF50';
+              document.getElementById('auth-retry-button').style.color = 'white';
+              document.getElementById('auth-retry-button').style.padding = '10px 15px';
+              document.getElementById('auth-retry-button').style.fontSize = '16px';
+              document.getElementById('auth-retry-button').focus();
+              return false;
+            }
+          } catch (e) {
+            console.error('Error handling authentication failure:', e);
+          }
+          
+          // Handle first-time login case for smoother transitions
+          if (checkJustLoggedIn()) {
+            console.log('Detected recent login, retrying authentication...');
+            return retryAuthenticationProcess();
+          }
+          
+          // Instead of redirecting, show detailed debug information
+          showDebug('AUTHENTICATION FAILURE', { status: res.status, timestamp: new Date().toISOString() });
+          
+          // Gather all diagnostic information
+          const diagnosticInfo = {
+            status: res.status,
+            url: window.location.href,
+            timestamp: new Date().toISOString(),
+            localStorage: {}
+          };
+          
+          // Check localStorage for auth tokens
+          try {
+            // Collect all localStorage keys related to authentication
+            const relevantKeys = ['jwt_token', 'auth_token', 'just_logged_in', 'login_time', 'participant_data'];
+            relevantKeys.forEach(key => {
+              const value = localStorage.getItem(key);
+              diagnosticInfo.localStorage[key] = value ? 
+                (key.includes('token') ? `Present (${value.length} chars)` : value) : 
+                'Missing';
+            });
+          } catch (e) {
+            diagnosticInfo.localStorageError = e.message;
+          }
+          
+          // Show authentication error with all diagnostic details
+          showAuthError('Authentication Failed', diagnosticInfo);
+          
+          // Set up retry and login buttons
+          document.getElementById('auth-retry-button').onclick = function() {
+            showDebug('Retrying authentication...', { timestamp: new Date().toISOString() });
+            window.location.reload();
+          };
+          
+          document.getElementById('auth-login-button').onclick = function() {
+            const loginPath = window.location.href.replace(/\/[^\/]*$/, '/login.html');
+            showDebug('Navigating to login page...', { loginPath });
+            window.location.href = loginPath;
+          };
+          
+          return false;
+        }
+      } catch (err) {
+        console.error('Error fetching user:', err);
+        
+        // Handle first-time login case even for errors
+        if (checkJustLoggedIn()) {
+          return retryAuthenticationProcess();
+        }
+        
+        // Network or other error — also send back to login
+        window.location.href = 'login.html?from=index&error=' + encodeURIComponent(err.message || 'network-error');
+        return false;
+      }
+    }
+      
+    // Function to handle logout
+    async function handleLogout(event) {
+      event.preventDefault();
+      
+      try {
+        const res = await fetch('/api/participants/logout', {
+          method: 'POST',
+          headers: {
+            'x-csrf-token': csrfToken  // Include CSRF token in headers
+          },
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          // Redirect to login page after successful logout
+          window.location.href = 'login.html';
+        } else {
+          console.error('Logout failed');
+        }
+      } catch (err) {
+        console.error('Error during logout:', err);
+      }
+    }
+    
+    
+    // Function to fetch groups
+    async function fetchGroups() {
+      try {
+        // Build URL with participantId query parameter if available
+        let url = '/api/groups';
+        if (currentUser && currentUser.participantId) {
+          url += `?participantId=${currentUser.participantId}`;
+        }
+        
+        console.log('Fetching groups from:', url);
+        
+        const res = await fetch(url, {
+          method: 'GET',
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          const groups = await res.json();
+          console.log('Fetched groups:', groups);
+          userGroups = groups;
+          
+          // Populate groups in the dropdown
+          const groupsContainer = document.getElementById('groups-container');
+          
+          // Clear existing groups except the header
+          const header = groupsContainer.querySelector('.dropdown-header');
+          groupsContainer.innerHTML = '';
+          groupsContainer.appendChild(header);
+          
+          // Add groups to the dropdown
+          groups.forEach(group => {
+            const groupItem = document.createElement('div');
+            groupItem.className = 'group-item';
+            groupItem.textContent = group.name;
+            groupItem.dataset.groupId = group.id;
+            groupItem.addEventListener('click', () => selectGroup(group));
+            groupsContainer.appendChild(groupItem);
+            console.log('Added group to dropdown:', group.name);
+          });
+          
+          // Try to load the last selected LLM from preferences
+          populateLLMs();
+          
+          // Try to load the last selected group from preferences
+          if (groups.length > 0) {
+            try {
+              // Fetch the 'group_id' preference
+              const prefRes = await fetch('/api/preferences/participant/by-name/group_id', {
+                method: 'GET',
+                credentials: 'include'  // send cookies
+              });
+              
+              if (prefRes.ok) {
+                const preference = await prefRes.json();
+                console.log('Fetched group_id preference:', preference);
+                
+                if (preference && preference.value) {
+                  // Find the group with the matching ID
+                  const lastGroup = groups.find(g => g.id === preference.value);
+                  
+                  if (lastGroup) {
+                    console.log(`Selecting last used group: ${lastGroup.name} (ID: ${lastGroup.id})`);
+                    selectGroup(lastGroup);
+                    return; // Exit early since we've selected a group
+                  } else {
+                    console.log(`Last group ID ${preference.value} not found in available groups`);
+                  }
+                }
+              } else {
+                console.log('No group_id preference found, selecting first group');
+              }
+            } catch (prefErr) {
+              console.error('Error fetching group_id preference:', prefErr);
+            }
+            
+            // Fallback to selecting the first group if no preference exists or there was an error
+            console.log('Selecting first group by default:', groups[0].name);
+            selectGroup(groups[0]);
+          }
+        } else {
+          console.error('Failed to fetch groups');
+        }
+      } catch (err) {
+        console.error('Error fetching groups:', err);
+      }
+    }
+    
+    // Function to fetch conversations for a group
+    async function fetchConversations(groupId) {
+      try {
+        const url = `/api/grp-cons/by-group/${groupId}?typeId=1`;
+        console.log(`Fetching conversations from: ${url}`);
+        
+        const res = await fetch(url, {
+          method: 'GET',
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          const conversations = await res.json();
+          console.log(`Fetched ${conversations.length} conversations for group ${groupId}:`, conversations);
+          return conversations;
+        } else {
+          console.error('Failed to fetch conversations');
+          return [];
+        }
+      } catch (err) {
+        console.error('Error fetching conversations:', err);
+        return [];
+      }
+    }
+    
+    // Function to fetch templates for a group
+    async function fetchtemplates(groupId) {
+      try {
+        const url = `/api/grp-cons/by-group/${groupId}?typeId=2`;
+        console.log(`Fetching templates from: ${url}`);
+        
+        const res = await fetch(url, {
+          method: 'GET',
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          const templates = await res.json();
+          console.log(`Fetched ${templates.length} templates for group ${groupId}:`, templates);
+          return templates;
+        } else {
+          console.error('Failed to fetch templates');
+          return [];
+        }
+      } catch (err) {
+        console.error('Error fetching templates:', err);
+        return [];
+      }
+    }
+    
+    // Function to display conversations in the left column
+    function displayConversations(conversations) {
+      const conversationsList = document.getElementById('conversations-list');
+      
+      // Clear existing conversations
+      conversationsList.innerHTML = '';
+      
+      if (conversations.length === 0) {
+        const noConversationsMsg = document.createElement('div');
+        noConversationsMsg.className = 'conversation-item';
+        noConversationsMsg.textContent = 'No conversations yet';
+        conversationsList.appendChild(noConversationsMsg);
+        return;
+      }
+      
+      // Add conversations to the list
+      conversations.forEach(conversation => {
+        const conversationItem = document.createElement('div');
+        conversationItem.className = 'conversation-item';
+        conversationItem.textContent = conversation.name;
+        conversationItem.dataset.conversationId = conversation.id;
+        
+        // Add click event to handle conversation selection
+        conversationItem.addEventListener('click', () => {
+          console.log(`Selected conversation: ${conversation.name} (ID: ${conversation.id})`);
+          
+          // Update visual selection
+          document.querySelectorAll('.conversation-item').forEach(item => {
+            item.classList.remove('selected');
+          });
+          conversationItem.classList.add('selected');
+          
+          // Call the selectConversation function to update the UI
+          selectConversation(conversation);
+        });
+        
+        conversationsList.appendChild(conversationItem);
+      });
+    }
+    
+    // Function to display templates in the left column
+    function displaytemplates(templates) {
+      const templatesList = document.getElementById('templates-list');
+      
+      // Clear existing templates
+      templatesList.innerHTML = '';
+      
+      if (templates.length === 0) {
+        const notemplatesMsg = document.createElement('div');
+        notemplatesMsg.className = 'conversation-item';
+        notemplatesMsg.textContent = 'No templates yet';
+        templatesList.appendChild(notemplatesMsg);
+        return;
+      }
+      
+      // Add templates to the list
+      templates.forEach(template => {
+        const templateItem = document.createElement('div');
+        templateItem.className = 'conversation-item';
+        templateItem.textContent = template.name;
+        templateItem.dataset.conversationId = template.id;
+        
+        // Add click event to handle template selection
+        templateItem.addEventListener('click', () => {
+          console.log(`Selected template: ${template.name} (ID: ${template.id})`);
+          
+          // Update visual selection
+          document.querySelectorAll('.conversation-item').forEach(item => {
+            item.classList.remove('selected');
+          });
+          templateItem.classList.add('selected');
+          
+          // Call the selectConversation function to update the UI
+          selectConversation(template);
+        });
+        
+        templatesList.appendChild(templateItem);
+      });
+    }
+    
+    // Function to create a new conversation
+    async function createNewConversation() {
+      if (!selectedGroup) {
+        console.error('No group selected');
+        return;
+      }
+      
+      // Prompt user for conversation name
+      const name = prompt('Enter a name for the new conversation:');
+      if (!name) return; // User cancelled
+      
+      try {
+        const res = await fetch('/api/grp-cons', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken
+          },
+          body: JSON.stringify({
+            groupId: selectedGroup.id,
+            name: name,
+            description: '',  // Optional description
+            typeId: 1  // 1 = conversation
+          }),
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          const newConversation = await res.json();
+          console.log('Created new conversation:', newConversation);
+          
+          // Refresh conversations list
+          const conversations = await fetchConversations(selectedGroup.id);
+          displayConversations(conversations);
+          
+          // Auto-select the newly created conversation
+          const conversationItem = document.querySelector(`.conversation-item[data-conversation-id="${newConversation.id}"]`);
+          if (conversationItem) {
+            // Update visual selection
+            document.querySelectorAll('.conversation-item').forEach(item => {
+              item.classList.remove('selected');
+            });
+            conversationItem.classList.add('selected');
+            
+            // Call the selectConversation function to update the UI
+            selectConversation(newConversation);
+          }
+        } else {
+          console.error('Failed to create conversation');
+        }
+      } catch (err) {
+        console.error('Error creating conversation:', err);
+      }
+    }
+    
+    // Function to create a new template
+    async function createNewtemplate() {
+      if (!selectedGroup) {
+        console.error('No group selected');
+        return;
+      }
+      
+      // Prompt user for template name
+      const name = prompt('Enter a name for the new template:');
+      if (!name) return; // User cancelled
+      
+      try {
+        const res = await fetch('/api/grp-cons', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken
+          },
+          body: JSON.stringify({
+            groupId: selectedGroup.id,
+            name: name,
+            description: '',  // Optional description
+            typeId: 2  // 2 = template
+          }),
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          const newtemplate = await res.json();
+          console.log('Created new template:', newtemplate);
+          
+          // Refresh templates list
+          const templates = await fetchtemplates(selectedGroup.id);
+          displaytemplates(templates);
+          
+          // Auto-select the newly created template
+          const templateItem = document.querySelector(`#templates-list .conversation-item[data-conversation-id="${newtemplate.id}"]`);
+          if (templateItem) {
+            // Update visual selection
+            document.querySelectorAll('.conversation-item').forEach(item => {
+              item.classList.remove('selected');
+            });
+            templateItem.classList.add('selected');
+            
+            // Call the selectConversation function to update the UI
+            selectConversation(newtemplate);
+          }
+        } else {
+          console.error('Failed to create template');
+        }
+      } catch (err) {
+        console.error('Error creating template:', err);
+      }
+    }
+    // Function to populate LLMs in the dropdown
+    function populateLLMs() {
+      if (!availableLLMs || availableLLMs.length === 0) {
+        console.log('No LLMs available to populate');
+        return;
+      }
+      
+      // Get the LLMs container
+      const llmsContainer = document.getElementById('llms-container');
+      
+      // Clear existing LLMs except the header
+      const header = llmsContainer.querySelector('.dropdown-header');
+      llmsContainer.innerHTML = '';
+      llmsContainer.appendChild(header);
+      
+      // Add LLMs to the dropdown
+      availableLLMs.forEach(llm => {
+        const llmItem = document.createElement('div');
+        llmItem.className = 'group-item llm-item'; // Reuse the group-item class for styling
+        llmItem.textContent = llm.name;
+        llmItem.dataset.llmId = llm.id;
+        llmItem.addEventListener('click', () => selectLLM(llm));
+        llmsContainer.appendChild(llmItem);
+        console.log('Added LLM to dropdown:', llm.name);
+      });
+      
+      // Try to highlight the current LLM if it exists
+      if (currentUser && currentUser.participant && currentUser.participant.current_llm_id) {
+        const currentLLMId = currentUser.participant.current_llm_id;
+        const currentLLM = availableLLMs.find(llm => llm.id === currentLLMId);
+        
+        if (currentLLM) {
+          console.log(`Current LLM is: ${currentLLM.name} (ID: ${currentLLM.id})`);
+          selectLLM(currentLLM, false); // Select without saving preference (it's already saved)
+        }
+      }
+    }
+    
+    // Function to handle LLM selection
+    async function selectLLM(llm, savePreference = true) {
+      selectedLLM = llm;
+      console.log(`Selected LLM: ${llm.name} (ID: ${llm.id})`);
+      
+      // Update visual selection in dropdown
+      document.querySelectorAll('.llm-item').forEach(item => {
+        item.classList.remove('selected');
+      });
+      
+      // Add selected class to the clicked LLM
+      const selectedItem = document.querySelector(`.llm-item[data-llm-id="${llm.id}"]`);
+      if (selectedItem) {
+        selectedItem.classList.add('selected');
+        console.log(`Added selected class to LLM: ${llm.name}`);
+      } else {
+        console.error(`Could not find LLM item with ID: ${llm.id}`);
+      }
+      
+      // Save the selected LLM ID as a participant preference if requested
+      if (savePreference) {
+        try {
+          const res = await fetch('/api/preferences/participant', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-csrf-token': csrfToken
+            },
+            body: JSON.stringify({
+              preferenceName: 'llm_selection',
+              value: llm.id
+            }),
+            credentials: 'include'  // send cookies
+          });
+          
+          if (res.ok) {
+            console.log(`Saved LLM ID ${llm.id} as participant preference`);
+            
+            // Update the current_llm_id in the user object
+            if (currentUser && currentUser.participant) {
+              currentUser.participant.current_llm_id = llm.id;
+            }
+          } else {
+            console.error('Failed to save LLM ID as participant preference');
+          }
+        } catch (err) {
+          console.error('Error saving LLM ID as participant preference:', err);
+        }
+      }
+    }
+    
+    // Function to handle group selection
+    async function selectGroup(group) {
+      selectedGroup = group;
+      console.log(`Selected group: ${group.name} (ID: ${group.id})`);
+      
+      // Fetch and display conversations for this group
+      const conversations = await fetchConversations(group.id);
+      displayConversations(conversations);
+      
+      // Fetch and display templates for this group
+      const templates = await fetchtemplates(group.id);
+      displaytemplates(templates);
+      
+      // Update UI to show the selected group in the header
+      const groupNameDisplay = document.getElementById('group-name-display');
+      if (groupNameDisplay) {
+        groupNameDisplay.textContent = `: ${group.name}`;
+        console.log(`Updated header with group name: ${group.name}`);
+      } else {
+        console.error('Could not find group-name-display element');
+      }
+      
+      // Update the main content heading to show the group name
+      const mainContentHeading = document.querySelector('.main-content h1');
+      if (mainContentHeading) {
+        mainContentHeading.textContent = `${group.name} Conversations`;
+        console.log(`Updated main content heading to: ${group.name} Conversations`);
+      } else {
+        console.error('Could not find main-content h1 element');
+      }
+      
+      // Update visual selection in dropdown
+      document.querySelectorAll('.group-item').forEach(item => {
+        item.classList.remove('selected');
+      });
+      
+      // Add selected class to the clicked group
+      const selectedItem = document.querySelector(`.group-item[data-group-id="${group.id}"]`);
+      if (selectedItem) {
+        selectedItem.classList.add('selected');
+        console.log(`Added selected class to group: ${group.name}`);
+      } else {
+        console.error(`Could not find group item with ID: ${group.id}`);
+      }
+      
+      // Save the selected group ID as a participant preference
+      // This will allow the application to return to this group when reopened
+      try {
+        const res = await fetch('/api/preferences/participant', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken
+          },
+          body: JSON.stringify({
+            preferenceName: 'group_id',
+            value: group.id
+          }),
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          console.log(`Saved group ID ${group.id} as participant preference`);
+        } else {
+          console.error('Failed to save group ID as participant preference');
+        }
+      } catch (err) {
+        console.error('Error saving group ID as participant preference:', err);
+      }
+    }
+    
+    // Function to fetch topics for a template
+    async function fetchTopics(templateId) {
+      try {
+        const url = `/api/grp-con-template-topics/by-template/${templateId}`;
+        console.log(`Fetching topics from: ${url}`);
+        
+        const res = await fetch(url, {
+          method: 'GET',
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          const topics = await res.json();
+          console.log(`Fetched ${topics.length} topics for template ${templateId}:`, topics);
+          
+          // Sort topics by topic_index
+          topics.sort((a, b) => parseFloat(a.topic_index) - parseFloat(b.topic_index));
+          
+          return topics;
+        } else {
+          console.error('Failed to fetch topics');
+          return [];
+        }
+      } catch (err) {
+        console.error('Error fetching topics:', err);
+        return [];
+      }
+    }
+    
+    // Function to display topics in the topics column
+    function displayTopics(topics) {
+      const topicsList = document.getElementById('topics-list');
+      
+      // Clear existing topics
+      topicsList.innerHTML = '';
+      
+      if (topics.length === 0) {
+        const noTopicsMsg = document.createElement('div');
+        noTopicsMsg.className = 'conversation-item';
+        noTopicsMsg.textContent = 'No topics yet';
+        topicsList.appendChild(noTopicsMsg);
+        return;
+      }
+      
+      // Add topics to the list
+      topics.forEach(topic => {
+        const topicItem = document.createElement('div');
+        topicItem.className = 'conversation-item';
+        topicItem.textContent = topic.title;
+        topicItem.dataset.topicId = topic.id;
+        
+        // Add click event to handle topic selection
+        topicItem.addEventListener('click', () => {
+          console.log(`Selected topic: ${topic.title} (ID: ${topic.id})`);
+          
+          // Update visual selection
+          document.querySelectorAll('#topics-list .conversation-item').forEach(item => {
+            item.classList.remove('selected');
+          });
+          topicItem.classList.add('selected');
+          
+          // Display topic content in the transcript area
+          displayTopicContent(topic);
+        });
+        
+        topicsList.appendChild(topicItem);
+      });
+    }
+    
+    // Function to handle topic selection by creating and submitting a prompt
+    function displayTopicContent(topic) {
+      // Create a prompt in the form of "Tell me about <topic>"
+      const prompt = `Tell me about ${topic.title}`;
+      
+      // Set the prompt in the user input field
+      const userInput = document.getElementById('user-input');
+      userInput.innerHTML = prompt;
+      
+      // Submit the prompt as if the user had entered it manually
+      handleMessageSubmit();
+    }
+    
+    // Function to create a new topic
+    async function createNewTopic() {
+      // Get the selected template
+      const selectedTemplate = document.querySelector('#templates-list .conversation-item.selected');
+      if (!selectedTemplate) {
+        console.error('No template selected');
+        return;
+      }
+      
+      const templateId = selectedTemplate.dataset.conversationId;
+      
+      // Prompt user for topic title
+      const title = prompt('Enter a title for the new topic:');
+      if (!title) return; // User cancelled
+      
+      try {
+        // Get the current topics to determine the next topic_index
+        const currentTopics = await fetchTopics(templateId);
+        let nextIndex = 10; // Default starting index
+        
+        if (currentTopics.length > 0) {
+          // Find the highest topic_index and add 10
+          const highestIndex = Math.max(...currentTopics.map(t => parseFloat(t.topic_index)));
+          nextIndex = highestIndex + 10;
+        }
+        
+        // Refresh CSRF token before sending request
+        await fetchCsrfToken();
+        
+        const res = await fetch('/api/grp-con-template-topics', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken
+          },
+          body: JSON.stringify({
+            template_id: Number(templateId),
+            title: title,
+            content: '',  // Empty content initially
+            topic_index: nextIndex
+          }),
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          const newTopic = await res.json();
+          console.log('Created new topic:', newTopic);
+          
+          // Refresh topics list
+          const topics = await fetchTopics(templateId);
+          displayTopics(topics);
+          
+          // Auto-select the newly created topic
+          const topicItem = document.querySelector(`#topics-list .conversation-item[data-topic-id="${newTopic.id}"]`);
+          if (topicItem) {
+            // Update visual selection
+            document.querySelectorAll('#topics-list .conversation-item').forEach(item => {
+              item.classList.remove('selected');
+            });
+            topicItem.classList.add('selected');
+            
+            // Display the topic content
+            displayTopicContent(newTopic);
+          }
+        } else {
+          console.error('Failed to create topic');
+        }
+      } catch (err) {
+        console.error('Error creating topic:', err);
+      }
+    }
+    
+    // Function to handle conversation selection
+    async function selectConversation(conversation) {
+      console.log(`Selected conversation: ${conversation.name} (ID: ${conversation.id}), typeId: ${conversation.type_id}`);
+      
+      // Check if this is a template (type_id = 2) or a conversation (type_id = 1)
+      // Note: The property is type_id, not typeId
+      const isTemplate = conversation.type_id === 2;
+      console.log(`Is this a template? ${isTemplate}`);
+      
+      // Show or hide the topics column based on whether this is a template
+      const topicsColumn = document.getElementById('topics-column');
+      if (isTemplate) {
+        console.log('This is a template, showing topics column');
+        // Show the topics column and fetch topics
+        topicsColumn.style.display = 'flex';
+        
+        // Fetch and display topics for this template
+        try {
+          const topics = await fetchTopics(conversation.id);
+          displayTopics(topics);
+        } catch (err) {
+          console.error('Error fetching topics:', err);
+          // Still show the topics column even if fetching topics fails
+          const topicsList = document.getElementById('topics-list');
+          topicsList.innerHTML = '<div class="conversation-item">No topics yet</div>';
+        }
+      } else {
+        console.log('This is not a template, hiding topics column');
+        // Hide the topics column
+        topicsColumn.style.display = 'none';
+      }
+      
+      // Update the conversation title
+      const conversationTitle = document.getElementById('conversation-title');
+      conversationTitle.textContent = conversation.name;
+      
+      // Clear the transcript area
+      const transcriptArea = document.getElementById('transcript-area');
+      transcriptArea.innerHTML = '';
+      
+      // Enable the input area
+      const userInput = document.getElementById('user-input');
+      const sendButton = document.getElementById('send-button');
+      userInput.disabled = false;
+      sendButton.disabled = false;
+      
+      // Show loading indicator while fetching conversation history
+      const loadingMessage = "Loading conversation history...";
+      const loadingMessageId = Date.now(); // Use timestamp as a unique ID
+      addMessageToTranscript(loadingMessage, 'response', loadingMessageId);
+      
+      // Fetch conversation turns from the API
+      fetch(`/api/conversations/${conversation.id}/turns`, {
+        method: 'GET',
+        credentials: 'include' // send cookies
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch conversation history: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(turns => {
+        console.log(`Loaded ${turns.length} turns for conversation ${conversation.id}`);
+        
+        // Remove loading message
+        removeMessageFromTranscript(loadingMessageId);
+        
+        // If no turns, show an empty conversation
+        if (turns.length === 0) {
+          console.log('No turns found for this conversation');
+          return;
+        }
+        
+        // Separate regular turns and comments
+        const regularTurns = turns.filter(turn => turn.turn_kind_id !== 3); // TURN_KIND.COMMENT = 3
+        const commentTurns = turns.filter(turn => turn.turn_kind_id === 3);
+        
+        // Display regular turns first
+        regularTurns.forEach(turn => {
+          // Determine if this is a user message or LLM response
+          let messageType;
+          if (turn.message_type_id !== undefined) {
+            // Use message_type_id if available (new method)
+            messageType = turn.message_type_id === 1 ? 'user' : 'response';
+          } else {
+            // Fall back to avatar ID comparison (old method)
+            const isUserMessage = turn.avatar_id === currentUser.participant?.current_avatar_id;
+            messageType = isUserMessage ? 'user' : 'response';
+          }
+          
+          // Add the message to the transcript with its turn ID
+          addMessageToTranscript(turn.content_text, messageType, null, turn.id);
+        });
+        
+        // Then display comments
+        commentTurns.forEach(comment => {
+          // Find the parent turn based on the comment's turn_index
+          // Comments have decimal indices (e.g., 21.5) where the integer part matches the parent turn's index
+          const commentIndex = parseFloat(comment.turn_index);
+          const parentIndex = Math.floor(commentIndex);
+          
+          // Find the parent turn with the matching index
+          const parentTurn = regularTurns.find(turn => Math.floor(parseFloat(turn.turn_index)) === parentIndex);
+          
+          if (parentTurn) {
+            // Determine if this is a user comment or LLM comment
+            const isUserComment = comment.avatar_id === currentUser.participant?.current_avatar_id;
+            const commentType = isUserComment ? 'user' : 'response';
+            
+            // Add the comment to the transcript
+            addMessageToTranscript(
+              comment.content_text,
+              commentType,
+              null,
+              comment.id,
+              true, // isComment = true
+              parentTurn.id // parentTurnId
+            );
+          }
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching conversation history:', error);
+        
+        // Remove loading message
+        removeMessageFromTranscript(loadingMessageId);
+        
+        // Show error message
+        addMessageToTranscript("Failed to load conversation history. Please try again.", 'response');
+      });
+    }
+    
+    // Function to handle message submission
+    async function handleMessageSubmit() {
+      const userInput = document.getElementById('user-input');
+      const message = userInput.innerHTML.trim();
+      
+      if (!message) return; // Don't send empty messages
+      
+      // Refresh CSRF token before sending message
+      await fetchCsrfToken();
+      
+      // Check if a conversation is selected
+      const conversationTitle = document.getElementById('conversation-title');
+      if (conversationTitle.textContent === 'Select a conversation') {
+        alert('Please select a conversation first');
+        return;
+      }
+      
+      // Format the message with the participant's name before displaying it
+      const formattedMessage = `<${currentUser.participant.name}>:${message}`;
+      
+      // Add user message to transcript with a temporary ID
+      const tempMessageId = `temp-${Date.now()}`;
+      addMessageToTranscript(formattedMessage, 'user', tempMessageId);
+      
+      // Clear input
+      userInput.innerHTML = '';
+      userInput.style.height = 'auto'; // Reset height
+      
+      // Get the selected conversation ID
+      const selectedConversation = document.querySelector('.conversation-item.selected');
+      if (!selectedConversation) {
+        console.error('No conversation selected');
+        return;
+      }
+      
+      const conversationId = selectedConversation.dataset.conversationId;
+      console.log(`Sending message to conversation ${conversationId}: ${message}`);
+      
+      // Show loading indicator
+      const loadingMessage = "Thinking...";
+      const loadingMessageId = Date.now(); // Use timestamp as a unique ID
+      addMessageToTranscript(loadingMessage, 'response', loadingMessageId);
+      
+      // Make API call to get response from Claude
+      fetch(`/api/conversations/${conversationId}/turns`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken
+        },
+        body: JSON.stringify({ prompt: message }),
+        credentials: 'include'  // send cookies
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`API call failed with status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Received response:', data);
+        
+        // Remove loading message
+        removeMessageFromTranscript(loadingMessageId);
+        
+        // Add the actual response
+        if (data && data.userTurn && data.llmTurn && data.llmTurn.content_text) {
+          // The API returns an object with userTurn and llmTurn properties
+          
+          // Update the temporary user message with the actual turn ID
+          const userMessageDiv = document.querySelector(`.message[data-message-id="${tempMessageId}"]`);
+          if (userMessageDiv && data.userTurn.id) {
+            userMessageDiv.dataset.turnId = data.userTurn.id;
+            console.log(`Updated user message with turn ID: ${data.userTurn.id}`);
+            // Remove the temporary ID as it's no longer needed
+            delete userMessageDiv.dataset.messageId;
+          }
+          
+          const llmResponse = data.llmTurn.content_text;
+          // Add the LLM response with its turn ID
+          addMessageToTranscript(llmResponse, 'response', null, data.llmTurn.id);
+        } else if (data && Array.isArray(data) && data.length >= 2) {
+          // Fallback for array format (as in the test page)
+          const llmResponse = data[1].content_text;
+          addMessageToTranscript(llmResponse, 'response');
+        } else {
+          addMessageToTranscript("Sorry, I couldn't generate a response at this time.", 'response');
+        }
+      })
+      .catch(error => {
+        console.error('Error getting response:', error);
+        
+        // Remove loading message
+        removeMessageFromTranscript(loadingMessageId);
+        
+        // Show error message
+        addMessageToTranscript("Sorry, there was an error processing your request.", 'response');
+      });
+    }
+    
+    // Function to sanitize HTML to prevent XSS attacks
+    function sanitizeHTML(html) {
+      const temp = document.createElement('div');
+      temp.textContent = html;
+      return temp.innerHTML;
+    }
+    
+    // Function to format text with basic markdown-like syntax
+    function formatText(text) {
+      if (!text) return '';
+      
+      // Convert markdown-like syntax to HTML
+      // Bold: **text** -> <strong>text</strong>
+      text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      
+      // Italic: *text* -> <em>text</em>
+      text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+      
+      // Code: `text` -> <code>text</code>
+      text = text.replace(/`(.*?)`/g, '<code>$1</code>');
+      
+      // Line breaks
+      text = text.replace(/\n/g, '<br>');
+      
+      return text;
+    }
+    
+    // Function to parse a message with a name prefix
+    function parseMessage(text) {
+      // Check if the message has a name prefix in the format <Name>:Message
+      const prefixMatch = text.match(/^<([^>]+)>:(.*)/s);
+      
+      if (prefixMatch) {
+        return {
+          name: prefixMatch[1],
+          content: prefixMatch[2].trim()
+        };
+      }
+      
+      // If no prefix is found, return the original text with a default name
+      return {
+        name: null,
+        content: text
+      };
+    }
+    
+    // Function to add a message to the transcript
+    function addMessageToTranscript(text, type, id, turnId, isComment = false, parentTurnId = null) {
+      const transcriptArea = document.getElementById('transcript-area');
+      const messageDiv = document.createElement('div');
+      
+      // Set appropriate classes based on message type and whether it's a comment
+      if (isComment) {
+        messageDiv.className = `message comment-message`;
+      } else {
+        messageDiv.className = `message ${type}-message`;
+      }
+      
+      // Parse the message to extract the name and content
+      const parsedMessage = parseMessage(text);
+      
+      // Create prefix element with the name if available
+      if (parsedMessage.name || type === 'user' || type === 'response') {
+        const prefixDiv = document.createElement('div');
+        prefixDiv.className = 'message-prefix';
+        
+        // Use the parsed name if available, otherwise use a default based on type
+        let displayName = parsedMessage.name;
+        if (!displayName) {
+          if (type === 'user') {
+            displayName = currentUser.participant?.name || 'You';
+          } else if (type === 'response') {
+            displayName = 'AI Assistant';
+          }
+        }
+        
+        prefixDiv.textContent = displayName + ':';
+        messageDiv.appendChild(prefixDiv);
+      }
+      
+      // Create content element with the message
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+      
+      // Use the parsed content if available, otherwise use the original text
+      const contentText = parsedMessage.name ? parsedMessage.content : text;
+      
+      // Use innerHTML to support formatted text, but sanitize first if it's not from a trusted source
+      if (type === 'user') {
+        // For user messages, we can trust the content as it comes from the input
+        contentDiv.innerHTML = contentText;
+      } else {
+        // For system/AI responses, we'll parse markdown-like formatting
+        contentDiv.innerHTML = formatText(contentText);
+      }
+      
+      messageDiv.appendChild(contentDiv);
+      
+      // If an ID is provided, set it as a data attribute
+      if (id) {
+        messageDiv.dataset.messageId = id;
+      }
+      
+      // If a turn ID is provided, set it as a data attribute
+      if (turnId) {
+        messageDiv.dataset.turnId = turnId;
+      }
+      
+      // If this is a comment, set the parent turn ID as a data attribute
+      if (isComment && parentTurnId) {
+        messageDiv.dataset.parentTurnId = parentTurnId;
+      }
+      
+      // If this is not a comment and not a loading message, add a comment link
+      if (!isComment && !id && type !== 'system') {
+        const commentLinkDiv = document.createElement('div');
+        commentLinkDiv.className = 'comment-link';
+        commentLinkDiv.textContent = 'comment';
+        commentLinkDiv.addEventListener('click', () => toggleCommentInput(messageDiv));
+        messageDiv.appendChild(commentLinkDiv);
+        
+        // Add a hidden comment input area
+        const commentInputArea = document.createElement('div');
+        commentInputArea.className = 'comment-input-area';
+        
+        const commentTextarea = document.createElement('textarea');
+        commentTextarea.className = 'comment-textarea';
+        commentTextarea.placeholder = 'Type your comment here...';
+        commentInputArea.appendChild(commentTextarea);
+        
+        const commentButton = document.createElement('button');
+        commentButton.className = 'comment-button';
+        commentButton.textContent = 'Submit';
+        commentButton.addEventListener('click', () => submitComment(messageDiv, commentTextarea));
+        commentInputArea.appendChild(commentButton);
+        
+        messageDiv.appendChild(commentInputArea);
+      }
+      
+      // If this is a comment, append it after its parent message
+      if (isComment && parentTurnId) {
+        const parentMessage = document.querySelector(`.message[data-turn-id="${parentTurnId}"]`);
+        if (parentMessage) {
+          // Find the right position to insert the comment
+          // It should be after the parent and any existing comments on the parent
+          let insertAfter = parentMessage;
+          const existingComments = document.querySelectorAll(`.comment-message[data-parent-turn-id="${parentTurnId}"]`);
+          if (existingComments.length > 0) {
+            insertAfter = existingComments[existingComments.length - 1];
+          }
+          
+          if (insertAfter.nextSibling) {
+            transcriptArea.insertBefore(messageDiv, insertAfter.nextSibling);
+          } else {
+            transcriptArea.appendChild(messageDiv);
+          }
+        } else {
+          // If parent not found, just append to the end
+          transcriptArea.appendChild(messageDiv);
+        }
+      } else {
+        // For regular messages, just append to the end
+        transcriptArea.appendChild(messageDiv);
+      }
+      
+      // Auto-scroll to the bottom
+      transcriptArea.scrollTop = transcriptArea.scrollHeight;
+    }
+    
+    // Function to remove a message from the transcript by ID
+    function removeMessageFromTranscript(id) {
+      if (!id) return;
+      
+      const message = document.querySelector(`.message[data-message-id="${id}"]`);
+      if (message) {
+        message.remove();
+      }
+    }
+    
+    // Function to toggle the comment input area
+    function toggleCommentInput(messageDiv) {
+      const commentInputArea = messageDiv.querySelector('.comment-input-area');
+      if (commentInputArea) {
+        // Toggle display
+        if (commentInputArea.style.display === 'block') {
+          commentInputArea.style.display = 'none';
+        } else {
+          // Hide all other comment input areas first
+          document.querySelectorAll('.comment-input-area').forEach(area => {
+            area.style.display = 'none';
+          });
+          
+          // Show this comment input area
+          commentInputArea.style.display = 'block';
+          
+          // Focus the textarea
+          const textarea = commentInputArea.querySelector('.comment-textarea');
+          if (textarea) {
+            textarea.focus();
+          }
+        }
+      }
+    }
+    
+    // Function to submit a comment
+    async function submitComment(messageDiv, commentTextarea) {
+      const comment = commentTextarea.value.trim();
+      if (!comment) return; // Don't submit empty comments
+      
+      // Get the conversation ID
+      const selectedConversation = document.querySelector('.conversation-item.selected');
+      if (!selectedConversation) {
+        console.error('No conversation selected');
+        return;
+      }
+      const conversationId = selectedConversation.dataset.conversationId;
+      
+      // Get the parent turn ID
+      const parentTurnId = messageDiv.dataset.turnId;
+      if (!parentTurnId) {
+        console.error('No parent turn ID found');
+        return;
+      }
+      
+      // Check if we have a valid avatar ID
+      if (!currentUser.participant || !currentUser.participant.current_avatar_id) {
+        console.error('Missing avatar ID for comment. Current user:', currentUser);
+        alert('Unable to create comment: No avatar ID available. This may be due to a missing preference setting. Please try logging out and logging back in, or contact an administrator for assistance.');
+        return;
+      }
+      
+      // Format the comment with the participant's name
+      const formattedComment = `<${currentUser.participant.name}>:${comment}`;
+      
+      // Show loading indicator
+      const loadingId = Date.now();
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'comment-message';
+      loadingDiv.dataset.messageId = loadingId;
+      loadingDiv.textContent = 'Saving comment...';
+      
+      // Insert after the message div
+      if (messageDiv.nextSibling) {
+        messageDiv.parentNode.insertBefore(loadingDiv, messageDiv.nextSibling);
+      } else {
+        messageDiv.parentNode.appendChild(loadingDiv);
+      }
+      
+      try {
+        // Log the request data for debugging
+        console.log('Submitting comment with data:', {
+          conversationId: Number(conversationId),
+          avatarId: currentUser.participant.current_avatar_id,
+          parentTurnId: Number(parentTurnId),
+          contentText: formattedComment
+        });
+        
+        // Send the comment to the server
+        const response = await fetch('/api/grp-con-avatar-turns/comment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken
+          },
+          body: JSON.stringify({
+            conversationId: Number(conversationId),
+            avatarId: currentUser.participant.current_avatar_id,
+            parentTurnId: Number(parentTurnId),
+            contentText: formattedComment
+          }),
+          credentials: 'include' // send cookies
+        });
+        
+        // Remove loading indicator
+        const loadingIndicator = document.querySelector(`.comment-message[data-message-id="${loadingId}"]`);
+        if (loadingIndicator) {
+          loadingIndicator.remove();
+        }
+        
+        if (response.ok) {
+          const commentData = await response.json();
+          console.log('Comment created:', commentData);
+          
+          // Clear the textarea
+          commentTextarea.value = '';
+          
+          // Hide the comment input area
+          const commentInputArea = messageDiv.querySelector('.comment-input-area');
+          if (commentInputArea) {
+            commentInputArea.style.display = 'none';
+          }
+          
+          // Add the comment to the transcript
+          addMessageToTranscript(
+            formattedComment,
+            'user',
+            null,
+            commentData.id,
+            true, // isComment = true
+            parentTurnId // parentTurnId
+          );
+          
+          // Scroll to the newly added comment
+          setTimeout(() => {
+            const newComment = document.querySelector(`.comment-message[data-turn-id="${commentData.id}"]`);
+            if (newComment) {
+              // Scroll the comment into view with some padding
+              newComment.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              
+              // Add a highlight effect to make it more visible
+              newComment.style.transition = 'background-color 0.5s ease';
+              newComment.style.backgroundColor = '#ffffd0'; // Light yellow highlight
+              setTimeout(() => {
+                newComment.style.backgroundColor = ''; // Return to original color
+              }, 1500);
+            }
+          }, 100); // Small delay to ensure the DOM is updated
+        } else {
+          console.error('Failed to create comment:', await response.text());
+          alert('Failed to create comment. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error creating comment:', error);
+        
+        // Remove loading indicator
+        const loadingIndicator = document.querySelector(`.comment-message[data-message-id="${loadingId}"]`);
+        if (loadingIndicator) {
+          loadingIndicator.remove();
+        }
+        
+        alert('Error creating comment. Please try again.');
+      }
+    }
+    
+    // Function to set up contenteditable input area
+    function setupTextareaAutoResize() {
+      const editableDiv = document.getElementById('user-input');
+      
+      // Add placeholder behavior for contenteditable
+      editableDiv.addEventListener('focus', function() {
+        if (this.innerHTML.trim() === '' && this.getAttribute('placeholder')) {
+          this.setAttribute('data-placeholder', this.getAttribute('placeholder'));
+          this.removeAttribute('placeholder');
+        }
+      });
+      
+      editableDiv.addEventListener('blur', function() {
+        if (this.innerHTML.trim() === '' && this.getAttribute('data-placeholder')) {
+          this.setAttribute('placeholder', this.getAttribute('data-placeholder'));
+          this.removeAttribute('data-placeholder');
+        }
+      });
+      
+      // Handle input events for auto-resize
+      editableDiv.addEventListener('input', function() {
+        // Auto-resize logic for contenteditable
+        this.style.height = 'auto';
+        const newHeight = Math.min(this.scrollHeight, 200); // Cap at max-height
+        this.style.height = newHeight + 'px';
+      });
+    }
+    
+    // Function to handle file upload
+    async function handleFileUpload(file) {
+      // Check if a conversation is selected
+      const conversationTitle = document.getElementById('conversation-title');
+      if (conversationTitle.textContent === 'Select a conversation') {
+        alert('Please select a conversation first');
+        return;
+      }
+      
+      // Get the selected conversation ID
+      const selectedConversation = document.querySelector('.conversation-item.selected');
+      if (!selectedConversation) {
+        console.error('No conversation selected');
+        return;
+      }
+      
+      const conversationId = selectedConversation.dataset.conversationId;
+      
+      // Create a FormData object to send the file
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('grpConId', conversationId);
+      
+      // Show loading message in the transcript
+      const loadingMessage = `Uploading file: ${file.name}...`;
+      const loadingMessageId = Date.now();
+      addMessageToTranscript(loadingMessage, 'user', loadingMessageId);
+      
+      try {
+        // Upload the file
+        const response = await fetch('/api/grp-con-uploads', {
+          method: 'POST',
+          headers: {
+            'x-csrf-token': csrfToken
+          },
+          body: formData,
+          credentials: 'include'
+        });
+        
+        // Remove loading message
+        removeMessageFromTranscript(loadingMessageId);
+        
+        if (response.ok) {
+          const uploadData = await response.json();
+          console.log('File uploaded successfully:', uploadData);
+          
+          // Display the file in the conversation
+          displayFileInConversation(uploadData);
+        } else {
+          console.error('Failed to upload file:', await response.text());
+          alert('Failed to upload file. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        
+        // Remove loading message
+        removeMessageFromTranscript(loadingMessageId);
+        
+        alert('Error uploading file. Please try again.');
+      }
+    }
+    
+    // Function to display a file in the conversation
+    function displayFileInConversation(fileData) {
+      // Create a message with the file information
+      const fileMessage = document.createElement('div');
+      
+      // Determine message type based on message_type_id if available
+      let messageType = 'user'; // Default to user message for file uploads
+      if (fileData.message_type_id !== undefined) {
+        messageType = fileData.message_type_id === 1 ? 'user' : 'response';
+      }
+      
+      fileMessage.className = `message ${messageType}-message`;
+      
+      // Create prefix element with the sender's name
+      const prefixDiv = document.createElement('div');
+      prefixDiv.className = 'message-prefix';
+      prefixDiv.textContent = currentUser.participant?.name || 'You' + ':';
+      fileMessage.appendChild(prefixDiv);
+      
+      // Create content element with the file information
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content file-message';
+      
+      // Add file icon
+      const fileIcon = document.createElement('span');
+      fileIcon.textContent = '📄';
+      contentDiv.appendChild(fileIcon);
+      
+      // Add file name as a link
+      const fileLink = document.createElement('a');
+      fileLink.className = 'file-link';
+      fileLink.textContent = fileData.filename;
+      fileLink.href = `/api/grp-con-uploads/${fileData.id}`;
+      fileLink.target = '_blank';
+      contentDiv.appendChild(fileLink);
+      
+      fileMessage.appendChild(contentDiv);
+      
+      // Add the file message to the transcript
+      const transcriptArea = document.getElementById('transcript-area');
+      transcriptArea.appendChild(fileMessage);
+      
+      // Auto-scroll to the bottom
+      transcriptArea.scrollTop = transcriptArea.scrollHeight;
+    }
+    
+    // Initialize the app
+    (async function(){
+      try {
+        // Fetch CSRF token first
+        await fetchCsrfToken();
+        
+        // Fetch current user data - this only returns true if authentication is successful
+        const authSuccess = await fetchCurrentUser();
+        
+        // Only fetch groups if authentication was successful
+        if (authSuccess) {
+          console.log('Authentication successful, now fetching groups...');
+          await fetchGroups();
+        } else {
+          console.log('Authentication failed, not fetching groups');
+        }
+        
+        // Add event listener for logout
+        document.getElementById('logout-link').addEventListener('click', handleLogout);
+        
+        // Add event listener for new conversation button
+        document.getElementById('new-conversation-btn').addEventListener('click', createNewConversation);
+        
+        // Add event listener for new template button
+        document.getElementById('new-template-btn').addEventListener('click', newtemplate);
+        
+        // Add event listener for new topic button
+        document.getElementById('new-topic-btn').addEventListener('click', () => {
+          console.log('New topic button clicked');
+          createNewTopic();
+        });
+        
+        // Function for new template button
+        function newtemplate() {
+          console.log('New template button clicked');
+          createNewtemplate();
+        }
+        
+        // Set up conversation UI
+        setupTextareaAutoResize();
+        
+        // Add event listener for file upload
+        document.getElementById('file-upload').addEventListener('change', function(e) {
+          if (this.files && this.files.length > 0) {
+            handleFileUpload(this.files[0]);
+            // Reset the input so the same file can be uploaded again if needed
+            this.value = '';
+          }
+        });
+        
+    // Add event listener for send button
+    document.getElementById('send-button').addEventListener('click', () => handleMessageSubmit());
+    
+    // Add event listener for Enter key in textarea (Shift+Enter for new line)
+    document.getElementById('user-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault(); // Prevent default to avoid new line
+        handleMessageSubmit();
+          }
+        });
+        
+        // Initially disable the input area until a conversation is selected
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        userInput.disabled = true;
+        userInput.placeholder = "Select a conversation to start chatting...";
+        sendButton.disabled = true;
+        
+        console.log('App initialized successfully');
+      } catch (err) {
+        console.error('Error initializing app:', err);
+      }
+    })();
+  </script>
+</body>
+</html>
