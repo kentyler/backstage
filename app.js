@@ -28,6 +28,7 @@ import preferencesRoutes                from './src/routes/preferences.js';
 import grpConUploadsRoutes              from './src/routes/grpConUploads.js';
 import grpConTemplateTopicsRoutes       from './src/routes/grpConTemplateTopics.js';
 import meRouter                         from './src/routes/me.js';
+import directAuthRouter                 from './src/routes/direct-auth.js';
 import { loginHandler }                 from './src/controllers/participants/loginHandler.js';
 import { setClientPool }                from './src/middleware/setClientPool.js';
 
@@ -295,6 +296,10 @@ app.use('/api/grp-con-template-topics',                     grpConTemplateTopics
 
 // mount the "who-ami" endpoint
 app.use('/api/me', meRouter);
+
+// Mount our CSRF-exempt direct authentication endpoint
+// This is not protected by CSRF validation middleware
+app.use('/api/direct-auth', directAuthRouter);
 
 // SPA fallback
 app.use((req, res, next) => {

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct Authentication Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .panel {
+            background-color: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        .status {
+            font-weight: bold;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        #log {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Direct Authentication Test Page</h1>
+        <p>This page tests the direct authentication endpoint that bypasses CSRF token requirements.</p>
+        
+        <div class="panel">
+            <h2>JWT Token in localStorage</h2>
+            <button id="checkToken">Check for JWT Token</button>
+            <pre id="tokenPreview"></pre>
+        </div>
+        
+        <div class="panel">
+            <h2>Direct Authentication</h2>
+            <button id="testAuth">Test Direct Authentication</button>
+            <div>Status: <span id="authStatus" class="status">Not tested</span></div>
+            <pre id="authResult"></pre>
+        </div>
+        
+        <div class="panel">
+            <h2>Debug Log</h2>
+            <button id="clearLog">Clear Log</button>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <script>
+        // Utility to log messages with timestamps
+        function log(message, data = null) {
+            const timestamp = new Date().toISOString();
+            const logElement = document.getElementById('log');
+            
+            let formattedMessage = `[${timestamp}] ${message}`;
+            console.log(formattedMessage, data);
+            
+            const msgElement = document.createElement('div');
+            msgElement.textContent = formattedMessage;
+            
+            // If there's data, display it as JSON
+            if (data) {
+                const dataPreview = JSON.stringify(data, null, 2).substring(0, 200) + 
+                                  (JSON.stringify(data, null, 2).length > 200 ? '...' : '');
+                const dataElement = document.createElement('pre');
+                dataElement.textContent = dataPreview;
+                dataElement.style.marginLeft = '20px';
+                dataElement.style.fontSize = '12px';
+                msgElement.appendChild(dataElement);
+            }
+            
+            logElement.appendChild(msgElement);
+            // Auto-scroll to bottom
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        // Check for JWT token in localStorage
+        document.getElementById('checkToken').addEventListener('click', function() {
+            log('Checking localStorage for tokens...');
+            const token = localStorage.getItem('jwt_token');
+            const tokenPreview = document.getElementById('tokenPreview');
+            
+            if (token) {
+                log(`Found jwt_token in localStorage (length: ${token.length})`);
+                // Show a preview (first few characters)
+                const preview = token.substring(0, 9) + '...';
+                log(`Token preview: ${preview}`);
+                tokenPreview.textContent = `JWT Token: ${preview}\nLength: ${token.length} characters`;
+            } else {
+                log('No jwt_token found in localStorage');
+                tokenPreview.textContent = 'No JWT token found in localStorage';
+            }
+        });
+        
+        // Test the direct authentication endpoint
+        document.getElementById('testAuth').addEventListener('click', async function() {
+            const authStatus = document.getElementById('authStatus');
+            const authResult = document.getElementById('authResult');
+            
+            authStatus.textContent = 'Testing...';
+            authStatus.className = 'status';
+            
+            log('Testing direct authentication...');
+            log('Checking localStorage for tokens...');
+            
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                log('No jwt_token found in localStorage');
+                authStatus.textContent = 'Failed - No token';
+                authStatus.className = 'status error';
+                authResult.textContent = 'JWT token not found in localStorage. Please log in first.';
+                return;
+            }
+            
+            log(`Found jwt_token in localStorage (length: ${token.length})`);
+            log(`Token preview: ${token.substring(0, 9)}...`);
+            log('Adding JWT token to Authorization header');
+            
+            try {
+                const response = await fetch('/api/direct-auth', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log(`Authentication successful (status: ${response.status})`);
+                    authStatus.textContent = 'Success';
+                    authStatus.className = 'status success';
+                    authResult.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    log(`Authentication failed with status ${response.status}`);
+                    log('Response:', data);
+                    authStatus.textContent = `Failed - ${response.status}`;
+                    authStatus.className = 'status error';
+                    authResult.textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                log('Error during authentication:', error);
+                authStatus.textContent = 'Error';
+                authStatus.className = 'status error';
+                authResult.textContent = error.toString();
+            }
+        });
+        
+        // Clear the log
+        document.getElementById('clearLog').addEventListener('click', function() {
+            document.getElementById('log').innerHTML = '';
+            log('Log cleared');
+        });
+        
+        // Initial log message
+        log('Direct authentication test page loaded', { timestamp: new Date().toISOString() });
+    </script>
+</body>
+</html>
