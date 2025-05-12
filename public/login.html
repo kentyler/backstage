@@ -30,7 +30,8 @@
       <label for="password">Password</label>
       <input type="password" id="password" name="password" required autocomplete="current-password" />
     </div>
-    <button type="submit">Log In</button>
+    <button type="submit" id="login-button">Log In</button>
+    <div class="loading-indicator" id="loading-indicator" style="display: none;">Logging in...</div>
     <p><a href="forgot-password.html">Forgot your password?</a></p>
     <div id="error" class="error" aria-live="assertive"></div>
   </form>
@@ -42,26 +43,70 @@
       return '/api';
     }
 
-    // Fetch CSRF token when page loads
+    // Flag to track if CSRF token has been successfully fetched
+    let csrfTokenFetched = false;
+    
+    // Maximum number of retry attempts
+    const MAX_RETRY_ATTEMPTS = 3;
+    let retryCount = 0;
+    
+    // Fetch CSRF token with retry capability
     async function fetchCsrfToken() {
       try {
         const apiBaseUrl = getApiBaseUrl();
-        console.log(`Fetching CSRF token from: ${apiBaseUrl}/csrf-token`);
+        console.log(`Fetching CSRF token from: ${apiBaseUrl}/csrf-token (attempt ${retryCount + 1})`);
         
         const response = await fetch(`${apiBaseUrl}/csrf-token`, { 
-          credentials: 'include'
+          credentials: 'include',
+          cache: 'no-store', // Prevent caching issues
+          headers: {
+            // Add a cache-busting query parameter
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache'
+          }
         });
+        
         if (response.ok) {
           const data = await response.json();
-          document.getElementById('csrf-token').value = data.csrfToken;
+          if (data.csrfToken) {
+            console.log('CSRF token received successfully');
+            document.getElementById('csrf-token').value = data.csrfToken;
+            // Also add it as a meta tag for easier debugging
+            const metaTag = document.createElement('meta');
+            metaTag.name = 'csrf-token';
+            metaTag.content = 'token-received';
+            document.head.appendChild(metaTag);
+            csrfTokenFetched = true;
+            
+            // Enable the submit button once we have a token
+            document.getElementById('login-button').disabled = false;
+          } else {
+            throw new Error('CSRF token not found in response');
+          }
+        } else {
+          throw new Error(`Failed to fetch CSRF token: ${response.status} ${response.statusText}`);
         }
       } catch (error) {
         console.error('Failed to fetch CSRF token:', error);
+        
+        // Implement retry logic
+        if (retryCount < MAX_RETRY_ATTEMPTS) {
+          retryCount++;
+          console.log(`Retrying CSRF token fetch in 1 second... (attempt ${retryCount + 1} of ${MAX_RETRY_ATTEMPTS + 1})`);
+          setTimeout(fetchCsrfToken, 1000); // Wait 1 second before retry
+        } else {
+          console.error('Maximum retry attempts reached. Could not fetch CSRF token.');
+          document.getElementById('error').textContent = 'Unable to establish a secure session. Please refresh the page and try again.';
+        }
       }
     }
 
     // Call this when page loads
-    document.addEventListener('DOMContentLoaded', fetchCsrfToken);
+    document.addEventListener('DOMContentLoaded', () => {
+      // Disable submit button until CSRF token is loaded
+      document.getElementById('login-button').disabled = true;
+      fetchCsrfToken();
+    });
 
     document.getElementById('login-form').addEventListener('submit', async event => {
       event.preventDefault();
@@ -70,11 +115,20 @@
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       const csrfToken = document.getElementById('csrf-token').value;
+      
+      // Check if we have a CSRF token before submitting
+      if (!csrfToken) {
+        console.error('CSRF token not available');
+        errorEl.textContent = 'Security token not available. Please refresh the page and try again.';
+        return;
+      }
 
       try {
         const apiBaseUrl = getApiBaseUrl();
         console.log(`Submitting login to: ${apiBaseUrl}/participants/login`);
+        console.log(`With CSRF token: ${csrfToken ? 'Present (hidden)' : 'Missing!'}`);
         
+        // Add the CSRF token in both headers and body for maximum compatibility
         const res = await fetch(`${apiBaseUrl}/participants/login`, {
           method: 'POST',
           headers: { 
@@ -82,7 +136,11 @@
             'X-CSRF-Token': csrfToken
           },
           credentials: 'include',
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ 
+            email, 
+            password,
+            _csrf: csrfToken // Include in body as well
+          })
         });
 
         // Log the response for debugging
