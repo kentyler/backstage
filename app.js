@@ -69,6 +69,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Import fs for synchronous file operations
 import fs from 'fs';
+import pg from 'pg';
 
 // Detect if HTTPS is available (either in production or with local certificates)
 const isHttpsEnabled = () => {
@@ -163,8 +164,7 @@ try {
   // When in production, use PostgreSQL for sessions
   if (process.env.NODE_ENV === 'production') {
     try {
-      // Import pg directly to create a compatible pool
-      import pg from 'pg';
+      // Use the pg import from the top of the file
       const { Pool } = pg;
       
       // Create a standard pg Pool that connect-pg-simple can work with
