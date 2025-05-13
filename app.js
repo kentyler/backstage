@@ -170,11 +170,15 @@ try {
       // Parse connection string if it exists, otherwise use individual params
       let poolConfig;
       
-      if (process.env.DATABASE_URL) {
+      // Check for a full connection string in either DATABASE_URL or DB_HOST
+      const connectionString = process.env.DATABASE_URL || 
+        (process.env.DB_HOST && process.env.DB_HOST.includes('://') ? process.env.DB_HOST : null);
+      
+      if (connectionString) {
         // Handle full connection string (common in Render and other platforms)
-        console.log('[Session] Using DATABASE_URL connection string');
+        console.log('[Session] Using connection string from ' + (process.env.DATABASE_URL ? 'DATABASE_URL' : 'DB_HOST'));
         poolConfig = {
-          connectionString: process.env.DATABASE_URL,
+          connectionString: connectionString,
           ssl: { rejectUnauthorized: false }
         };
       } else {
