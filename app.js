@@ -162,28 +162,47 @@ const sessionConfig = {
 try {
   // When in production, use PostgreSQL for sessions
   if (process.env.NODE_ENV === 'production') {
-    // Get database connection parameters from environment, with fallbacks
-    const pgConfig = {
-      // Instead of conString, use the pool config approach which is more reliable
-      pool: { 
-        // The error was likely because the connection string was using 'postgresql' as a hostname
-        // Instead, explicitly use the environment variables with proper fallbacks
+    try {
+      // Import pg directly to create a compatible pool
+      import pg from 'pg';
+      const { Pool } = pg;
+      
+      // Create a standard pg Pool that connect-pg-simple can work with
+      const pool = new Pool({
         user: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
-        host: process.env.DB_HOST, // This correctly uses the environment variable instead of hardcoded 'postgresql'
+        host: process.env.DB_HOST,
         port: process.env.DB_PORT || 5432,
-        database: process.env.DB_NAME
-      },
-      tableName: 'session',
-      createTableIfMissing: true
-    };
-    
-    // Log connection info (without sensitive data)
-    console.log(`[Session] PostgreSQL session store connecting to: ${process.env.DB_HOST}:${process.env.DB_PORT || 5432} as ${process.env.DB_USER}`);
-    
-    // Use PostgreSQL session store
-    sessionConfig.store = new PgStore(pgConfig);
-    console.log('[Session] Using PostgreSQL session store for production');
+        database: process.env.DB_NAME,
+        ssl: { rejectUnauthorized: false } // For Neon PostgreSQL which requires SSL
+      });
+      
+      // Test the connection
+      pool.query('SELECT NOW()', (err, res) => {
+        if (err) {
+          console.error('[Session] Database connection test failed:', err.message);
+        } else {
+          console.log('[Session] Database connection test successful:', res.rows[0]);
+        }
+      });
+      
+      // Configure session store with the pool
+      const pgConfig = {
+        pool: pool,
+        tableName: 'session',
+        createTableIfMissing: true
+      };
+      
+      // Log connection info (without sensitive data)
+      console.log(`[Session] PostgreSQL session store connecting to: ${process.env.DB_HOST}:${process.env.DB_PORT || 5432} as ${process.env.DB_USER}`);
+      
+      // Use PostgreSQL session store
+      sessionConfig.store = new PgStore(pgConfig);
+      console.log('[Session] Using PostgreSQL session store for production');
+    } catch (dbError) {
+      console.error(`[Session] Failed to initialize PostgreSQL pool: ${dbError.message}`);
+      console.log('[Session] Falling back to MemoryStore');
+    }
   } else {
     // Use memory store for non-production
     console.log('[Session] Using MemoryStore for development environment');
