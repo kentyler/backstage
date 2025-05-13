@@ -167,24 +167,52 @@ try {
       // Use the pg import from the top of the file
       const { Pool } = pg;
       
-      // Create a standard pg Pool that connect-pg-simple can work with
-      const pool = new Pool({
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        host: process.env.DB_HOST,
-        port: process.env.DB_PORT || 5432,
-        database: process.env.DB_NAME,
-        ssl: { rejectUnauthorized: false } // For Neon PostgreSQL which requires SSL
-      });
+      // Parse connection string if it exists, otherwise use individual params
+      let poolConfig;
       
-      // Test the connection
-      pool.query('SELECT NOW()', (err, res) => {
-        if (err) {
-          console.error('[Session] Database connection test failed:', err.message);
-        } else {
-          console.log('[Session] Database connection test successful:', res.rows[0]);
-        }
-      });
+      if (process.env.DATABASE_URL) {
+        // Handle full connection string (common in Render and other platforms)
+        console.log('[Session] Using DATABASE_URL connection string');
+        poolConfig = {
+          connectionString: process.env.DATABASE_URL,
+          ssl: { rejectUnauthorized: false }
+        };
+      } else {
+        // Fall back to individual parameters
+        console.log('[Session] Using individual connection parameters');
+        poolConfig = {
+          user: process.env.DB_USER,
+          password: process.env.DB_PASSWORD,
+          host: process.env.DB_HOST,
+          port: process.env.DB_PORT || 5432,
+          database: process.env.DB_NAME,
+          ssl: { rejectUnauthorized: false } // For Neon PostgreSQL which requires SSL
+        };
+      }
+      
+      console.log('[Session] Database connection config (without credentials):', 
+        { host: poolConfig.host || 'from-connection-string', ssl: !!poolConfig.ssl });
+        
+      // Create a standard pg Pool that connect-pg-simple can work with
+      const pool = new Pool(poolConfig);
+      
+      // Test the connection with better error handling
+      try {
+        // Use async/await for cleaner error handling
+        pool.query('SELECT NOW()', (err, res) => {
+          if (err) {
+            console.error('[Session] Database connection test failed:', err.message);
+            console.error('[Session] Connection details used (no credentials):', 
+              poolConfig.connectionString ? 
+                'Using connection string' : 
+                `Host: ${poolConfig.host}, Database: ${poolConfig.database}`);
+          } else {
+            console.log('[Session] Database connection test successful:', res.rows[0]);
+          }
+        });
+      } catch (connErr) {
+        console.error('[Session] Critical error during database test:', connErr.message);
+      }
       
       // Configure session store with the pool
       const pgConfig = {
