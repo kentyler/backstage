@@ -330,7 +330,7 @@ app.use((req, res, next) => {
 if (req.path.startsWith('/api/')) {
 return next();
 }
-res.sendFile(path.join(__dirname, 'react-app', 'index.html'));
+res.sendFile(path.join(__dirname, 'react-backstage/build', 'index.html'));
 });
 
 export default app;

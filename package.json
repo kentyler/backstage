@@ -10,7 +10,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "dev": "nodemon server.js",
-    "build": "echo \"no build step\"",
+    "build": "cd react-backstage && npm install && npm run build",
     "start": "node server.js"
   },
   "dependencies": {
