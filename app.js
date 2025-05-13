@@ -31,9 +31,13 @@ import meRouter                         from './src/routes/me.js';
 import directAuthRouter                 from './src/routes/direct-auth.js';
 import { loginHandler }                 from './src/controllers/participants/loginHandler.js';
 import { setClientPool }                from './src/middleware/setClientPool.js';
+import authDebugRouter                 from './src/routes/auth-debug.js';
+import authTestRouter                  from './src/routes/auth-test.js';
 
 const app = express();
 app.use(express.json());
+
+// Static file configurations will be set after __dirname is defined below
 
 // Apply security headers
 app.use(helmet({
@@ -55,7 +59,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
 // serve your front-end
+// Serve the static files from the React app build directory
+app.use(express.static(path.join(__dirname, 'react-backstage/build')));
+
+// Also serve public files, but at a lower priority than the React build
 app.use(express.static(path.join(__dirname, 'public')));
+
+// React app will be served by the SPA fallback route at the end of the file
 
 // Import fs for synchronous file operations
 import fs from 'fs';
@@ -301,10 +311,26 @@ app.use('/api/me', meRouter);
 // This is not protected by CSRF validation middleware
 app.use('/api/direct-auth', directAuthRouter);
 
-// SPA fallback
+// Mount the auth debugging endpoints
+// Not protected by CSRF to make diagnostics easier
+app.use('/api/auth-debug', authDebugRouter);
+
+// Mount the simplified auth test endpoints
+// Not protected by CSRF for easier testing
+app.use('/api/auth-test', authTestRouter);
+
+// Explicitly redirect old login page to React SPA
+app.get('/login.html', (req, res) => {
+res.redirect('/?source=redirect&from=login.html');
+});
+
+// SPA fallback - serve React app for all non-API routes
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api')) return next();
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// Skip API routes
+if (req.path.startsWith('/api/')) {
+return next();
+}
+res.sendFile(path.join(__dirname, 'react-app', 'index.html'));
 });
 
 export default app;

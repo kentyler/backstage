@@ -15,7 +15,12 @@ const SYSTEM_PARTICIPANT_ID = 815; // Special participant created for system eve
  * Handles participant login requests and sets an HttpOnly cookie
  */
 export async function loginHandler(req, res) {
+  // Global try-catch with enhanced error diagnostics
   try {
+    // Start with a clear separation marker in logs to easily identify login attempts
+    console.log('=============================================================');
+    console.log(`LOGIN ATTEMPT: ${new Date().toISOString()}`);
+    console.log('=============================================================');
     console.log('Login request received:', { 
       hostname: req.hostname,
       path: req.path,
@@ -80,16 +85,67 @@ export async function loginHandler(req, res) {
     let participant = null;
     
     try {
-      // Query the participants table from the public schema
-      // This table has been moved to public schema to be accessible across all environments
+      console.log(`Database pool details:`, {
+        exists: !!req.clientPool,
+        schema: req.clientPool?.options?.schema || 'unknown',
+        poolObj: typeof req.clientPool,
+        hasQueryMethod: typeof req.clientPool?.query === 'function'
+      });
+      
+      // Check if client pool has a valid query method before proceeding
+      if (!req.clientPool || typeof req.clientPool.query !== 'function') {
+        console.error('Critical error: clientPool missing or invalid query method');
+        return res.status(500).json({ 
+          error: 'Database configuration error', 
+          detail: 'Invalid database connection. Emergency: contact system administrator.'
+        });
+      }
+      
+      // Verify global pool exists as fallback (just for diagnostics)
+      if (!global.pool) {
+        console.warn('Warning: global.pool is not available as fallback');
+      } else {
+        console.log('global.pool is available as fallback if needed');
+      }
+      
+      // Query the participants table from the public schema with robust error handling
+      console.log(`Preparing to query public.participants table for email: ${email}`);
+      
       const query = `
         SELECT * FROM public.participants
         WHERE email = $1
       `;
       const values = [email];
       
-      console.log(`Looking up participant with email ${email} in public.participants table`);
-      const result = await req.clientPool.query(query, values);
+      let result;
+      try {
+        // First try with client pool
+        console.log(`Executing query with clientPool`);
+        result = await req.clientPool.query(query, values);
+        console.log(`Query executed successfully with ${result.rowCount} results`);
+      } catch (primaryDbError) {
+        console.error(`Primary DB query failed: ${primaryDbError.message}`);
+        console.error(`Error details:`, primaryDbError);
+        
+        // Try with fallback global pool if available
+        if (global.pool && typeof global.pool.query === 'function') {
+          try {
+            console.log(`Attempting fallback with global pool`);
+            result = await global.pool.query(query, values);
+            console.log(`Fallback query succeeded with ${result.rowCount} results`); 
+          } catch (fallbackError) {
+            console.error(`Fallback query also failed: ${fallbackError.message}`);
+            throw new Error(
+              `Database connection completely failed. Primary error: ${primaryDbError.message}, ` +
+              `Fallback error: ${fallbackError.message}`
+            );
+          }
+        } else {
+          // No fallback available
+          throw primaryDbError;
+        }
+      }
+      
       participant = result.rows[0] || null;
       
       if (participant) {
@@ -98,8 +154,20 @@ export async function loginHandler(req, res) {
         console.log('No participant found with that email in public schema');
       }
     } catch (dbError) {
-      console.error(`Database error when looking up participant by email: ${dbError.message}`);
-      return res.status(500).json({ error: 'Database error when looking up participant' });
+      console.error(`CRITICAL DATABASE ERROR: ${dbError.message}`);
+      console.error(`Stack trace: ${dbError.stack}`);
+      console.error('Database connection environment:', {
+        NODE_ENV: process.env.NODE_ENV,
+        DB_HOST: process.env.DB_HOST ? 'Set (value hidden)' : 'Not set',
+        DB_PORT: process.env.DB_PORT || 'Not set',
+        DB_NAME: process.env.DB_NAME ? 'Set (value hidden)' : 'Not set',
+        DB_USER: process.env.DB_USER ? 'Set (value hidden)' : 'Not set',
+        DB_PASSWORD: process.env.DB_PASSWORD ? 'Set (exists)' : 'Not set'
+      });
+      return res.status(500).json({ 
+        error: 'Database error occurred', 
+        detail: 'Our system is experiencing technical difficulties. Please try again later.' 
+      });
     }
     if (!participant) {
     // Log unsuccessful login attempt (participant not found - type 3)
@@ -165,30 +233,70 @@ export async function loginHandler(req, res) {
       return res.status(500).json({ error: 'Server configuration error' });
     }
     
-    // Enhanced debug for token creation
+    // Enhanced debug for token creation with fallback mechanisms
     console.log(`Creating JWT token for participant ${participant.id} with schema ${participantSchema}`);
     
-    // Using the imported signToken function for consistency
-    const token = signToken({ 
-      participantId: participant.id,
-      clientSchema: participantSchema
-    });
+    let token;
+    let tokenCreationMethod = 'standard';
+    
+    // Try primary token creation approach
+    try {
+      console.log('Attempting to create token with signToken function');
+      token = signToken({ 
+        participantId: participant.id,
+        clientSchema: participantSchema
+      });
+      console.log('Token creation with signToken succeeded');
+    } catch (signError) {
+      // Log the error but try direct JWT signing as fallback
+      console.error('Error using signToken function:', signError.message);
+      console.error('Attempting direct JWT signing as fallback');
+      
+      try {
+        tokenCreationMethod = 'direct';
+        token = jwt.sign(
+          { 
+            participantId: participant.id,
+            clientSchema: participantSchema
+          }, 
+          JWT_SECRET,
+          { expiresIn: '24h' }
+        );
+        console.log('Direct token creation succeeded');
+      } catch (directSignError) {
+        console.error('CRITICAL: Both token creation methods failed');
+        console.error('Primary error:', signError.message);
+        console.error('Direct sign error:', directSignError.message);
+        return res.status(500).json({ 
+          error: 'Authentication service error', 
+          detail: 'Unable to generate secure token. Please try again.'
+        });
+      }
+    }
     
     // Verify the token content to ensure JWT_SECRET is working
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
-      console.log('Token verification successful. Payload contains:', 
+      console.log(`Token verification successful (created via ${tokenCreationMethod}). Payload contains:`, 
         JSON.stringify({
           participantId: decoded.participantId,
           clientSchema: decoded.clientSchema,
           // Log exp as human-readable date
-          expiresAt: new Date(decoded.exp * 1000).toISOString()
+          expiresAt: new Date(decoded.exp * 1000).toISOString(),
+          tokenLength: token.length
         }));
     } catch (e) {
+      // Critical verification error - this indicates environment problems
       console.error('CRITICAL: Token verification failed immediately after creation:', e.message);
-      // If token verification fails here, the JWT_SECRET used to sign might be different
-      // from the one used to verify, which would indicate an environment variable issue
       console.error('This suggests JWT_SECRET may be inconsistent across the application');
+      console.error('JWT environment:', {
+        JWT_SECRET_LENGTH: JWT_SECRET ? JWT_SECRET.length : 0,
+        NODE_ENV: process.env.NODE_ENV,
+        TOKEN_LENGTH: token ? token.length : 0
+      });
+      
+      // Don't fail - this might still work if client-side verification uses same secret
+      console.warn('Proceeding despite verification issue - client may still be able to use token');
     }
 
     // Set JWT in an HttpOnly cookie

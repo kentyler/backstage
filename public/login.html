@@ -55,6 +55,7 @@
       <input type="password" id="password" name="password" required autocomplete="current-password" />
     </div>
     <button type="submit" id="login-button">Log In</button>
+    <button type="button" id="direct-login-button" style="background-color: #ff6347;">Emergency Direct Login</button>
     <div class="loading-indicator" id="loading-indicator" style="display: none;">Logging in...</div>
     <p><a href="forgot-password.html">Forgot your password?</a></p>
     <div id="error" class="error" aria-live="assertive"></div>
@@ -228,27 +229,20 @@
         errorEl.textContent = 'Login successful - preparing redirect...';
         errorEl.style.color = 'green';
         
-        // Get the path to the index file by replacing the current filename
+        // Get the path to the React app root instead of index.html
         // This works regardless of domain, subdomain, or directory structure
-        const getIndexPath = function() {
-          // Get the current full path including protocol, domain, and path
-          const currentPath = window.location.href;
-          
-          // Replace the filename portion with index.html
-          // This works with any path structure without assuming anything
-          const indexPath = currentPath.replace(/\/[^\/]*$/, '/index.html');
-          
-          // Convert back to a relative URL by removing origin
-          const url = new URL(indexPath);
-          return url.pathname;
+        const getAppPath = function() {
+          // Simply redirect to the root path where React is served
+          // This will be handled by the SPA fallback route in app.js
+          return '/';
         };
         
-        // Get the appropriate index path
-        const indexPath = getIndexPath();
-        showDebug('Calculated redirect path', { indexPath });
+        // Get the appropriate app path
+        const appPath = getAppPath();
+        showDebug('Calculated redirect path', { appPath });
         
         // Add parameters to indicate this is coming from login and the auth mechanism
-        const redirectURL = indexPath + '?source=login&auth=dual&t=' + Date.now();
+        const redirectURL = appPath + '?source=login&auth=dual&t=' + Date.now();
         showDebug('Full redirect URL', { redirectURL });
         
         // Wait longer to ensure all debugging info is visible - 5 seconds
