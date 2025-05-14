@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self';">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+  <title>Back-Stage SPA</title>
+  <link rel="stylesheet" href="/styles/main.css">
+</head>
+<body>
+  <!-- Navigation bar - only shown when authenticated -->
+  <nav id="main-nav" style="display: none;">
+    <div class="nav-content">
+      <div class="brand">Back-Stage</div>
+      <div class="user-info">
+        <span class="user-name" id="user-name">User</span>
+        <button id="logout-button">Logout</button>
+      </div>
+    </div>
+  </nav>
+  
+  <div class="app-container">
+    <!-- Login Form - shown when not authenticated -->
+    <div id="login-section" class="login-container card">
+      <h1>Login</h1>
+      <form id="login-form" method="POST" action="/api/participants/login">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required autocomplete="current-password" />
+        </div>
+        <input type="submit" value="Log In" id="login-button">
+        <div class="loading-indicator" id="loading-indicator">Logging in...</div>
+        <p><a href="forgot-password.html">Forgot your password?</a></p>
+        <div id="login-error" class="error" aria-live="assertive"></div>
+      </form>
+    </div>
+    
+    <!-- Main Content - shown when authenticated -->
+    <div id="main-content" style="display: none;">
+      <div class="app-layout">
+        <!-- Left sidebar for conversations -->
+        <div id="conversations-column" class="sidebar">
+          <div class="sidebar-header">
+            <h3>Conversations</h3>
+            <button id="new-conversation-btn" class="action-button">+ New</button>
+          </div>
+          <div id="conversations-list" class="sidebar-list"></div>
+          
+          <div class="sidebar-header">
+            <h3>Templates</h3>
+            <button id="new-template-btn" class="action-button">+ New</button>
+          </div>
+          <div id="templates-list" class="sidebar-list"></div>
+        </div>
+        
+        <!-- Inner left sidebar for topics (only visible for templates) -->
+        <div id="topics-column" class="sidebar" style="display: none;">
+          <div class="sidebar-header">
+            <h3>Topics</h3>
+            <button id="new-topic-btn" class="action-button">+ New</button>
+          </div>
+          <div id="topics-list" class="sidebar-list"></div>
+        </div>
+        
+        <!-- Main conversation area -->
+        <div id="conversation-area" class="main-area">
+          <div class="conversation-header">
+            <h2 id="conversation-title">Select a conversation</h2>
+            <div class="conversation-actions">
+              <select id="llm-select" class="dropdown"></select>
+            </div>
+          </div>
+          
+          <div id="transcript" class="transcript"></div>
+          
+          <div class="input-area">
+            <div id="user-input" class="user-input" contenteditable="true" placeholder="Type your message..."></div>
+            <button id="send-button" class="send-button">Send</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2>Debug Console</h2>
+        <div id="log-container">SPA initialized, waiting for authentication...</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Debug overlay for detailed diagnostics -->
+  <div id="debug-overlay"></div>
+  
+  <!-- Include JavaScript modules -->
+  <script type="module" src="/scripts/main.js"></script>
+  
+  <!-- Fallback for browsers that don't support modules -->
+  <script nomodule>
+    document.addEventListener('DOMContentLoaded', () => {
+      const logContainer = document.getElementById('log-container');
+      if (logContainer) {
+        logContainer.innerHTML += '\nError: This application requires a modern browser with JavaScript modules support.';
+      }
+      console.error('This application requires a modern browser with JavaScript modules support.');
+    });
+  </script>
+</body>
+</html>

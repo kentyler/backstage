@@ -1,27 +1,23 @@
+// src/db/group/getAllGroups.js
 /**
- * Get all groups from the database
- * 
- * This function retrieves all groups from the database
- * with proper schema selection based on the request
+
+ * @file src/db/group/getAllGroups.js
+ * @description Retrieves all group records from the database.
  */
 
-const { query } = require('../core/query');
 
 /**
- * Gets all groups from the database
- * 
- * @param {Object} req - Express request object
- * @returns {Array} Array of group objects
+ * Retrieves all groups from the database.
+ *  @param { Pool } pool - The PostgreSQL connection pool.
+ * @returns {Promise<Array<{id: number, name: string, created_at: string}>>} Array of group records.
  */
-const getAllGroups = async (req) => {
-  try {
-    // Get groups from the database with schema-aware query
-    const result = await query('SELECT id, name FROM groups ORDER BY name', [], req);
-    return result.rows;
-  } catch (error) {
-    console.error('Error in getAllGroups:', error);
-    throw error;
-  }
-};
-
-module.exports = getAllGroups;
+export async function getAllGroups( pool) {
+  const query = `
+    SELECT id, name, created_at
+    FROM groups
+    ORDER BY id
+  `;
+  
+  const result = await pool.query(query);
+  return result.rows;
+}

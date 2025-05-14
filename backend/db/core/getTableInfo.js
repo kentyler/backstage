@@ -4,8 +4,8 @@
  * Gets information about tables in the current schema
  */
 
-const { pool } = require('./connection');
-const { getSchemaFromRequest } = require('./schema');
+import { pool } from './connection.js';
+import { getSchemaFromRequest } from './schema.js';
 
 /**
  * Gets information about tables in the specified schema
@@ -46,6 +46,4 @@ const getTableInfo = async (req = null) => {
   }
 };
 
-module.exports = {
-  getTableInfo
-};
+export { getTableInfo };

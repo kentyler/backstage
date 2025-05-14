@@ -6,19 +6,19 @@
  */
 
 // Connection pool
-const { pool } = require('./core/connection');
+import { pool } from './core/connection.js';
 
 // Core functions
-const { DEFAULT_SCHEMA, getSchemaFromRequest } = require('./core/schema');
-const { query } = require('./core/query');
-const { testConnection } = require('./core/testConnection');
-const { getTableInfo } = require('./core/getTableInfo');
+import { DEFAULT_SCHEMA, getSchemaFromRequest } from './core/schema.js';
+import { query } from './core/query.js';
+import { testConnection } from './core/testConnection.js';
+import { getTableInfo } from './core/getTableInfo.js';
 
 // Group functions
-const groups = require('./groups');
+import * as groups from './groups/index.js';
 
 // Export everything in a structured format
-module.exports = {
+export {
   // Connection
   pool,
   

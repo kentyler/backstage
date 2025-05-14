@@ -5,8 +5,8 @@
  * based on the request's hostname/subdomain
  */
 
-const { pool } = require('./connection');
-const { getSchemaFromRequest } = require('./schema');
+import { pool } from './connection.js';
+import { getSchemaFromRequest } from './schema.js';
 
 /**
  * Executes a query with the proper schema context based on the request
@@ -34,6 +34,4 @@ const query = async (text, params = [], req = null) => {
   }
 };
 
-module.exports = {
-  query
-};
+export { query };

@@ -1,14 +1,11 @@
-/**
- * Groups database module
- * 
- * Export all group-related database functions
- */
+// src/db/group/index.js
+// Barrel file: re-export all group CRUD operations
 
-const getAllGroups = require('./getAllGroups');
-const getGroupById = require('./getGroupById');
+export { createGroup } from './createGroup.js';
+export { getAllGroups } from './getAllGroups.js';
+export { getGroupById } from './getGroupById.js';
+export { getGroupByName } from './getGroupByName.js';
+export { updateGroup } from './updateGroup.js';
+export { deleteGroup } from './deleteGroup.js';
+export { getGroupsByParticipant } from './getGroupsByParticipant.js';
 
-module.exports = {
-  getAllGroups,
-  getGroupById
-  // Add other group functions as they are created
-};

@@ -40,7 +40,7 @@ const getSchemaFromRequest = (req) => {
   return schemaMap[subdomain] || DEFAULT_SCHEMA;
 };
 
-module.exports = {
+export {
   DEFAULT_SCHEMA,
   getSchemaFromRequest
 };

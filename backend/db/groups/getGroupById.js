@@ -1,30 +1,23 @@
+// src/db/group/getGroupById.js
 /**
- * Get a group by ID from the database
- * 
- * This function retrieves a specific group by its ID
- * with proper schema selection based on the request
+ * @file src/db/group/getGroupById.js
+ * @description Retrieves a group record from the database by its ID.
  */
 
-const { query } = require('../core/query');
+
 
 /**
- * Gets a group by its ID
- * 
- * @param {number} id - The ID of the group to retrieve
- * @param {Object} req - Express request object
- * @returns {Object|null} Group object or null if not found
+ * Retrieves a single group by its ID.
+ * @param { Pool } pool - The PostgreSQL connection pool.
+ * @param {number} id - The ID of the group to retrieve.
+ * @returns {Promise<{id: number, name: string, created_at: string}|null>} The group record, or null if not found.
  */
-const getGroupById = async (id, req) => {
-  try {
-    // Get group from the database with schema-aware query
-    const result = await query('SELECT id, name FROM groups WHERE id = $1', [id], req);
-    
-    // Return the first row or null if no group found
-    return result.rows.length > 0 ? result.rows[0] : null;
-  } catch (error) {
-    console.error(`Error in getGroupById for ID ${id}:`, error);
-    throw error;
-  }
-};
-
-module.exports = getGroupById;
+export async function getGroupById(id, pool) {
+  const query = `
+    SELECT id, name, created_at
+    FROM groups
+    WHERE id = $1
+  `;
+  const result = await pool.query(query, [id]);
+  return result.rows[0] || null;
+}

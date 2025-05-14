@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSRF Token Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .container {
+      border: 1px solid #ddd;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    .success {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
+    input[type="file"] {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>CSRF Token Test</h1>
+  
+  <div class="container">
+    <h2>1. Fetch CSRF Token</h2>
+    <button id="fetchTokenBtn">Fetch Token</button>
+    <div id="tokenResult"></div>
+  </div>
+  
+  <div class="container">
+    <h2>2. Test File Upload with CSRF Token</h2>
+    <input type="file" id="fileInput" accept="text/*">
+    <button id="uploadFileBtn">Upload File</button>
+    <div id="uploadResult"></div>
+  </div>
+  
+  <div class="container">
+    <h2>3. Test POST Request with CSRF Token</h2>
+    <button id="testPostBtn">Test POST Request</button>
+    <div id="postResult"></div>
+  </div>
+  
+  <script>
+    // Store the CSRF token
+    let csrfToken = null;
+    
+    // Function to display results
+    function displayResult(elementId, success, message, details = null) {
+      const element = document.getElementById(elementId);
+      element.innerHTML = `
+        <p class="${success ? 'success' : 'error'}">${message}</p>
+        ${details ? `<pre>${JSON.stringify(details, null, 2)}</pre>` : ''}
+      `;
+    }
+    
+    // Function to fetch CSRF token
+    async function fetchCsrfToken() {
+      try {
+        const tokenResult = document.getElementById('tokenResult');
+        tokenResult.innerHTML = '<p>Fetching token...</p>';
+        
+        const res = await fetch('/api/csrf-token', {
+          method: 'GET',
+          credentials: 'include'  // send cookies
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          csrfToken = data.csrfToken;
+          
+          displayResult('tokenResult', true, 'CSRF token fetched successfully', {
+            token: csrfToken
+          });
+          
+          return csrfToken;
+        } else {
+          const errorText = await res.text();
+          displayResult('tokenResult', false, 'Failed to fetch CSRF token', {
+            status: res.status,
+            statusText: res.statusText,
+            error: errorText
+          });
+          return null;
+        }
+      } catch (err) {
+        displayResult('tokenResult', false, 'Error fetching CSRF token', {
+          error: err.message
+        });
+        return null;
+      }
+    }
+    
+    // Function to upload a file with CSRF token
+    async function uploadFile() {
+      try {
+        const fileInput = document.getElementById('fileInput');
+        const uploadResult = document.getElementById('uploadResult');
+        
+        if (!fileInput.files || fileInput.files.length === 0) {
+          displayResult('uploadResult', false, 'Please select a file first');
+          return;
+        }
+        
+        if (!csrfToken) {
+          displayResult('uploadResult', false, 'No CSRF token available. Please fetch a token first.');
+          return;
+        }
+        
+        uploadResult.innerHTML = '<p>Uploading file...</p>';
+        
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('grpConId', '434'); // Use the conversation ID from the task
+        
+        // Log the request details
+        console.log('Upload request details:', {
+          url: '/api/grp-con-uploads',
+          method: 'POST',
+          headers: {
+            'x-csrf-token': csrfToken
+          },
+          formData: {
+            file: file.name,
+            grpConId: '434'
+          }
+        });
+        
+        const res = await fetch('/api/grp-con-uploads', {
+          method: 'POST',
+          headers: {
+            'x-csrf-token': csrfToken
+          },
+          body: formData,
+          credentials: 'include'
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          displayResult('uploadResult', true, 'File uploaded successfully', data);
+        } else {
+          let errorDetails;
+          try {
+            errorDetails = await res.json();
+          } catch (e) {
+            errorDetails = await res.text();
+          }
+          
+          displayResult('uploadResult', false, 'Failed to upload file', {
+            status: res.status,
+            statusText: res.statusText,
+            error: errorDetails
+          });
+        }
+      } catch (err) {
+        displayResult('uploadResult', false, 'Error uploading file', {
+          error: err.message
+        });
+      }
+    }
+    
+    // Function to test a simple POST request with CSRF token
+    async function testPostRequest() {
+      try {
+        const postResult = document.getElementById('postResult');
+        
+        if (!csrfToken) {
+          displayResult('postResult', false, 'No CSRF token available. Please fetch a token first.');
+          return;
+        }
+        
+        postResult.innerHTML = '<p>Sending POST request...</p>';
+        
+        // Use a simple endpoint that accepts POST requests
+        const res = await fetch('/api/participants/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken
+          },
+          credentials: 'include'
+        });
+        
+        if (res.ok) {
+          displayResult('postResult', true, 'POST request successful', {
+            status: res.status,
+            statusText: res.statusText
+          });
+        } else {
+          let errorDetails;
+          try {
+            errorDetails = await res.json();
+          } catch (e) {
+            errorDetails = await res.text();
+          }
+          
+          displayResult('postResult', false, 'POST request failed', {
+            status: res.status,
+            statusText: res.statusText,
+            error: errorDetails
+          });
+        }
+      } catch (err) {
+        displayResult('postResult', false, 'Error sending POST request', {
+          error: err.message
+        });
+      }
+    }
+    
+    // Add event listeners
+    document.getElementById('fetchTokenBtn').addEventListener('click', fetchCsrfToken);
+    document.getElementById('uploadFileBtn').addEventListener('click', uploadFile);
+    document.getElementById('testPostBtn').addEventListener('click', testPostRequest);
+    
+    // Automatically fetch token on page load
+    document.addEventListener('DOMContentLoaded', fetchCsrfToken);
+  </script>
+</body>
+</html>

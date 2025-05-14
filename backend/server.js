@@ -1,13 +1,22 @@
-const express = require('express');
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
-const session = require('express-session');
-const path = require('path');
-const config = require('./config');
+import express from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import session from 'express-session';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import * as db from './db/index.js';
+import dotenv from 'dotenv';
+import config from './config.js';
 
-// Import modular database functions
-const db = require('./db');
-require('dotenv').config();
+// Import the client pool middleware
+import { setClientPool } from './middleware/setClientPool.js';
+
+// Configure dotenv
+dotenv.config();
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,6 +36,10 @@ app.use('/api', cors({
   origin: config.clientURL,
   credentials: true // Allow cookies to be sent with requests
 }));
+
+// Apply setClientPool middleware to all API routes
+// This will determine the schema and create a pool for each client
+app.use('/api', setClientPool);
 
 // Simple authentication middleware
 const authenticate = (req, res, next) => {
@@ -63,18 +76,35 @@ app.post('/api/logout', (req, res) => {
   return res.status(200).json({ message: 'Logged out successfully' });
 });
 
+// Import the group functions directly
+import { getAllGroups, getGroupById } from './db/groups/index.js';
+
 // Protected API endpoints
 app.get('/api/groups', authenticate, async (req, res) => {
   try {
-    // Use the modular getAllGroups function which handles schema selection internally
-    console.log('Fetching groups using modular function...');
+    console.log('Fetching groups from actual database...');
     
-    // Fetch groups from database instead of using hardcoded data
-    const groups = await db.groups.getAllGroups(req);
+    // Check if clientPool is available
+    if (!req.clientPool) {
+      console.error('Database connection pool not available');
+      return res.status(500).json({ 
+        error: 'Database connection not available',
+        message: 'The application is unable to access the database.'
+      });
+    }
+    
+    // Use the imported getAllGroups function with the client pool
+    // This follows the pattern from the previous implementation
+    const groups = await getAllGroups(req.clientPool);
+    
+    // Log the result for debugging
+    console.log(`Found ${groups.length} groups`);
+    
     return res.status(200).json(groups);
   } catch (err) {
     console.error('Error fetching groups:', err);
-    return res.status(500).json({ error: 'Failed to fetch groups', message: err.message });
+    // Return empty array instead of error to prevent UI crashes (as in previous impl)
+    return res.json([]);
   }
 });
 
@@ -87,9 +117,21 @@ app.get('/api/groups/:id', authenticate, async (req, res) => {
       return res.status(400).json({ error: 'Invalid group ID' });
     }
     
-    // Use the modular getGroupById function
-    const group = await db.groups.getGroupById(groupId, req);
+    // Check if clientPool is available
+    if (!req.clientPool) {
+      console.error('Database connection pool not available');
+      return res.status(500).json({ 
+        error: 'Database connection not available',
+        message: 'The application is unable to access the database.'
+      });
+    }
     
+    console.log(`Fetching group ID ${groupId}...`);
+    
+    // Use the imported getGroupById function with client pool
+    const group = await getGroupById(groupId, req.clientPool);
+    
+    // Check if a group was found
     if (!group) {
       return res.status(404).json({ error: 'Group not found' });
     }
@@ -193,7 +235,7 @@ const staticPath = path.resolve(__dirname, '../frontend/build');
 console.log('Serving static files from:', staticPath);
 
 // Verify that build directory exists
-const fs = require('fs');
+import fs from 'fs';
 if (fs.existsSync(staticPath)) {
   console.log('Build directory exists and is accessible');
   

@@ -1,7 +1,7 @@
 /**
  * Environment-aware configuration for authentication and CORS
  */
-module.exports = {
+export default {
   // Client URL changes based on environment
   clientURL: process.env.NODE_ENV === 'production' 
     ? process.env.CLIENT_URL || 'https://your-frontend-app.onrender.com'

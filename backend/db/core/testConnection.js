@@ -4,8 +4,8 @@
  * Tests connection to the database with proper schema selection
  */
 
-const { pool } = require('./connection');
-const { getSchemaFromRequest } = require('./schema');
+import { pool } from './connection.js';
+import { getSchemaFromRequest } from './schema.js';
 
 /**
  * Tests the database connection with schema-aware queries
@@ -58,6 +58,4 @@ const testConnection = async (req = null) => {
   }
 };
 
-module.exports = {
-  testConnection
-};
+export { testConnection };

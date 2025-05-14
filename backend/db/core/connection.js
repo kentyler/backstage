@@ -4,8 +4,13 @@
  * Supports schema-based multi-tenancy
  */
 
-const { Pool, types } = require('pg');
-require('dotenv').config();
+import pg from 'pg';
+import dotenv from 'dotenv';
+
+const { Pool, types } = pg;
+
+// Configure dotenv
+dotenv.config();
 
 // Tell PG to parse int8 (BIGINT) as a Number
 types.setTypeParser(types.builtins.INT8, val => {
@@ -22,6 +27,4 @@ const pool = new Pool({
 // Log the database connection for debugging
 console.log('Connecting to database:', process.env.DB_HOST ? 'Using DB_HOST from .env' : 'DB_HOST not found');
 
-module.exports = {
-  pool
-};
+export { pool };
