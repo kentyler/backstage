@@ -8,10 +8,10 @@
 
 /**
  * Retrieves all groups from the database.
- *  @param { Pool } pool - The PostgreSQL connection pool.
  * @returns {Promise<Array<{id: number, name: string, created_at: string}>>} Array of group records.
+ * @param { Pool } pool - The PostgreSQL connection pool.
  */
-export async function getAllGroups( pool) {
+export async function getAllGroups(pool) {
   const query = `
     SELECT id, name, created_at
     FROM groups

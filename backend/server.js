@@ -219,9 +219,10 @@ app.get('/api/auth-status', (req, res) => {
   // First check if we have explicitly set the authenticated flag
   if (req.session && req.session.authenticated) {
     console.log('User is authenticated via authenticated flag');
+    const schema = db.getSchemaFromRequest(req);
     return res.status(200).json({ 
       authenticated: true, 
-      user: { id: req.session.userId, username: req.session.username },
+      user: { id: req.session.userId, username: req.session.username, schema: schema },
       sessionID: req.sessionID
     });
   }
@@ -231,9 +232,10 @@ app.get('/api/auth-status', (req, res) => {
     console.log('User is authenticated via userId');
     // Set the authenticated flag for future checks
     req.session.authenticated = true;
+    const schema = db.getSchemaFromRequest(req);
     return res.status(200).json({ 
       authenticated: true, 
-      user: { id: req.session.userId, username: req.session.username },
+      user: { id: req.session.userId, username: req.session.username, schema: schema },
       sessionID: req.sessionID
     });
   }
@@ -270,6 +272,88 @@ app.get('/api/schema-info', authenticate, (req, res) => {
     hostname: req.hostname,
     message: `Using schema: ${schema}`
   });
+});
+
+// Get conversations for a specific group - DIRECT SQL QUERY VERSION
+app.get('/api/conversations', authenticate, async (req, res) => {
+  console.log('------------------- /api/conversations endpoint called -------------------');
+  let client = null;
+  
+  try {
+    // Get the schema for this request
+    const schema = db.getSchemaFromRequest(req);
+    console.log(`Using schema: ${schema}`);
+    
+    // Get a client from the pool
+    client = await db.pool.connect();
+    
+    // Set the search_path for this connection
+    await client.query(`SET search_path TO ${schema}, public;`);
+    console.log(`Search path set to ${schema}, public`);
+    
+    // Get group ID from query parameter
+    let groupId = req.query.group_id;
+    console.log(`Raw group_id from query: ${groupId}`);
+    
+    // Parse groupId as integer if provided
+    if (groupId) {
+      groupId = parseInt(groupId, 10);
+      console.log(`Parsed group_id: ${groupId}`);
+      
+      // Check if parsing was successful
+      if (isNaN(groupId)) {
+        return res.status(400).json({ error: 'Invalid group ID format' });
+      }
+    } else {
+      console.log(`No group_id provided, finding default group`);
+      // If no group ID is provided, get the first group ID
+      const groupsResult = await client.query('SELECT id FROM groups LIMIT 1');
+      console.log(`Found groups:`, groupsResult.rows);
+      
+      if (!groupsResult.rows.length) {
+        console.log(`No groups found in database`);
+        return res.status(404).json({ error: 'No groups found in database' });
+      }
+      
+      groupId = groupsResult.rows[0].id;
+      console.log(`Using first group with ID: ${groupId}`);
+    }
+    
+    console.log(`Executing direct SQL query for conversations with group ID: ${groupId}`);
+    
+    // Execute a direct SQL query instead of using the helper function
+    const query = `
+      SELECT id, group_id, name, description, type_id, created_at
+      FROM grp_cons
+      WHERE group_id = $1
+      ORDER BY created_at DESC
+      LIMIT 50
+    `;
+    
+    console.log('SQL Query:', query.trim());
+    console.log('Query parameters:', [groupId]);
+    
+    // Execute query directly
+    const result = await client.query(query, [groupId]);
+    console.log(`Query executed successfully. Fetched ${result.rows.length} conversations.`);
+    
+    // Return the conversations, even if it's an empty array
+    return res.status(200).json(result.rows);
+    
+  } catch (err) {
+    console.error('Error in conversations endpoint:', err);
+    return res.status(500).json({ 
+      error: 'Failed to fetch conversations', 
+      message: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
+  } finally {
+    // Release the client back to the pool
+    if (client) {
+      client.release();
+      console.log('Database client released');
+    }
+  }
 });
 
 // Database test endpoints

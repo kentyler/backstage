@@ -5,7 +5,7 @@
  * based on the request's hostname/subdomain
  */
 
-import { pool } from './connection.js';
+import { pool } from '../connection.js';
 import { getSchemaFromRequest } from './schema.js';
 
 /**

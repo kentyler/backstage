@@ -75,6 +75,19 @@ export const apiService = {
       throw error;
     }
   },
+  
+  // Get conversations for a specific group
+  getConversations: async (groupId = null) => {
+    try {
+      // If groupId is provided, use it as a query parameter
+      const url = groupId ? `/conversations?group_id=${groupId}` : '/conversations';
+      const response = await api.get(url);
+      return response.data;
+    } catch (error) {
+      console.error('Get conversations error:', error);
+      throw error;
+    }
+  },
 
   // Database tests
   testDbConnection: async () => {

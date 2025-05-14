@@ -6,7 +6,7 @@
  */
 
 // Connection pool
-import { pool } from './core/connection.js';
+import { pool } from './connection.js';
 
 // Core functions
 import { DEFAULT_SCHEMA, getSchemaFromRequest } from './core/schema.js';

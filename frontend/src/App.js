@@ -9,7 +9,9 @@ function App() {
     authenticated: false,
     user: null
   });
+  const [conversations, setConversations] = useState([]);
   const [groups, setGroups] = useState([]);
+  const [selectedGroupId, setSelectedGroupId] = useState(null);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [error, setError] = useState(null);
   const [loadingAction, setLoadingAction] = useState(false);
@@ -32,7 +34,7 @@ function App() {
         user: response.user
       });
       
-      // If authenticated, also fetch groups
+      // If authenticated, fetch groups first, then conversations
       if (response.authenticated) {
         fetchGroups();
       }
@@ -49,13 +51,47 @@ function App() {
 
   const fetchGroups = async () => {
     try {
-      const groups = await apiService.getGroups();
-      console.log('Groups response:', groups);
-      setGroups(groups);
+      const groupsData = await apiService.getGroups();
+      console.log('Groups response:', groupsData);
+      setGroups(groupsData);
+      
+      // Set the first group as selected by default if groups exist
+      if (groupsData && groupsData.length > 0) {
+        setSelectedGroupId(groupsData[0].id);
+        // Fetch conversations for the first group
+        fetchConversations(groupsData[0].id);
+      }
     } catch (err) {
       console.error('Error fetching groups:', err);
       setError('Failed to fetch groups');
     }
+  };
+  
+  const fetchConversations = async (groupId = null) => {
+    try {
+      // Use either the provided groupId or the currently selected one
+      const targetGroupId = groupId || selectedGroupId;
+      
+      if (!targetGroupId) {
+        console.log('No group selected, skipping conversation fetch');
+        return;
+      }
+      
+      const conversationData = await apiService.getConversations(targetGroupId);
+      console.log(`Conversations for group ${targetGroupId}:`, conversationData);
+      setConversations(conversationData);
+    } catch (err) {
+      console.error('Error fetching conversations:', err);
+      setError('Failed to fetch conversations');
+    }
+  };
+  
+  // Handle group selection change
+  const handleGroupChange = (e) => {
+    const newGroupId = e.target.value;
+    console.log('Selected group changed to:', newGroupId);
+    setSelectedGroupId(newGroupId);
+    fetchConversations(newGroupId);
   };
 
   const handleLoginChange = (e) => {
@@ -110,20 +146,21 @@ function App() {
 
   return (
     <div className="app">
-      <header className="app-header">
-        <h1>Express React Authentication Test</h1>
-        <p className="subtitle">A minimal app to debug authentication issues</p>
-      </header>
-
-      {error && (
-        <div className="error-message">
-          {error}
-          <button onClick={() => setError(null)}>×</button>
-        </div>
-      )}
-
-      <div className="content">
-        {!authStatus.authenticated ? (
+      {!authStatus.authenticated ? (
+        // Login form when not authenticated
+        <div className="content">
+          <header className="app-header">
+            <h1>Conversational AI</h1>
+            <p className="subtitle">Authentication System</p>
+          </header>
+          
+          {error && (
+            <div className="error-message">
+              {error}
+              <button onClick={() => setError(null)}>×</button>
+            </div>
+          )}
+          
           <div className="auth-form">
             <h2>Login</h2>
             <form onSubmit={handleLogin}>
@@ -136,6 +173,7 @@ function App() {
                   value={loginForm.username}
                   onChange={handleLoginChange}
                   required
+                  autoComplete="username"
                 />
               </div>
               
@@ -148,60 +186,123 @@ function App() {
                   value={loginForm.password}
                   onChange={handleLoginChange}
                   required
+                  autoComplete="current-password"
                 />
               </div>
               
               <button 
                 type="submit" 
                 disabled={loadingAction || !loginForm.username || !loginForm.password}
+                className="login-button"
               >
                 {loadingAction ? 'Logging in...' : 'Login'}
               </button>
+              <p className="note">
+                For testing: any username/password combo works
+              </p>
             </form>
-            <p className="note">
-              For testing: any username/password combo works
-            </p>
-          </div>
-        ) : (
-          <div className="user-profile">
-            <div className="welcome">
-              <h2>Welcome, {authStatus.user.username}!</h2>
-              <button onClick={handleLogout} disabled={loadingAction}>
-                {loadingAction ? 'Logging out...' : 'Logout'}
-              </button>
-            </div>
-            
-            <div className="data-section">
-              <h3>Groups Data</h3>
-              {groups.length > 0 ? (
-                <ul className="groups-list">
-                  {groups.map(group => (
-                    <li key={group.id}>{group.name}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No groups found.</p>
-              )}
-            </div>
-            
-            <DatabaseTest />
-          </div>
-        )}
-      </div>
-      
-      <footer>
-        <div className="connection-status">
-          <h3>Connection Status</h3>
-          <div>
-            <strong>Backend:</strong> Express on port 5000
-          </div>
-          <div>
-            <strong>Authentication Status:</strong> {authStatus.authenticated ? 
-              `Authenticated (User: ${authStatus.user.username})` : 
-              'Not authenticated'}
           </div>
         </div>
-      </footer>
+      ) : (
+        // Main content structure when authenticated
+        <div className="app-container">
+          {/* Navigation bar - only shown when authenticated */}
+          <nav id="main-nav">
+            <div className="nav-content">
+              <div className="brand">Conversational AI: {authStatus.user?.schema || 'dev'}</div>
+              <div className="user-info">
+                <div className="user-controls">
+                  <span className="user-name">Welcome, {authStatus.user.username}!</span>
+                  <div className="group-select">
+                    {groups.length > 0 && (
+                      <select 
+                        className="header-dropdown" 
+                        value={selectedGroupId || ''}
+                        onChange={handleGroupChange}
+                      >
+                        <option value="">Select a group</option>
+                        {groups.map(group => (
+                          <option key={group.id} value={group.id}>{group.name}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                </div>
+                <button id="logout-button" onClick={handleLogout} disabled={loadingAction}>
+                  {loadingAction ? 'Logging out...' : 'Logout'}
+                </button>
+              </div>
+            </div>
+          </nav>
+          
+          <div className="main-layout">
+            <div className="app-layout">
+              {/* Left sidebar for conversations */}
+              <div id="conversations-column" className="sidebar">
+                <div className="sidebar-header">
+                  <h3>Conversations</h3>
+                  <button className="action-button">+ New</button>
+                </div>
+                <div className="sidebar-list">
+                  {conversations.length > 0 ? (
+                    <ul className="groups-list">
+                      {conversations.map(conversation => (
+                        <li 
+                          key={conversation.id} 
+                          onClick={() => alert(`You clicked: ${conversation.name}`)}
+                          className="clickable-group"
+                        >
+                          {conversation.name}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No conversations found.</p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Main conversation area */}
+              <div id="conversation-area" className="main-area">
+                <div className="conversation-header">
+                  <h2>Conversation</h2>
+                  <div className="conversation-actions">
+                    {/* Additional conversation actions can go here */}
+                  </div>
+                </div>
+                
+                <div className="transcript"></div>
+                
+                <div className="input-area">
+                  <div className="user-input" contentEditable="true" placeholder="Type your message..."></div>
+                  <button className="send-button">Send</button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="debug-section">
+              <h3>Debug Information</h3>
+              <div className="data-section">
+                <h3>Groups Data</h3>
+                {groups.length > 0 ? (
+                  <ul className="groups-list">
+                    {groups.map(group => (
+                      <li key={group.id}>{group.name}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No groups found.</p>
+                )}
+              </div>
+              
+              <DatabaseTest />
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Debug overlay */}
+      <div id="debug-overlay"></div>
     </div>
   );
 }

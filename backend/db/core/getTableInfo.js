@@ -4,7 +4,7 @@
  * Gets information about tables in the current schema
  */
 
-import { pool } from './connection.js';
+import { pool } from '../connection.js';
 import { getSchemaFromRequest } from './schema.js';
 
 /**

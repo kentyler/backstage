@@ -4,7 +4,7 @@
  * Tests connection to the database with proper schema selection
  */
 
-import { pool } from './connection.js';
+import { pool } from '../connection.js';
 import { getSchemaFromRequest } from './schema.js';
 
 /**
