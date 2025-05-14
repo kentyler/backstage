@@ -1,1 +1,0 @@
-each time a template is used the turns associated with it should be tagged as belonging to a specific instance, so that the next time the template is used it will have its own set up turns and its own transcript. there is a grp_con_template_turns table that associates a 'turn_id' (grp_con_avatar_turn) with a template id 
