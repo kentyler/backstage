@@ -27,33 +27,27 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cookieParser());
 
-// Setup session store with Sequelize
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: path.join(__dirname, 'sessions.sqlite'),
-  logging: false
-});
+// Create an in-memory store for now - simplest solution for testing
+// Will be replaced with the database store once the basic authentication flow is working
+const MemoryStore = session.MemoryStore;
+const sessionStore = new MemoryStore();
 
-const SessionStore = SequelizeStore(session.Store);
-const sessionStore = new SessionStore({
-  db: sequelize,
-  expiration: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
-  checkExpirationInterval: 15 * 60 * 1000, // 15 minutes in milliseconds
-});
-
-// Sync the session store
-sequelize.sync().then(() => {
-  console.log('Session store database synchronized');
-});
-
-// Configure session middleware with environment-aware settings and persistent store
+// Configure session middleware with simplified settings for more reliable behavior
 app.use(session({
-  ...config.sessionConfig,
+  secret: process.env.SESSION_SECRET || 'test-session-secret',
+  name: 'connect.sid',
   store: sessionStore,
-  cookie: config.cookieOptions,
-  // Ensure the session is saved on every response
+  cookie: {
+    path: '/',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    // In local development, secure:false works better
+    secure: false,
+    sameSite: 'lax'
+  },
+  // These settings ensure the session is saved immediately
   saveUninitialized: true,
-  resave: false
+  resave: true
 }));
 
 // Configure CORS with environment-aware settings - only for API routes
@@ -82,26 +76,40 @@ app.post('/api/login', (req, res) => {
   
   // For testing: any username/password combo works
   if (username && password) {
-    // Set session
+    // Set session values directly
     req.session.userId = 1;
     req.session.username = username;
+    req.session.authenticated = true;
     
-    // Force session save to ensure cookie is set
+    // Log the session details
+    console.log('Session created:', {
+      sessionID: req.sessionID,
+      session: req.session
+    });
+    
+    // Force immediate session save
     req.session.save(err => {
       if (err) {
         console.error('Session save error:', err);
-        return res.status(500).json({ error: 'Session save failed' });
+        return res.status(500).json({ error: 'Session save failed', details: err.message });
       }
-
-      console.log('Session saved successfully', {
-        sessionID: req.sessionID,
-        cookie: req.session.cookie
+      
+      console.log('Session saved successfully');
+      
+      // Set cookie explicitly to ensure it's sent
+      res.cookie('connect.sid', req.sessionID, {
+        path: '/',
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000,
+        secure: false,
+        sameSite: 'lax'
       });
       
-      return res.status(200).json({ 
+      return res.status(200).json({
         message: 'Logged in successfully',
         user: { id: 1, username },
-        sessionID: req.sessionID
+        sessionID: req.sessionID,
+        authenticated: true
       });
     });
   } else {
@@ -203,12 +211,26 @@ app.get('/api/auth-status', (req, res) => {
   console.log('Auth status check:', { 
     sessionID: req.sessionID,
     hasSession: !!req.session,
-    userId: req.session?.userId,
-    cookie: req.session?.cookie
+    sessionData: req.session,
+    authenticated: req.session?.authenticated,
+    userId: req.session?.userId
   });
   
+  // First check if we have explicitly set the authenticated flag
+  if (req.session && req.session.authenticated) {
+    console.log('User is authenticated via authenticated flag');
+    return res.status(200).json({ 
+      authenticated: true, 
+      user: { id: req.session.userId, username: req.session.username },
+      sessionID: req.sessionID
+    });
+  }
+  
+  // Fallback check if we have userId but not the authenticated flag
   if (req.session && req.session.userId) {
-    console.log('User is authenticated, session found');
+    console.log('User is authenticated via userId');
+    // Set the authenticated flag for future checks
+    req.session.authenticated = true;
     return res.status(200).json({ 
       authenticated: true, 
       user: { id: req.session.userId, username: req.session.username },
@@ -221,7 +243,8 @@ app.get('/api/auth-status', (req, res) => {
   return res.status(200).json({ 
     authenticated: false,
     sessionPresent: !!req.session,
-    sessionID: req.sessionID || 'none' 
+    sessionID: req.sessionID || 'none',
+    sessionKeys: req.session ? Object.keys(req.session) : []
   });
 });
 
