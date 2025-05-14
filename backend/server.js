@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
+import { Sequelize } from 'sequelize';
+import SequelizeStore from 'connect-session-sequelize';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import * as db from './db/index.js';
@@ -25,10 +27,33 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cookieParser());
 
-// Configure session middleware with environment-aware settings
+// Setup session store with Sequelize
+const sequelize = new Sequelize({
+  dialect: 'sqlite',
+  storage: path.join(__dirname, 'sessions.sqlite'),
+  logging: false
+});
+
+const SessionStore = SequelizeStore(session.Store);
+const sessionStore = new SessionStore({
+  db: sequelize,
+  expiration: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+  checkExpirationInterval: 15 * 60 * 1000, // 15 minutes in milliseconds
+});
+
+// Sync the session store
+sequelize.sync().then(() => {
+  console.log('Session store database synchronized');
+});
+
+// Configure session middleware with environment-aware settings and persistent store
 app.use(session({
   ...config.sessionConfig,
-  cookie: config.cookieOptions
+  store: sessionStore,
+  cookie: config.cookieOptions,
+  // Ensure the session is saved on every response
+  saveUninitialized: true,
+  resave: false
 }));
 
 // Configure CORS with environment-aware settings - only for API routes
@@ -173,15 +198,31 @@ app.get('/api/groups/:id', authenticate, async (req, res) => {
   }
 });
 
-// Check authentication status
+// Check authentication status with enhanced debugging
 app.get('/api/auth-status', (req, res) => {
-  if (req.session.userId) {
+  console.log('Auth status check:', { 
+    sessionID: req.sessionID,
+    hasSession: !!req.session,
+    userId: req.session?.userId,
+    cookie: req.session?.cookie
+  });
+  
+  if (req.session && req.session.userId) {
+    console.log('User is authenticated, session found');
     return res.status(200).json({ 
       authenticated: true, 
-      user: { id: req.session.userId, username: req.session.username }
+      user: { id: req.session.userId, username: req.session.username },
+      sessionID: req.sessionID
     });
   }
-  return res.status(200).json({ authenticated: false });
+  
+  // If not authenticated, return more debug info
+  console.log('User is not authenticated');
+  return res.status(200).json({ 
+    authenticated: false,
+    sessionPresent: !!req.session,
+    sessionID: req.sessionID || 'none' 
+  });
 });
 
 // Add diagnostic endpoint for deployment testing
