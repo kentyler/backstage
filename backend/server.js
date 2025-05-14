@@ -53,6 +53,7 @@ const authenticate = (req, res, next) => {
 // Login endpoint
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
+  console.log('Login attempt for:', username);
   
   // For testing: any username/password combo works
   if (username && password) {
@@ -60,20 +61,49 @@ app.post('/api/login', (req, res) => {
     req.session.userId = 1;
     req.session.username = username;
     
-    return res.status(200).json({ 
-      message: 'Logged in successfully',
-      user: { id: 1, username }
+    // Force session save to ensure cookie is set
+    req.session.save(err => {
+      if (err) {
+        console.error('Session save error:', err);
+        return res.status(500).json({ error: 'Session save failed' });
+      }
+
+      console.log('Session saved successfully', {
+        sessionID: req.sessionID,
+        cookie: req.session.cookie
+      });
+      
+      return res.status(200).json({ 
+        message: 'Logged in successfully',
+        user: { id: 1, username },
+        sessionID: req.sessionID
+      });
     });
+  } else {
+    return res.status(400).json({ error: 'Invalid credentials' });
   }
-  
-  return res.status(400).json({ error: 'Invalid credentials' });
 });
 
 // Logout endpoint
 app.post('/api/logout', (req, res) => {
-  req.session.destroy();
-  res.clearCookie('connect.sid');
-  return res.status(200).json({ message: 'Logged out successfully' });
+  const sessionName = config.sessionConfig.name || 'connect.sid';
+  console.log(`Logging out user, clearing session cookie: ${sessionName}`);
+  
+  req.session.destroy(err => {
+    if (err) {
+      console.error('Session destroy error:', err);
+    }
+    
+    // Clear the cookie with the same settings used to set it
+    res.clearCookie(sessionName, {
+      path: '/',
+      httpOnly: true,
+      secure: config.cookieOptions.secure,
+      sameSite: config.cookieOptions.sameSite
+    });
+    
+    return res.status(200).json({ message: 'Logged out successfully' });
+  });
 });
 
 // Import the group functions directly
