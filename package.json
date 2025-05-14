@@ -1,0 +1,24 @@
+{
+  "name": "back-stage",
+  "version": "1.0.0",
+  "description": "A combined Express backend and React frontend application",
+  "main": "backend/server.js",
+  "scripts": {
+    "install-deps": "npm install --prefix backend && npm install --prefix frontend",
+    "build-frontend": "npm run build --prefix frontend",
+    "copy-build": "node scripts/copy-build.js",
+    "build": "npm run install-deps && npm run build-frontend && npm run copy-build",
+    "start": "node backend/server.js",
+    "dev": "node build-and-run.ps1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [
+    "express",
+    "react",
+    "postgresql"
+  ],
+  "author": "",
+  "license": "ISC"
+}
