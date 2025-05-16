@@ -20,12 +20,10 @@ const AppHeader = () => {
         
         <div className="user-controls">
           {user && (
-            <>
-              <span className="welcome-message">
-                Welcome, {user.email}
-              </span>
+            <div className="user-controls">
+              <span className="welcome-message">{user.email}</span>
               <LogoutButton />
-            </>
+            </div>
           )}
         </div>
       </div>

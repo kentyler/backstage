@@ -37,7 +37,7 @@ const buildTopicTree = (paths) => {
  * TopicsMenu component
  * Displays a hierarchical tree of topic paths
  */
-const TopicsMenu = () => {
+const TopicsMenu = ({ onTopicSelect }) => {
   const [topicTree, setTopicTree] = useState([]);
   const [isAdding, setIsAdding] = useState(false);
   const [newPath, setNewPath] = useState('');
@@ -157,6 +157,7 @@ const TopicsMenu = () => {
                   setExpandedPaths(newExpandedPaths);
                 }}
                 refreshTopics={refreshTopics}
+                onSelect={() => onTopicSelect && onTopicSelect(topic.fullPath)}
               />
             ))}
           </ul>

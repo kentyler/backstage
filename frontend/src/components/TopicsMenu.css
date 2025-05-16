@@ -1,12 +1,8 @@
 .topics-menu {
-  width: 250px;
-  background-color: #f8f9fa;
-  border-right: 1px solid #dee2e6;
-  position: fixed;
-  left: 0;
-  top: 48px; /* Match header height */
-  bottom: 0;
-  overflow-y: auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .topics-header {
@@ -105,6 +101,8 @@
 }
 
 .topics-tree {
+  flex: 1;
+  overflow-y: auto;
   padding: 1rem;
 }
 

@@ -29,16 +29,13 @@ const LogoutButton = () => {
   };
 
   return (
-    <div className="user-controls">
-      <span className="user-name">{user?.name || 'User'}</span>
-      <button 
-        onClick={handleLogout}
-        disabled={loading}
-        className={`logout-button ${loading ? 'loading' : ''}`}
-      >
-        {loading ? 'Logging out...' : 'Logout'}
-      </button>
-    </div>
+    <button 
+      onClick={handleLogout}
+      disabled={loading}
+      className="logout-button"
+    >
+      {loading ? '...' : 'Logout'}
+    </button>
   );
 };
 

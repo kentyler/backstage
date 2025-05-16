@@ -14,12 +14,10 @@
 }
 
 .header-content {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 1rem;
 }
 
 .branding {
@@ -50,12 +48,13 @@
 .user-controls {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  color: white;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .welcome-message {
   font-size: 0.9rem;
   opacity: 0.9;
-  color: white;
+  color: rgba(255, 255, 255, 0.9);
 }

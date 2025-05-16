@@ -5,7 +5,7 @@ import './TopicsMenu.css';
 /**
  * A single node in the topic tree
  */
-const TopicTreeNode = ({ node, level = 0, onAddChild, expandedPaths, onToggleExpand, refreshTopics }) => {
+const TopicTreeNode = ({ node, level = 0, onAddChild, expandedPaths, onToggleExpand, refreshTopics, onSelect }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(node.fullPath || node.name);
   const [lastClickTime, setLastClickTime] = useState(0);
@@ -41,6 +41,8 @@ const TopicTreeNode = ({ node, level = 0, onAddChild, expandedPaths, onToggleExp
 
     if (timeDiff < 300) { // Double click threshold
       setIsEditing(true);
+    } else {
+      onSelect && onSelect();
     }
 
     setLastClickTime(currentTime);
