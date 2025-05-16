@@ -6,52 +6,79 @@ Write-Host "Back-Stage Build and Run Script" -ForegroundColor Green
 Write-Host "===============================" -ForegroundColor Green
 Write-Host ""
 
-# Step 1: Kill any existing processes on ports 3000 and 5000
-Write-Host "Checking for processes on ports 3000 and 5000..." -ForegroundColor Cyan
-
 # Function to safely kill processes on a specific port
 function KillProcessOnPort($port) {
     try {
-        # Find processes using the port
-        $processInfoRaw = netstat -ano | findstr ":$port" | findstr "LISTENING"
+        # Use PowerShell to find and kill processes
+        $netstatOutput = netstat -ano | Select-String ":$port\s+.*LISTENING\s+(\d+)"
+        $pids = $netstatOutput | ForEach-Object { ($_ -split '\s+')[-1] } | Select-Object -Unique
         
-        if ($processInfoRaw) {
-            # Extract PIDs and remove duplicates
-            $pidList = @()
-            $processInfoRaw -split "`n" | ForEach-Object {
-                if ($_ -match "LISTENING\s+(\d+)") {
-                    $pidList += $matches[1]
-                }
-            }
+        if ($pids) {
+            Write-Host "Found processes using port $port : $($pids -join ', ')" -ForegroundColor Yellow
             
-            # Get unique PIDs
-            $uniquePids = $pidList | Select-Object -Unique
-            
-            Write-Host "Found processes using port $port : $uniquePids" -ForegroundColor Yellow
-            
-            # Kill each process
-            foreach ($pid in $uniquePids) {
-                Write-Host "Killing process with PID: $pid" -ForegroundColor Yellow
-                Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+            foreach ($pid in $pids) {
+                # First try to kill it nicely
+                taskkill /PID $pid /F 2>$null
+                Start-Sleep -Milliseconds 500
                 
-                # Verify process was killed
+                # Check if it's still running
+                $process = Get-Process -Id $pid -ErrorAction SilentlyContinue
+                if ($process) {
+                    Write-Host "Process $pid still running, forcing termination..." -ForegroundColor Red
+                    taskkill /F /PID $pid /T 2>$null
+                    Start-Sleep -Milliseconds 500
+                }
+                
+                # Final check
                 if (-not (Get-Process -Id $pid -ErrorAction SilentlyContinue)) {
-                    Write-Host "Process with PID $pid successfully terminated" -ForegroundColor Green
+                    Write-Host "Process $pid successfully terminated" -ForegroundColor Green
                 } else {
-                    Write-Host "Failed to terminate process with PID $pid, trying taskkill..." -ForegroundColor Red
-                    # Fallback to taskkill
-                    taskkill /PID $pid /F /T
+                    Write-Host "WARNING: Could not terminate process $pid" -ForegroundColor Red
+                    return $false
                 }
             }
             return $true
         } else {
             Write-Host "No processes found using port $port" -ForegroundColor Green
-            return $false
+            return $true
         }
     } catch {
-        Write-Host "Error while killing processes on port $port" -ForegroundColor Red
+        $errorMsg = $_.Exception.Message
+        Write-Host ("Error while killing processes on port {0}: {1}" -f $port, $errorMsg) -ForegroundColor Red
         return $false
     }
+}
+
+# Step 1: Kill any existing processes on ports 3000 and 5000
+Write-Host "`nChecking for processes on ports 3000 and 5000..." -ForegroundColor Yellow
+
+$maxRetries = 3
+$retryCount = 0
+$success = $false
+
+while (-not $success -and $retryCount -lt $maxRetries) {
+    $retryCount++
+    
+    if ($retryCount -gt 1) {
+        Write-Host "Retry attempt $retryCount of $maxRetries..." -ForegroundColor Yellow
+        Start-Sleep -Seconds 2
+    }
+    
+    # Try to kill processes on both ports
+    $port3000Clear = KillProcessOnPort 3000
+    $port5000Clear = KillProcessOnPort 5000
+    
+    if ($port3000Clear -and $port5000Clear) {
+        $success = $true
+        Write-Host "Successfully cleared ports 3000 and 5000" -ForegroundColor Green
+    } else {
+        Write-Host "Failed to clear ports. Retrying..." -ForegroundColor Red
+    }
+}
+
+if (-not $success) {
+    Write-Host "Failed to clear ports after $maxRetries attempts. Please check manually." -ForegroundColor Red
+    exit 1
 }
 
 # Kill processes on React and Express ports

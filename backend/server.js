@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import * as db from './db/index.js';
 import dotenv from 'dotenv';
 import config from './config.js';
+import fs from 'fs';
 
 // Import the client pool middleware
 import { setClientPool } from './middleware/setClientPool.js';
@@ -26,6 +27,15 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+
+// Configure CORS
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? false // No CORS needed in production since we serve frontend from same origin
+    : ['http://localhost:3000'], // Allow React dev server in development
+  credentials: true // Allow cookies
+};
+app.use(cors(corsOptions));
 
 // Create an in-memory store for now - simplest solution for testing
 // Will be replaced with the database store once the basic authentication flow is working
@@ -48,6 +58,33 @@ app.use(session({
   // These settings ensure the session is saved immediately
   saveUninitialized: true,
   resave: true
+}));
+
+// Serve static files from React build folder
+const staticPath = path.resolve(__dirname, '../frontend/build');
+console.log('Serving static files from:', staticPath);
+
+// Verify that build directory exists
+if (fs.existsSync(staticPath)) {
+  console.log('Build directory exists and is accessible');
+  
+  // Log the contents of the build directory
+  const buildFiles = fs.readdirSync(staticPath);
+  console.log('Build directory contents:', buildFiles);
+} else {
+  console.error('ERROR: Build directory does not exist at:', staticPath);
+}
+
+// Serve static files with detailed logging
+app.use(express.static(staticPath, {
+  setHeaders: (res, path) => {
+    // Set caching headers appropriately
+    if (path.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache');
+    } else if (path.match(/\.(js|css|png|jpg|jpeg|gif|ico)$/)) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+    }
+  }
 }));
 
 // Configure CORS with environment-aware settings - only for API routes
@@ -408,34 +445,31 @@ app.post('/api/db-query', authenticate, async (req, res) => {
   }
 });
 
-// Serve static files from React build folder
-const staticPath = path.resolve(__dirname, '../frontend/build');
-console.log('Serving static files from:', staticPath);
-
-// Verify that build directory exists
-import fs from 'fs';
-if (fs.existsSync(staticPath)) {
-  console.log('Build directory exists and is accessible');
-  
-  // Log the contents of the build directory
-  const buildFiles = fs.readdirSync(staticPath);
-  console.log('Build directory contents:', buildFiles);
-} else {
-  console.error('ERROR: Build directory does not exist at:', staticPath);
-}
-
-// Serve static files
-app.use(express.static(staticPath));
+// Log all requests to help debug static file serving
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 
 // Catch-all route to serve React app for client-side routing
 // This must come after all API routes
-app.get('*', (req, res) => {
+app.get('*', (req, res, next) => {
+  // Skip API routes
+  if (req.url.startsWith('/api/')) {
+    return next();
+  }
+  
   const indexPath = path.join(staticPath, 'index.html');
   console.log('Serving index.html from:', indexPath);
   
   // Check if index.html exists
   if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
+    res.sendFile(indexPath, (err) => {
+      if (err) {
+        console.error('Error sending index.html:', err);
+        res.status(500).send('Error loading application');
+      }
+    });
   } else {
     console.error('ERROR: index.html does not exist at:', indexPath);
     res.status(404).send('index.html not found. React build may be missing or incorrect.');
