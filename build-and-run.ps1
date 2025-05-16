@@ -131,6 +131,21 @@ $buildFiles = Get-ChildItem -Path ".\build" -Recurse | Measure-Object
 Write-Host "Build successful! Created $($buildFiles.Count) files." -ForegroundColor Green
 Write-Host "Build directory: $currentLocation\frontend\build" -ForegroundColor Green
 
+# Make sure the build directory exists and is empty
+$backendBuildDir = "$currentLocation\backend\build"
+if (Test-Path -Path $backendBuildDir) {
+    Write-Host "Cleaning existing backend build directory..." -ForegroundColor Yellow
+    Remove-Item -Path "$backendBuildDir\*" -Recurse -Force
+} else {
+    Write-Host "Creating backend build directory..." -ForegroundColor Yellow
+    New-Item -Path $backendBuildDir -ItemType Directory | Out-Null
+}
+
+# Copy build files to backend/build directory
+Write-Host "Copying build files to backend..." -ForegroundColor Cyan
+Copy-Item -Path ".\build\*" -Destination $backendBuildDir -Recurse -Force
+Write-Host "Successfully copied build files to backend" -ForegroundColor Green
+
 # Return to original directory
 Set-Location -Path $currentLocation
 

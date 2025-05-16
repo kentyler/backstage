@@ -4,12 +4,17 @@
   flex-direction: column;
 }
 
+.app-container {
+  display: flex;
+  flex: 1;
+  padding-top: 48px; /* Height of the header */
+}
+
 .app-content {
   flex: 1;
   padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
+  overflow-y: auto;
+  margin-left: 250px; /* Match the width of topics-menu */
 }
 
 .app-content h2 {
