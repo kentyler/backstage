@@ -1,23 +1,18 @@
 import React from 'react';
-import { useAuth } from '../services/auth/authContext';
-import LogoutButton from './auth/LogoutButton';
+import AppHeader from './AppHeader';
 import './MainLayout.css';
 
+/**
+ * MainLayout component
+ * Main layout container for the authenticated application
+ */
 const MainLayout = () => {
-  const { user } = useAuth();
-
   return (
     <div className="main-layout">
-      <header className="app-header">
-        <h1>Back-Stage</h1>
-        <div className="user-controls">
-          <span>Welcome, {user?.email}</span>
-          <LogoutButton />
-        </div>
-      </header>
+      <AppHeader />
       
       <main className="app-content">
-        <h2>Welcome to Back-Stage</h2>
+        <h2>Welcome</h2>
         <p>Your authenticated dashboard will be shown here.</p>
       </main>
     </div>

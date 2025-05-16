@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../services/auth/authContext';
 import { useNavigate } from 'react-router-dom';
+import AppHeader from '../AppHeader';
 import './auth.css';
 
 /**
@@ -39,8 +40,8 @@ const LoginForm = () => {
 
   return (
     <div className="auth-container">
+      <AppHeader />
       <form onSubmit={handleSubmit} className="login-form">
-        <h2>Login to Back-Stage</h2>
         
         {error && (
           <div className="error-message">

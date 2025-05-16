@@ -300,8 +300,8 @@ app.get('/api/auth-test', (req, res) => {
   });
 });
 
-// Add endpoint to get current schema info
-app.get('/api/schema-info', authenticate, (req, res) => {
+// Add endpoint to get current schema info - no auth required since schema is determined by hostname
+app.get('/api/schema-info', (req, res) => {
   // Use the modular getSchemaFromRequest function
   const schema = db.getSchemaFromRequest(req);
   return res.status(200).json({ 

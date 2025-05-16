@@ -38,7 +38,6 @@ function AppContent() {
   
   return (
     <div style={{ padding: '20px', backgroundColor: '#f0f0f0', minHeight: '100vh' }}>
-      <h1>Back-Stage</h1>
       <Router>
         <Routes>
           {/* Public routes */}
