@@ -1,6 +1,13 @@
 Write-Host "Express React Restart Script" -ForegroundColor Cyan
 Write-Host "============================" -ForegroundColor Cyan
 
+# Close all PowerShell windows except the current one
+$currentPid = $PID
+Get-Process | Where-Object { $_.ProcessName -eq 'powershell' -and $_.Id -ne $currentPid } | ForEach-Object { 
+    Write-Host "Closing PowerShell window with PID: $($_.Id)" -ForegroundColor Yellow
+    Stop-Process -Id $_.Id -Force
+}
+
 # Kill processes on ports 3000 and 5000
 Write-Host "`nChecking for processes on ports 3000 and 5000..." -ForegroundColor Yellow
 

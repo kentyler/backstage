@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import * as db from './db/index.js';
 import { getTopicPaths, createTopicPath, deleteTopicPath, updateTopicPath } from './db/topic-paths/index.js';
+import llmRoutes from './routes/api/llm.js';
 import dotenv from 'dotenv';
 import config from './config.js';
 import fs from 'fs';
@@ -97,6 +98,9 @@ app.use('/api', cors({
 // Apply setClientPool middleware to all API routes
 // This will determine the schema and create a pool for each client
 app.use('/api', setClientPool);
+
+// LLM Configuration routes
+app.use('/api', llmRoutes);
 
 // Simple authentication middleware
 const authenticate = (req, res, next) => {
@@ -307,7 +311,9 @@ app.get('/api/auth-status', (req, res) => {
     hasSession: !!req.session,
     sessionData: req.session,
     authenticated: req.session?.authenticated,
-    userId: req.session?.userId
+    userId: req.session?.userId,
+    schema: db.getSchemaFromRequest(req),
+    clientPool: !!req.clientPool
   });
   
   // First check if we have explicitly set the authenticated flag
@@ -508,6 +514,9 @@ app.use((req, res, next) => {
   next();
 });
 
+// LLM Configuration Routes
+app.use('/api/client-schemas', setClientPool, llmRoutes);
+
 // Catch-all route to serve React app for client-side routing
 // This must come after all API routes
 app.get('*', (req, res, next) => {
@@ -534,8 +543,8 @@ app.get('*', (req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Express server running on http://localhost:${PORT}`);
+const server = app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
   console.log('Serving React frontend and API from the same server');
   console.log('\nAPI endpoints:');
   console.log('- POST /api/login - Login with any username/password');
@@ -549,3 +558,6 @@ app.listen(PORT, () => {
   console.log('- GET /api/db-tables - List database tables (requires authentication)');
   console.log('- POST /api/db-query - Execute a SELECT query (requires authentication)');
 });
+
+// Export the Express app and server for testing
+export { app, server };

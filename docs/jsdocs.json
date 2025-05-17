@@ -1,0 +1,2038 @@
+[
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\config.js",
+    "comment": "/**\n * Environment-aware configuration for authentication and CORS\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\config\\schema.js",
+    "comment": "/**\n * Schema configuration settings\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\connection.js",
+    "comment": "/**\n * Database connection module\n * Provides a PostgreSQL connection pool for the application\n * Supports schema-based multi-tenancy\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\connection.js",
+    "comment": "/**\n * Creates a database connection pool with a specific schema search path\n * \n * @param {string} schema - The schema to use (defaults to 'public')\n * @returns {Pool} - A PostgreSQL connection pool configured for the specified schema\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\index.js",
+    "comment": "/**\n * Database module - Main entry point\n * \n * This file exports all database functions from various modules\n * in a structured format.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\core\\connection.js",
+    "comment": "/**\n * Database connection module\n * Provides a PostgreSQL connection pool for the application\n * Supports schema-based multi-tenancy\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\core\\getTableInfo.js",
+    "comment": "/**\n * Database table information utility\n * \n * Gets information about tables in the current schema\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\core\\getTableInfo.js",
+    "comment": "/**\n * Gets information about tables in the specified schema\n * \n * @param {Object} req - Express request object\n * @returns {Object} Table information including schema, tables, etc.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\core\\query.js",
+    "comment": "/**\n * Database query utility\n * \n * Provides a schema-aware query function that sets the search_path \n * based on the request's hostname/subdomain\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\core\\query.js",
+    "comment": "/**\n * Executes a query with the proper schema context based on the request\n * \n * @param {string} text - SQL query text\n * @param {Array} params - Query parameters\n * @param {Object} req - Express request object for schema determination\n * @returns {Object} Query result with rows and rowCount\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\core\\schema.js",
+    "comment": "/**\n * Schema utility functions\n * \n * Provides functions for schema selection based on hostname/subdomain\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\core\\schema.js",
+    "comment": "/**\n * Gets the appropriate schema based on host/subdomain\n * For localhost, default to 'dev' schema\n * \n * @param {Object} req - Express request object\n * @returns {string} Schema name to use\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\core\\testConnection.js",
+    "comment": "/**\n * Database connection test function\n * \n * Tests connection to the database with proper schema selection\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\core\\testConnection.js",
+    "comment": "/**\n * Tests the database connection with schema-aware queries\n * \n * @param {Object} req - Express request object\n * @returns {Object} Test results including schema, connection status, etc.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\groups\\createGroup.js",
+    "comment": "/**\n * @file src/db/group/createGroup.js\n * @description Creates a new group record in the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\groups\\createGroup.js",
+    "comment": "/**\n * Creates a new group with the given name.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {string} name - The name of the group.\n * @returns {Promise<{id: number, name: string, created_at: string}>} The newly created group record.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\groups\\deleteGroup.js",
+    "comment": "/**\n * @file src/db/group/deleteGroup.js\n * @description Deletes a group by its ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\groups\\deleteGroup.js",
+    "comment": "/**\n * Deletes a group from the database.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} groupId - The ID of the group to delete.\n * @returns {Promise<boolean>} True if a group was deleted, false otherwise.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\groups\\getAllGroups.js",
+    "comment": "/**\n\n * @file src/db/group/getAllGroups.js\n * @description Retrieves all group records from the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\groups\\getAllGroups.js",
+    "comment": "/**\n * Retrieves all groups from the database.\n * @returns {Promise<Array<{id: number, name: string, created_at: string}>>} Array of group records.\n * @param { Pool } pool - The PostgreSQL connection pool.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\groups\\getGroupById.js",
+    "comment": "/**\n * @file src/db/group/getGroupById.js\n * @description Retrieves a group record from the database by its ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\groups\\getGroupById.js",
+    "comment": "/**\n * Retrieves a single group by its ID.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} id - The ID of the group to retrieve.\n * @returns {Promise<{id: number, name: string, created_at: string}|null>} The group record, or null if not found.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\groups\\getGroupByName.js",
+    "comment": "/** \n * @file src/db/group/getGroupByName.js\n * @description Retrieves a group record from the database by its name.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\groups\\getGroupByName.js",
+    "comment": "/**\n * Retrieves a single group by its name.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {string} name - The name of the group to retrieve.\n * @returns {Promise<{id: number, name: string, created_at: string}|null>} The group record, or null if not found.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\groups\\getGroupsByParticipant.js",
+    "comment": "/**\n * @file src/db/groups/getGroupsByParticipant.js\n * @description Retrieves all groups that a specific participant belongs to.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\groups\\getGroupsByParticipant.js",
+    "comment": "/**\n * Retrieves all groups that a specific participant belongs to\n * @param {number} participantId - The ID of the participant\n * @returns {Promise<Array<{id: number, name: string, created_at: string, role: string}>>} Array of group records\n * @throws {Error} If a database error occurs\n * @param { Pool } pool - The PostgreSQL connection pool.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\groups\\updateGroup.js",
+    "comment": "/**\n * @file src/db/group/updateGroup.js\n * @description Updates a group's properties in the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\groups\\updateGroup.js",
+    "comment": "/**\n * Updates an existing group's properties.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} groupId - The ID of the group to update.\n * @param {Object} updates - The properties to update.\n * @param {string} [updates.name] - The new name for the group.\n * @returns {Promise<{id: number, name: string, created_at: string}|null>} The updated group record, or null if not found.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatars\\createGrpConAvatar.js",
+    "comment": "/**\n * @file src/db/grpConAvatars/createGrpConAvatar.js\n * @description Adds an avatar to a group conversation.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatars\\createGrpConAvatar.js",
+    "comment": "/**\n * Inserts a new row into grp_con_avatars.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} conversationId\n * @param {number} avatarId\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<{grp_con_id: number, avatar_id: number, added_at: string}>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatars\\deleteGrpConAvatar.js",
+    "comment": "/**\n * @file src/db/grpConAvatars/deleteGrpConAvatar.js\n * @description Removes an avatar from a conversation.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatars\\deleteGrpConAvatar.js",
+    "comment": "/**\n * Deletes the link between an avatar and a conversation.\n *  @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} conversationId\n * @param {number} avatarId\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<boolean>} true if deleted, false otherwise\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatars\\getGrpConAvatarsByConversation.js",
+    "comment": "/**\n * @file src/db/grpConAvatars/getGrpConAvatarsByConversation.js\n * @description Lists all avatars in a given conversation.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatars\\getGrpConAvatarsByConversation.js",
+    "comment": "/**\n * Fetches avatar entries for one conversation.\n  *  @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} conversationId\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<Array<{avatar_id: number, added_at: string}>>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatars\\getGrpConsByAvatar.js",
+    "comment": "/**\n * @file src/db/grpConAvatars/getGrpConsByAvatar.js\n * @description Lists all conversations that include a given avatar.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatars\\getGrpConsByAvatar.js",
+    "comment": "/**\n * Fetches conversation entries for one avatar.\n *  @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} avatarId\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<Array<{grp_con_id: number, added_at: string}>>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurnRelationships\\createGrpConAvatarTurnRelationship.js",
+    "comment": "/**\n * Creates a directed relationship between two avatar turns.\n * @param {number} turnId\n * @param {number} targetTurnId\n * @param {number} [relationshipTypeId=1]\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurnRelationships\\deleteGrpConAvatarTurnRelationship.js",
+    "comment": "/**\n * Deletes a relationship by its ID.\n * @param {number} id\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<boolean>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurnRelationships\\getGrpConAvatarTurnRelationshipById.js",
+    "comment": "/**\n * Fetches a relationship by its ID.\n * @param {number} id\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurnRelationships\\getGrpConAvatarTurnRelationshipsByTurn.js",
+    "comment": "/**\n * Lists all relationships originating from a turn.\n * @param {number} turnId\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object[]>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurnRelationships\\updateGrpConAvatarTurnRelationship.js",
+    "comment": "/**\n * Updates the relationship type of an existing relationship.\n * @param {number} id\n * @param {number} newTypeId\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurns\\createGrpConAvatarTurn.js",
+    "comment": "/**\n * Creates a new avatar turn in a group conversation\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} conversationId - The ID of the conversation\n * @param {number} avatarId - The ID of the avatar\n * @param {number|string} turnIndex - The index of the turn (can be decimal for comments)\n * @param {string} contentText - The text content of the turn\n * @param {Array} contentVector - The vector representation of the content\n * @param {number} [turnKindId=TURN_KIND.REGULAR] - The kind of turn (regular or comment)\n * @param {number} [messageTypeId=null] - The type of message (1 for user, 2 for LLM)\n * @param {string|object} schemaOrPool - Either a schema name or a pool object\n * @returns {Promise<Object>} The created turn\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurns\\deleteGrpConAvatarTurn.js",
+    "comment": "/**\n * Delete a group conversation avatar turn by ID\n * @param {number} id - The ID of the turn to delete\n * @param {string|object} schemaOrPool - Either a schema name or a pool object\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<boolean>} True if the turn was deleted, false if not found\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurns\\getGrpConAvatarTurnById.js",
+    "comment": "/**\n * Get a group conversation avatar turn by ID\n * @param {number} id - The ID of the turn to retrieve\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>} The turn object or null if not found\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurns\\getGrpConAvatarTurnsByConversation.js",
+    "comment": "/**\n * Parse a vector string from the database into an array of numbers\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {string} vectorStr - The vector string from the database (e.g., \"[0.1,0.2,0.3]\")\n * @returns {number[]} The parsed vector as an array of numbers\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurns\\getGrpConAvatarTurnsByConversation.js",
+    "comment": "/**\n * Get all avatar turns for a specific conversation\n * \n * @param {number} conversationId - The ID of the conversation\n * @param {string|object} [schemaOrPool=null] - Schema name or custom pool\n * @returns {Promise<Array>} List of avatar turns for the conversation\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurns\\updateGrpConAvatarTurn.js",
+    "comment": "/**\n * Update a group conversation avatar turn\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} id - The ID of the turn to update\n * @param {string} newText - The new text content\n * @param {Array<number>} newVector - The new vector content\n \n * @returns {Promise<object>} The updated turn\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpCons\\createGrpCon.js",
+    "comment": "/**\n * Creates a new conversation under a group.\n * @param {number} groupId - The ID of the group.\n * @param {string} name - The conversation name.\n * @param {string} description - The conversation description.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} [typeId=1] - The type ID from grp_con_types table (1=conversation, 2=template)\n * @returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpCons\\deleteGrpCon.js",
+    "comment": "/**\n * Deletes a conversation by its ID.\n * @param {number} id - The conversation ID.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<boolean>} True if deleted, false otherwise.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpCons\\getGrpConById.js",
+    "comment": "/**\n * Retrieves a conversation by its ID.\n * @param {number} id - The conversation ID.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}|null>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpCons\\getGrpConsByGroup.js",
+    "comment": "/**\n * Retrieves conversations for a given group, ordered by creation date (newest first) and limited to 50.\n * @param {number} groupId - The group ID.\n * @param {Pool} pool - The PostgreSQL connection pool.\n * @returns {Promise<Array<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}>>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpCons\\updateGrpCon.js",
+    "comment": "/**\n * Updates a conversation's name, description, and optionally its type.\n * @param {number} id - The conversation ID.\n * @param {string} newName - The new conversation name.\n * @param {string} newDescription - The new conversation description.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number|null} [newTypeId=null] - The new type ID from grp_con_types table (1=conversation, 2=template), or null to keep current type\n * @returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}|null>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateInstances\\createGrpConTemplateInstance.js",
+    "comment": "/**\n * @file src/db/grpConTemplateInstances/createGrpConTemplateInstance.js\n * @description Creates a new template instance.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateInstances\\createGrpConTemplateInstance.js",
+    "comment": "/**\n * Creates a new template instance.\n * @param {number} templateId - The ID of the template\n * @param {number} groupId - The ID of the group\n * @param {string} name - The name of the instance (optional, defaults to template name with timestamp)\n * @param {string} description - The description of the instance (optional)\n * @param {Pool} pool - The PostgreSQL connection pool\n * @returns {Promise<{id: number, template_id: number, group_id: number, name: string, description: string, created_at: Date}>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateInstances\\getGrpConTemplateInstancesByTemplate.js",
+    "comment": "/**\n * @file src/db/grpConTemplateInstances/getGrpConTemplateInstancesByTemplate.js\n * @description Lists all instances for a given template.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateInstances\\getGrpConTemplateInstancesByTemplate.js",
+    "comment": "/**\n * Fetches template instances for one template.\n * @param {Pool} pool - The PostgreSQL connection pool.\n * @param {number} templateId - The ID of the template\n * @returns {Promise<Array<{id: number, template_id: number, group_id: number, name: string, description: string, created_at: Date}>>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\createGrpConTemplateTopic.js",
+    "comment": "/**\n * @file src/db/grpConTemplateTopics/createGrpConTemplateTopic.js\n * @description Creates a new topic for a template.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\createGrpConTemplateTopic.js",
+    "comment": "/**\n * Inserts a new row into grp_con_template_topics.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} templateId - The ID of the template\n * @param {string} title - The title of the topic\n * @param {string} content - The content of the topic (can be empty)\n * @param {number} topicIndex - The index of the topic for ordering\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<{id: number, template_id: number, title: string, content: string, topic_index: number}>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\deleteGrpConTemplateTopic.js",
+    "comment": "/**\n * @file src/db/grpConTemplateTopics/deleteGrpConTemplateTopic.js\n * @description Deletes a template topic.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\deleteGrpConTemplateTopic.js",
+    "comment": "/**\n * Deletes a template topic by ID.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} topicId - The ID of the topic to delete\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<{id: number, template_id: number, title: string, content: string, topic_index: number}|null>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\getGrpConTemplateTopicById.js",
+    "comment": "/**\n * @file src/db/grpConTemplateTopics/getGrpConTemplateTopicById.js\n * @description Retrieves a single template topic by its ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\getGrpConTemplateTopicById.js",
+    "comment": "/**\n * Fetches a single template topic by ID.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} topicId - The ID of the topic to retrieve\n * @returns {Promise<{id: number, template_id: number, title: string, content: string, topic_index: number}|null>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\getGrpConTemplateTopicsByTemplate.js",
+    "comment": "/**\n * @file src/db/grpConTemplateTopics/getGrpConTemplateTopicsByTemplate.js\n * @description Lists all topics for a given template, ordered by topic_index.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\getGrpConTemplateTopicsByTemplate.js",
+    "comment": "/**\n * Fetches topic entries for one template.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} templateId - The ID of the template\n * @returns {Promise<Array<{id: number, template_id: number, title: string, content: string, topic_index: number}>>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\updateGrpConTemplateTopic.js",
+    "comment": "/**\n * @file src/db/grpConTemplateTopics/updateGrpConTemplateTopic.js\n * @description Updates an existing template topic.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\updateGrpConTemplateTopic.js",
+    "comment": "/**\n * Updates a template topic.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} topicId - The ID of the topic to update\n * @param {string} title - The updated title\n * @param {string} content - The updated content\n * @param {number} topicIndex - The updated topic index\n ** @returns {Promise<{id: number, template_id: number, title: string, content: string, topic_index: number}|null>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\createGrpConUpload.js",
+    "comment": "/**\n * Create a new group conversation upload record\n * @module db/grpConUploads/createGrpConUpload\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\createGrpConUpload.js",
+    "comment": "/**\n * Create a new group conversation upload record\n * @param {Object} uploadData - The upload data\n * @param {number} uploadData.grpConId - The group conversation ID\n * @param {number} [uploadData.turnId] - The turn ID (optional)\n * @param {string} uploadData.filename - The filename\n * @param {string} uploadData.mimeType - The MIME type\n * @param {string} uploadData.filePath - The file path in Supabase Storage\n * @param {string} [uploadData.publicUrl] - The public URL of the file (optional)\n * @param {string} [uploadData.bucketName] - The Supabase Storage bucket name (optional)\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Object>} - The created upload record\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\deleteGrpConUpload.js",
+    "comment": "/**\n * Delete a group conversation upload record\n * @module db/grpConUploads/deleteGrpConUpload\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\deleteGrpConUpload.js",
+    "comment": "/**\n * Delete a group conversation upload record\n * @param {number} id - The upload ID\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<boolean>} - True if deletion was successful\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\getGrpConUploadById.js",
+    "comment": "/**\n * Get a group conversation upload by ID\n * @module db/grpConUploads/getGrpConUploadById\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\getGrpConUploadById.js",
+    "comment": "/**\n * Get a group conversation upload by ID\n * @param {number} id - The upload ID\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Object|null>} - The upload record or null if not found\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\getGrpConUploadsByConversation.js",
+    "comment": "/**\n * Get all uploads for a specific group conversation\n * @module db/grpConUploads/getGrpConUploadsByConversation\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\getGrpConUploadsByConversation.js",
+    "comment": "/**\n * Get all uploads for a specific group conversation\n * @param {number} grpConId - The group conversation ID\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Array>} - Array of upload records\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\index.js",
+    "comment": "/**\n * Group conversation uploads database operations\n * @module db/grpConUploads\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploadVectors\\createGrpConUploadVector.js",
+    "comment": "/**\n * Create a new group conversation upload vector record\n * @module db/grpConUploadVectors/createGrpConUploadVector\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploadVectors\\createGrpConUploadVector.js",
+    "comment": "/**\n * Create a new group conversation upload vector record\n * @param {Object} vectorData - The vector data\n * @param {number} vectorData.uploadId - The upload ID\n * @param {number} vectorData.chunkIndex - The chunk index\n * @param {string} vectorData.contentText - The text content of the chunk\n * @param {Array<number>} [vectorData.contentVector] - The vector representation of the content (optional)\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Object>} - The created vector record\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploadVectors\\getGrpConUploadVectorsByUpload.js",
+    "comment": "/**\n * Get group conversation upload vectors by upload ID\n * @module db/grpConUploadVectors/getGrpConUploadVectorsByUpload\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploadVectors\\getGrpConUploadVectorsByUpload.js",
+    "comment": "/**\n * Get group conversation upload vectors by upload ID\n * @param {number} uploadId - The upload ID\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Array<Object>>} - The vector records\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploadVectors\\index.js",
+    "comment": "/**\n * Group conversation upload vectors database operations\n * @module db/grpConUploadVectors\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantAvatars\\createParticipantAvatar.js",
+    "comment": "/**\n * @file src/db/participantAvatars/createParticipantAvatar.js\n * @description Creates a new participant-avatar relationship.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantAvatars\\createParticipantAvatar.js",
+    "comment": "/**\n * Creates a new participant-avatar relationship.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} participantId - The ID of the participant\n * @param {number} avatarId - The ID of the avatar\n * @param {number} [createdByParticipantId=null] - The ID of the participant who created this relationship\n * @returns {Promise<object>} The newly created participant-avatar relationship\n * @throws {Error} If the operation fails\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantAvatars\\deleteParticipantAvatar.js",
+    "comment": "/**\n * @file src/db/participantAvatars/deleteParticipantAvatar.js\n * @description Deletes a participant-avatar relationship.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantAvatars\\deleteParticipantAvatar.js",
+    "comment": "/**\n * Deletes a participant-avatar relationship by ID.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} id - The ID of the participant-avatar relationship to delete\n * @returns {Promise<object|null>} The deleted relationship or null if not found\n * @throws {Error} If the operation fails\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantAvatars\\getParticipantAvatarById.js",
+    "comment": "/**\n * @file src/db/participantAvatars/getParticipantAvatarById.js\n * @description Retrieves a participant-avatar relationship by ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantAvatars\\getParticipantAvatarById.js",
+    "comment": "/**\n * Retrieves a participant-avatar relationship by ID.\n * @param {number} id - The ID of the participant-avatar relationship\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>} The participant-avatar relationship or null if not found\n * @throws {Error} If the operation fails\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantAvatars\\getParticipantAvatarsByAvatar.js",
+    "comment": "/**\n * @file src/db/participantAvatars/getParticipantAvatarsByAvatar.js\n * @description Retrieves all participant relationships for a specific avatar.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantAvatars\\getParticipantAvatarsByAvatar.js",
+    "comment": "/**\n * Retrieves all participant relationships for a specific avatar.\n * @param {number} avatarId - The ID of the avatar\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Array<object>>} Array of participant-avatar relationships\n * @throws {Error} If the operation fails\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantAvatars\\getParticipantAvatarsByParticipant.js",
+    "comment": "/**\n * @file src/db/participantAvatars/getParticipantAvatarsByParticipant.js\n * @description Retrieves all avatar relationships for a specific participant.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantAvatars\\getParticipantAvatarsByParticipant.js",
+    "comment": "/**\n * Retrieves all avatar relationships for a specific participant.\n * @param {number} participantId - The ID of the participant\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Array<object>>} Array of participant-avatar relationships\n * @throws {Error} If the operation fails\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantAvatars\\index.js",
+    "comment": "/**\n * @file src/db/participantAvatars/index.js\n * @description Exports all participant-avatar relationship database operations.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantEvents\\createParticipantEvent.js",
+    "comment": "/**\n * @file src/db/participantEvents/createParticipantEvent.js\n * @description Creates a new participant event record in the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantEvents\\createParticipantEvent.js",
+    "comment": "/**\n * Creates a new participant event in the database\n * @param {number} participantId - The ID of the participant\n * @param {number} eventTypeId - The ID of the event type\n * @param {object} [details=null] - Optional JSON details about the event\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object>} The newly created participant event record\n * @throws {Error} If an error occurs during creation\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantEvents\\getParticipantEventById.js",
+    "comment": "/**\n * @file src/db/participantEvents/getParticipantEventById.js\n * @description Retrieves a participant event by its ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantEvents\\getParticipantEventById.js",
+    "comment": "/**\n * Retrieves a participant event by its ID\n * @param {number} id - The ID of the participant event to retrieve\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>} The participant event record or null if not found\n * @throws {Error} If an error occurs during retrieval\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantEvents\\getParticipantEventsByParticipant.js",
+    "comment": "/**\n * @file src/db/participantEvents/getParticipantEventsByParticipant.js\n * @description Retrieves all events for a specific participant.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantEvents\\getParticipantEventsByParticipant.js",
+    "comment": "/**\n * Retrieves all events for a specific participant\n * @param {number} participantId - The ID of the participant\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Array>} Array of participant event records\n * @throws {Error} If an error occurs during retrieval\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantEvents\\getParticipantEventsByType.js",
+    "comment": "/**\n * @file src/db/participantEvents/getParticipantEventsByType.js\n * @description Retrieves all events of a specific type.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantEvents\\getParticipantEventsByType.js",
+    "comment": "/**\n * Retrieves all events of a specific type\n * @param {number} eventTypeId - The ID of the event type\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Array>} Array of participant event records\n * @throws {Error} If an error occurs during retrieval\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantEvents\\index.js",
+    "comment": "/**\n * @file src/db/participantEvents/index.js\n * @description Export all participant events database functions\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\createParticipant.js",
+    "comment": "/**\n * @file src/db/participant/createParticipant.js\n * @description Creates a new participant record in the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\createParticipant.js",
+    "comment": "/**\n * The database connection pool\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\createParticipant.js",
+    "comment": "/**\n * Creates a new participant in the database\n * @param {string} name - The name of the participant\n * @param {string} email - The email of the participant (must be unique)\n * @param {string} password - The hashed password for the participant\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object>} The newly created participant record\n * @throws {Error} If email already exists or another error occurs\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\createParticipantHandler.js",
+    "comment": "/**\n * @file src/api/participants/createParticipantHandler.js\n * @description Handler for creating a new participant.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\createParticipantHandler.js",
+    "comment": "/**\n * Handles request to create a new participant\n * @param {object} req.body - Request body\n * @param {string} req.body.name - Participant name\n * @param {string} req.body.email - Participant email\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {string} req.body.password - Participant password (will be hashed)\n * @param {object} res - Express response object\n * @returns {Promise<void>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\deleteParticipant.js",
+    "comment": "/**\n * @file src/db/participant/deleteParticipant.js\n * @description Deletes a participant by ID from the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\deleteParticipant.js",
+    "comment": "/**\n * The database connection pool\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\deleteParticipant.js",
+    "comment": "/**\n * Deletes a participant from the database\n * @param {number} id - The ID of the participant to delete\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<boolean>} True if a participant was deleted, false otherwise\n * @throws {Error} If a database error occurs\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\deleteParticipantHandler.js",
+    "comment": "/**\n * @file src/api/participants/deleteParticipantHandler.js\n * @description Handler for deleting a participant.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\deleteParticipantHandler.js",
+    "comment": "/**\n * Handles request to delete a participant\n * @param {object} req - Express request object\n * @param {object} req.params - Request parameters\n * @param {string} req.params.id - Participant ID\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {object} res - Express response object\n * @returns {Promise<void>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\getAllParticipants.js",
+    "comment": "/**\n * @file src/db/participant/getAllParticipants.js\n * @description Retrieves all participant records from the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\getAllParticipants.js",
+    "comment": "/**\n * Retrieves all participants from the database\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object[]>} Array of participant records\n * @throws {Error} If a database error occurs\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\getAllParticipantsHandler.js",
+    "comment": "/**\n * @file src/api/participants/getAllParticipantsHandler.js\n * @description Handler for retrieving all participants.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\getAllParticipantsHandler.js",
+    "comment": "/**\n * Handles request to get all participants\n * \n * @param {object} req - Express request object\n * @param {object} res - Express response object\n * @returns {Promise<void>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\getParticipantByEmail.js",
+    "comment": "/**\n * @file src/db/participant/getParticipantByEmail.js\n * @description Retrieves a participant record from the database by email address.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\getParticipantByEmail.js",
+    "comment": "/**\n * Retrieves a participant by their email address\n * @param {string} email - The email of the participant to retrieve\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>} The participant record, or null if not found\n * @throws {Error} If a database error occurs\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\getParticipantByEmailHandler.js",
+    "comment": "/**\n * @file src/db/participants/getParticipantByEmailHandler.js\n * @description Handler for retrieving a participant by email.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\getParticipantByEmailHandler.js",
+    "comment": "/**\n * Handles request to get a participant by email\n * @param {object} req - Express request object\n * @param {object} req.query - Request query parameters\n * @param {string} req.query.email - Participant email\n * @param {object} res - Express response object\n * @returns {Promise<void>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\getParticipantById.js",
+    "comment": "/**\n * @file src/db/participant/getParticipantById.js\n * @description Retrieves a participant record from the database by its ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\getParticipantById.js",
+    "comment": "/**\n * Retrieves a participant by their ID\n * @param {number} id - The ID of the participant to retrieve\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>} The participant record, or null if not found\n * @throws {Error} If a database error occurs\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\getParticipantByIdHandler.js",
+    "comment": "/**\n * @file src/api/participants/getParticipantByIdHandler.js\n * @description Handler for retrieving a participant by ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\getParticipantByIdHandler.js",
+    "comment": "/**\n * Handles request to get a participant by ID\n * \n * @param {object} req - Express request object\n * @param {object} req.params - Request parameters\n * @param {string} req.params.id - Participant ID\n * @param {object} res - Express response object\n * @returns {Promise<void>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\getParticipantsByGroup.js",
+    "comment": "/**\n * @file src/db/participant/getParticipantsByGroup.js\n * @description Retrieves all participants in a specific group.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\getParticipantsByGroup.js",
+    "comment": "/**\n * Retrieves all participants in a specific group\n * @param {number} groupId - The ID of the group\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object[]>} Array of participant records with their roles in the group\n * @throws {Error} If a database error occurs\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\getParticipantsByGroupHandler.js",
+    "comment": "/**\n * @file src/api/participants/getParticipantsByGroupHandler.js\n * @description Handler for retrieving all participants in a group.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\getParticipantsByGroupHandler.js",
+    "comment": "/**\n * Handles request to get all participants in a group\n * \n * @param {object} req - Express request object\n * @param {object} req.params - Request parameters\n * @param {string} req.params.groupId - Group ID\n * @param {object} res - Express response object\n * @returns {Promise<void>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\index.js",
+    "comment": "/**\n * @file src/db/participants/index.js\n * @description Exports all participant-related database operations.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\updateParticipant.js",
+    "comment": "/**\n * @file src/db/participant/updateParticipant.js\n * @description Updates a participant's information in the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\updateParticipant.js",
+    "comment": "/**\n * Updates a participant's information\n * @param {number} id - The ID of the participant to update\n * @param {object} updates - Object containing fields to update\n * @param {string} [updates.name] - Updated name\n * @param {string} [updates.email] - Updated email\n * @param {string} [updates.password] - Updated password (should be hashed)\n * @param {number} [createdByParticipantId=null] - ID of participant making the change (for logging)\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>} The updated participant record, or null if not found\n * @throws {Error} If email already exists or another error occurs\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\updateParticipantHandler.js",
+    "comment": "/**\n * @file src/db/participants/updateParticipantHandler.js\n * @description Handler for updating a participant.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participants\\updateParticipantHandler.js",
+    "comment": "/**\n * Handles request to update a participant\n * \n * @param {object} req - Express request object\n * @param {object} req.params - Request parameters\n * @param {string} req.params.id - Participant ID\n * @param {object} req.body - Request body\n * @param {string} [req.body.name] - Updated name\n * @param {string} [req.body.email] - Updated email\n * @param {string} [req.body.password] - Updated password (will be hashed)\n * @param {object} req.user - Authenticated user information\n * @param {number} req.user.participantId - ID of the authenticated participant\n * @param {object} res - Express response object\n * @returns {Promise<void>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\preferences\\createGroupPreference.js",
+    "comment": "/**\n * @file src/db/preferences/createGroupPreference.js\n * @description Creates or updates a group preference in the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\preferences\\createGroupPreference.js",
+    "comment": "/**\n * Creates or updates a group preference\n * @param {number} groupId - The ID of the group\n * @param {number} preferenceTypeId - The ID of the preference type\n * @param {number} value - The BIGINT value for the preference\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object>} The newly created or updated group preference\n * @throws {Error} If an error occurs during creation/update\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\preferences\\createParticipantPreference.js",
+    "comment": "/**\n * @file src/db/preferences/createParticipantPreference.js\n * @description Creates or updates a participant preference in the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\preferences\\createParticipantPreference.js",
+    "comment": "/**\n * Creates or updates a participant preference\n * @param {number} participantId - The ID of the participant\n * @param {number} preferenceTypeId - The ID of the preference type\n * @param {number} value - The BIGINT value for the preference\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object>} The newly created or updated participant preference\n * @throws {Error} If an error occurs during creation/update\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\preferences\\createSitePreference.js",
+    "comment": "/**\n * @file src/db/preferences/createSitePreference.js\n * @description Creates or updates a site-wide preference in the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\preferences\\createSitePreference.js",
+    "comment": "/**\n * Creates or updates a site-wide preference\n * @param {number} preferenceTypeId - The ID of the preference type\n * @param {number} value - The BIGINT value for the preference\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object>} The newly created or updated site preference\n * @throws {Error} If an error occurs during creation/update\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\preferences\\getAllPreferenceTypes.js",
+    "comment": "/**\n * @file src/db/preferences/getAllPreferenceTypes.js\n * @description Retrieves all preference types from the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\preferences\\getAllPreferenceTypes.js",
+    "comment": "/**\n * Retrieves all preference types\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Array>} Array of preference types\n * @throws {Error} If an error occurs during retrieval\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\preferences\\getPreferenceTypeByName.js",
+    "comment": "/**\n * @file src/db/preferences/getPreferenceTypeByName.js\n * @description Retrieves a preference type by its name from the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\preferences\\getPreferenceTypeByName.js",
+    "comment": "/**\n * Retrieves a preference type by its name\n * @param {string} name - The unique name of the preference type\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>} The preference type or null if not found\n * @throws {Error} If an error occurs during retrieval\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\preferences\\getPreferenceWithFallback.js",
+    "comment": "/**\n * @file src/db/preferences/getPreferenceWithFallback.js\n * @description Retrieves a preference with fallback hierarchy (participant -> group -> site -> default).\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\preferences\\getPreferenceWithFallback.js",
+    "comment": "/**\n * Retrieves a preference with fallback hierarchy\n * @param {string} preferenceName - The name of the preference type\n\n * @param {number} participantId - The ID of the participant (optional)\n * \n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object>} The preference value with source information\n * @throws {Error} If an error occurs during retrieval or preference type doesn't exist\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\preferences\\index.js",
+    "comment": "/**\n * Preferences database operations\n * @module db/preferences\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\topic-paths\\createTopicPath.js",
+    "comment": "/**\n * Creates a new topic path\n * @param {string} path - The ltree path to create\n * @param {number} userId - ID of the user creating the path\n * @param {Pool} pool - The PostgreSQL connection pool to use\n * @returns {Promise<Object>} The created topic path\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\topic-paths\\deleteTopicPath.js",
+    "comment": "/**\n * Delete a topic path from the database.\n * TODO: In the future, we'll need to handle any posts that use this path\n * by either preventing deletion if posts exist, moving posts to a different path,\n * or implementing a soft delete system.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\topic-paths\\deleteTopicPath.js",
+    "comment": "/**\n * Delete a topic path and all its descendants from the database.\n * TODO: In the future, we'll need to handle any posts that use these paths\n * by either preventing deletion if posts exist, moving posts to a different path,\n * or implementing a soft delete system.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\topic-paths\\getTopicPaths.js",
+    "comment": "/**\n * Get all topic paths sorted by path\n * @param {Pool} pool - The PostgreSQL connection pool to use\n * @returns {Promise<Array>} Array of topic paths\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\topic-paths\\updateTopicPath.js",
+    "comment": "/**\n * Update a topic path in the database.\n * TODO: In the future, we'll need to handle any posts that use this path\n * by updating their paths as well.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\middleware\\setClientPool.js",
+    "comment": "/**\n * Middleware to create a database connection pool for the client schema\n * This middleware determines the schema directly from the request hostname\n * and uses a cached connection pool for that schema, attaching it to the request object\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\middleware\\setClientPool.js",
+    "comment": "/**\n * Creates a new connection pool for the specified schema\n * \n * @param {string} schema - Database schema name\n * @returns {Object} PostgreSQL connection pool\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\middleware\\setClientPool.js",
+    "comment": "/**\n * Determines the schema from the request hostname, gets or creates a connection pool,\n * and attaches it to the request object as req.clientPool\n * \n * @param {Object} req - Express request object\n * @param {Object} res - Express response object\n * @param {Function} next - Express next middleware function\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\middleware\\setClientSchema.js",
+    "comment": "/**\n * Utility functions for determining client schema\n * This file provides functions for determining the schema to use\n * based on hostname, participant attributes, etc.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\middleware\\setClientSchema.js",
+    "comment": "/**\n * Extract the subdomain from the hostname\n * \n * @param {string} hostname - The hostname from the request\n * @returns {string|null} - The subdomain or null if no subdomain\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\middleware\\setClientSchema.js",
+    "comment": "/**\n * Determines the client schema based on the hostname\n * \n * @param {string} hostname - The hostname from the request\n * @returns {string} - The schema name\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\middleware\\setClientSchema.js",
+    "comment": "/**\n * Determines the client schema for a participant\n * Uses the SUBDOMAIN_TO_SCHEMA mapping to determine the schema\n * based on the participant's organization or other attributes\n * \n * @param {Object} participant - The participant object\n * @param {Object} [options] - Additional options\n * @param {boolean} [options.isLocalhost] - Whether the request is from localhost\n * @returns {string} - The schema name for the participant\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\middleware\\setClientSchema.js",
+    "comment": "/**\n * Gets a list of all client schemas\n * This is used for operations that need to be performed across all schemas\n * \n * @returns {Promise<string[]>} - A promise that resolves to an array of schema names\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\App.js",
+    "comment": "/**\n * App component\n * Sets up routing and authentication\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\components\\AppHeader.js",
+    "comment": "/**\n * AppHeader component\n * Handles the main application header, including branding and user controls\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\components\\AppTitle.js",
+    "comment": "/**\n * AppTitle component\n * Displays the application title with schema information\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\components\\MainLayout.js",
+    "comment": "/**\n * MainLayout component\n * Main layout container for the authenticated application\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\components\\TopicsMenu.js",
+    "comment": "/**\n * Convert flat path list to tree structure\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\components\\TopicsMenu.js",
+    "comment": "/**\n * TopicsMenu component\n * Displays a hierarchical tree of topic paths\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\components\\TopicTreeNode.js",
+    "comment": "/**\n * A single node in the topic tree\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\components\\auth\\LoginForm.js",
+    "comment": "/**\n * Login form component\n * Handles user authentication and form state\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\components\\auth\\LogoutButton.js",
+    "comment": "/**\n * LogoutButton component\n * Handles user logout and navigation\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\components\\auth\\PrivateRoute.js",
+    "comment": "/**\n * PrivateRoute component\n * Protects routes that require authentication\n * Redirects to login if user is not authenticated\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\auth\\authApi.js",
+    "comment": "/**\n * Authentication API service\n * Handles all authentication-related API calls\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\auth\\authApi.js",
+    "comment": "/**\n * Send login request to the server\n * @param {string} email User's email\n * @param {string} password User's password\n * @returns {Promise<Object>} Response data including token and user info\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\auth\\authApi.js",
+    "comment": "/**\n * Send logout request to the server\n * @returns {Promise<void>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\auth\\authApi.js",
+    "comment": "/**\n * Check current authentication status\n * @returns {Promise<Object>} User authentication status and data\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\auth\\authContext.js",
+    "comment": "/**\n * Provider component for authentication state\n * Manages auth state and provides login/logout functions\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\auth\\authContext.js",
+    "comment": "/**\n * Custom hook to use authentication context\n * @returns {Object} Authentication context value\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\topics\\topicsApi.js",
+    "comment": "/**\n * Topic paths API service\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\topics\\topicsApi.js",
+    "comment": "/**\n * Fetch all topic paths sorted by path\n * @returns {Promise<Array>} Sorted array of topic paths\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\topics\\topicsApi.js",
+    "comment": "/**\n * Create a new topic path\n * @param {string} path - The path to create\n * @returns {Promise<Object>} The created topic path\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\topics\\topicsApi.js",
+    "comment": "/**\n * Delete a topic path\n * @param {string} path - The path to delete\n * @returns {Promise<Object>} The deleted topic path\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\topics\\topicsApi.js",
+    "comment": "/**\n * Update a topic path\n * @param {string} oldPath - The old path to update\n * @param {string} newPath - The new path to update to\n * @returns {Promise<Object>} The updated topic path\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\api.js",
+    "comment": "/**\n * Fetch CSRF token for API requests\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\api.js",
+    "comment": "/**\n * Helper function to get API base URL (copied from login.html)\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\api.js",
+    "comment": "/**\n * Function to test CSRF token\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\api.js",
+    "comment": "/**\n * Function to test authentication\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\conversations.js",
+    "comment": "/**\n * Conversations module - Handles conversation-related functionality\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\conversations.js",
+    "comment": "/**\n * Fetch conversations for a specific group\n * @param {number} groupId - The group ID\n * @returns {Promise<Array>} - Array of conversations\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\conversations.js",
+    "comment": "/**\n * Create a new conversation\n * @param {number} groupId - The group ID\n * @param {string} name - Conversation name\n * @param {string} description - Conversation description\n * @returns {Promise<Object>} - The created conversation\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\conversations.js",
+    "comment": "/**\n * Display conversations in the conversations list\n * @param {Array} conversations - Array of conversation objects\n * @param {Function} onSelect - Callback function when a conversation is selected\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\conversations.js",
+    "comment": "/**\n * Handle new conversation button click\n * @param {number} groupId - The current group ID\n * @param {Function} onConversationCreated - Callback after conversation is created\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\main.js",
+    "comment": "/**\n * Load groups from the server\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\main.js",
+    "comment": "/**\n * Select a group and load its conversations and templates\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\main.js",
+    "comment": "/**\n * Handle selection of a conversation\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\main.js",
+    "comment": "/**\n * Handle selection of a template\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\main.js",
+    "comment": "/**\n * Handle creation of a new conversation\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\main.js",
+    "comment": "/**\n * Handle creation of a new template\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\main.js",
+    "comment": "/**\n * Handle creation of a new topic\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\main.js",
+    "comment": "/**\n * Initialize message input and send button\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\main.js",
+    "comment": "/**\n * Send a message\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\main.js",
+    "comment": "/**\n * Add a message to the transcript\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\templates.js",
+    "comment": "/**\n * Templates module - Handles template-related functionality\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\templates.js",
+    "comment": "/**\n * Fetch templates for a specific group\n * @param {number} groupId - The group ID\n * @returns {Promise<Array>} - Array of templates\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\templates.js",
+    "comment": "/**\n * Create a new template\n * @param {number} groupId - The group ID\n * @param {string} name - Template name\n * @param {string} description - Template description\n * @returns {Promise<Object>} - The created template\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\templates.js",
+    "comment": "/**\n * Display templates in the templates list\n * @param {Array} templates - Array of template objects\n * @param {Function} onSelect - Callback function when a template is selected\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\templates.js",
+    "comment": "/**\n * Handle new template button click\n * @param {number} groupId - The current group ID\n * @param {Function} onTemplateCreated - Callback after template is created\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\topics.js",
+    "comment": "/**\n * Topics module - Handles template topics functionality\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\topics.js",
+    "comment": "/**\n * Fetch topics for a specific template\n * @param {number} templateId - The template ID\n * @returns {Promise<Array>} - Array of topics\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\topics.js",
+    "comment": "/**\n * Create a new topic\n * @param {number} templateId - The template ID\n * @param {string} title - Topic title\n * @param {string} content - Topic content\n * @param {number} topicIndex - Topic index for ordering\n * @returns {Promise<Object>} - The created topic\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\topics.js",
+    "comment": "/**\n * Display topics in the topics list\n * @param {Array} topics - Array of topic objects\n * @param {Function} onSelect - Callback function when a topic is selected\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\topics.js",
+    "comment": "/**\n * Handle new topic button click\n * @param {number} templateId - The current template ID\n * @param {Function} onTopicCreated - Callback after topic is created\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\topics.js",
+    "comment": "/**\n * Handle topic selection\n * @param {Object} topic - The selected topic\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\utils.js",
+    "comment": "/**\n * Debug helper function to show detailed information\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\utils.js",
+    "comment": "/**\n * Log function to simplify debugging\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\utils.js",
+    "comment": "/**\n * Function to inspect localStorage for tokens\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\authApi.js",
+    "comment": "/**\n * Send login request to the server\n * @param {string} email User's email\n * @param {string} password User's password\n * @returns {Promise<Object>} Response data and status\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\authApi.js",
+    "comment": "/**\n * Send logout request to the server\n * @returns {Promise<Object>} Response status\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\authApi.js",
+    "comment": "/**\n * Check authentication status with the server\n * @param {string} token Authentication token\n * @returns {Promise<Object>} Auth status and user data\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\authForms.js",
+    "comment": "/**\n * Handle login form submission\n * @param {Event} event Form submission event\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\authForms.js",
+    "comment": "/**\n * Handle logout action\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\authNavigation.js",
+    "comment": "/**\n * Handles the special case of first-time login navigation to solve token processing issues.\n * \n * When a user first logs in, there can be a race condition where the page loads\n * before the browser has fully processed the authentication tokens (cookies/localStorage).\n * This can cause the page to incorrectly think the user isn't authenticated.\n * \n * This function works by:\n * 1. Detecting the 'firstLogin=true' URL parameter (added during login redirect)\n * 2. Cleaning up the URL to remove the parameter\n * 3. Allowing the main auth flow to trigger a page reload if needed\n * \n * The reload gives the browser time to properly process auth tokens, preventing\n * the user from seeing the login screen again right after logging in.\n * \n * @returns {boolean} True if this was a first-time login (URL had firstLogin=true)\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\authNavigation.js",
+    "comment": "/**\n * Redirect to login page\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\authNavigation.js",
+    "comment": "/**\n * Redirect to home page\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\authOrchestrator.js",
+    "comment": "/**\n * Update UI and handle first-time login cases\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\authOrchestrator.js",
+    "comment": "/**\n * Initialize authentication state\n * Checks token validity and updates UI accordingly\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\authState.js",
+    "comment": "/**\n * Check if user is authenticated based on token presence\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\authState.js",
+    "comment": "/**\n * Get the current authentication token\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\authState.js",
+    "comment": "/**\n * Clear all authentication data\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\authState.js",
+    "comment": "/**\n * Set authentication token\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\authUI.js",
+    "comment": "/**\n * Update UI elements based on authentication state\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\userSession.js",
+    "comment": "/**\n * Get current user's username\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\userSession.js",
+    "comment": "/**\n * Set current user's username\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\vanilla-build\\auth\\userSession.js",
+    "comment": "/**\n * Clear user session data\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\api.js",
+    "comment": "/**\n * Fetch CSRF token for API requests\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\api.js",
+    "comment": "/**\n * Helper function to get API base URL (copied from login.html)\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\api.js",
+    "comment": "/**\n * Function to test CSRF token\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\api.js",
+    "comment": "/**\n * Function to test authentication\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\auth.js",
+    "comment": "/**\n * Update UI based on authentication state\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\auth.js",
+    "comment": "/**\n * Check authentication status using JWT token\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\auth.js",
+    "comment": "/**\n * Handle login form submission\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\auth.js",
+    "comment": "/**\n * Handle logout\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\conversations.js",
+    "comment": "/**\n * Conversations module - Handles conversation-related functionality\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\conversations.js",
+    "comment": "/**\n * Fetch conversations for a specific group\n * @param {number} groupId - The group ID\n * @returns {Promise<Array>} - Array of conversations\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\conversations.js",
+    "comment": "/**\n * Create a new conversation\n * @param {number} groupId - The group ID\n * @param {string} name - Conversation name\n * @param {string} description - Conversation description\n * @returns {Promise<Object>} - The created conversation\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\conversations.js",
+    "comment": "/**\n * Display conversations in the conversations list\n * @param {Array} conversations - Array of conversation objects\n * @param {Function} onSelect - Callback function when a conversation is selected\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\conversations.js",
+    "comment": "/**\n * Handle new conversation button click\n * @param {number} groupId - The current group ID\n * @param {Function} onConversationCreated - Callback after conversation is created\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\main.js",
+    "comment": "/**\n * Load groups from the server\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\main.js",
+    "comment": "/**\n * Select a group and load its conversations and templates\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\main.js",
+    "comment": "/**\n * Handle selection of a conversation\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\main.js",
+    "comment": "/**\n * Handle selection of a template\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\main.js",
+    "comment": "/**\n * Handle creation of a new conversation\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\main.js",
+    "comment": "/**\n * Handle creation of a new template\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\main.js",
+    "comment": "/**\n * Handle creation of a new topic\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\main.js",
+    "comment": "/**\n * Initialize the message input and send button\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\main.js",
+    "comment": "/**\n * Send a message\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\main.js",
+    "comment": "/**\n * Add a message to the transcript\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\templates.js",
+    "comment": "/**\n * Templates module - Handles template-related functionality\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\templates.js",
+    "comment": "/**\n * Fetch templates for a specific group\n * @param {number} groupId - The group ID\n * @returns {Promise<Array>} - Array of templates\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\templates.js",
+    "comment": "/**\n * Create a new template\n * @param {number} groupId - The group ID\n * @param {string} name - Template name\n * @param {string} description - Template description\n * @returns {Promise<Object>} - The created template\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\templates.js",
+    "comment": "/**\n * Display templates in the templates list\n * @param {Array} templates - Array of template objects\n * @param {Function} onSelect - Callback function when a template is selected\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\templates.js",
+    "comment": "/**\n * Handle new template button click\n * @param {number} groupId - The current group ID\n * @param {Function} onTemplateCreated - Callback after template is created\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\topics.js",
+    "comment": "/**\n * Topics module - Handles template topics functionality\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\topics.js",
+    "comment": "/**\n * Fetch topics for a specific template\n * @param {number} templateId - The template ID\n * @returns {Promise<Array>} - Array of topics\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\topics.js",
+    "comment": "/**\n * Create a new topic\n * @param {number} templateId - The template ID\n * @param {string} title - Topic title\n * @param {string} content - Topic content\n * @param {number} topicIndex - Topic index for ordering\n * @returns {Promise<Object>} - The created topic\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\topics.js",
+    "comment": "/**\n * Display topics in the topics list\n * @param {Array} topics - Array of topic objects\n * @param {Function} onSelect - Callback function when a topic is selected\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\topics.js",
+    "comment": "/**\n * Handle new topic button click\n * @param {number} templateId - The current template ID\n * @param {Function} onTopicCreated - Callback after topic is created\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\topics.js",
+    "comment": "/**\n * Handle topic selection\n * @param {Object} topic - The selected topic\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\utils.js",
+    "comment": "/**\n * Debug helper function to show detailed information\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\utils.js",
+    "comment": "/**\n * Log function to simplify debugging\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\public\\scripts\\utils.js",
+    "comment": "/**\n * Function to inspect localStorage for tokens\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\config\\schema.js",
+    "comment": "/**\n * @file src/config/schema.js\n * @description Configuration for database schema selection\n * \n * This file provides functions for getting and setting the default schema\n * to use for database operations. The schema can be configured via\n * environment variables or set programmatically.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\config\\schema.js",
+    "comment": "/**\n * Get the current default schema\n * \n * @returns {string} The current default schema\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\config\\schema.js",
+    "comment": "/**\n * Set the default schema\n * \n * @param {string} schema - The schema to use as default\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\config\\schema.js",
+    "comment": "/**\n * Get a connection pool for the specified schema\n * \n * @param {string} [schema=null] - The schema to use (optional, defaults to current default schema)\n * @returns {Object} A connection pool for the specified schema\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\controllers\\participants\\loginHandler.js",
+    "comment": "/**\n * Handles participant login requests and sets an HttpOnly cookie\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\controllers\\participants\\logoutHandler.js",
+    "comment": "/**\n * Handles participant logout requests and clears the HttpOnly cookie\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\connection.js",
+    "comment": "/**\n * Database connection module\n * Provides a PostgreSQL connection pool for the application\n * Supports schema-based multi-tenancy\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\connection.js",
+    "comment": "/**\n * Creates a database connection pool with a specific schema search path\n * \n * @param {string} schema - The schema to use (defaults to 'public')\n * @returns {Pool} - A PostgreSQL connection pool configured for the specified schema\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\pool.js",
+    "comment": "/**\n * @file src/db/pool.js\n * @description PostgreSQL connection pool setup\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatars\\createGrpConAvatar.js",
+    "comment": "/**\n * @file src/db/grpConAvatars/createGrpConAvatar.js\n * @description Adds an avatar to a group conversation.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatars\\createGrpConAvatar.js",
+    "comment": "/**\n * Inserts a new row into grp_con_avatars.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} conversationId\n * @param {number} avatarId\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<{grp_con_id: number, avatar_id: number, added_at: string}>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatars\\deleteGrpConAvatar.js",
+    "comment": "/**\n * @file src/db/grpConAvatars/deleteGrpConAvatar.js\n * @description Removes an avatar from a conversation.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatars\\deleteGrpConAvatar.js",
+    "comment": "/**\n * Deletes the link between an avatar and a conversation.\n *  @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} conversationId\n * @param {number} avatarId\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<boolean>} true if deleted, false otherwise\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatars\\getGrpConAvatarsByConversation.js",
+    "comment": "/**\n * @file src/db/grpConAvatars/getGrpConAvatarsByConversation.js\n * @description Lists all avatars in a given conversation.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatars\\getGrpConAvatarsByConversation.js",
+    "comment": "/**\n * Fetches avatar entries for one conversation.\n  *  @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} conversationId\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<Array<{avatar_id: number, added_at: string}>>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatars\\getGrpConsByAvatar.js",
+    "comment": "/**\n * @file src/db/grpConAvatars/getGrpConsByAvatar.js\n * @description Lists all conversations that include a given avatar.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatars\\getGrpConsByAvatar.js",
+    "comment": "/**\n * Fetches conversation entries for one avatar.\n *  @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} avatarId\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<Array<{grp_con_id: number, added_at: string}>>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatarTurnRelationships\\createGrpConAvatarTurnRelationship.js",
+    "comment": "/**\n * Creates a directed relationship between two avatar turns.\n * @param {number} turnId\n * @param {number} targetTurnId\n * @param {number} [relationshipTypeId=1]\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatarTurnRelationships\\deleteGrpConAvatarTurnRelationship.js",
+    "comment": "/**\n * Deletes a relationship by its ID.\n * @param {number} id\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<boolean>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatarTurnRelationships\\getGrpConAvatarTurnRelationshipById.js",
+    "comment": "/**\n * Fetches a relationship by its ID.\n * @param {number} id\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatarTurnRelationships\\getGrpConAvatarTurnRelationshipsByTurn.js",
+    "comment": "/**\n * Lists all relationships originating from a turn.\n * @param {number} turnId\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object[]>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatarTurnRelationships\\updateGrpConAvatarTurnRelationship.js",
+    "comment": "/**\n * Updates the relationship type of an existing relationship.\n * @param {number} id\n * @param {number} newTypeId\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatarTurns\\createGrpConAvatarTurn.js",
+    "comment": "/**\n * Creates a new avatar turn in a group conversation\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} conversationId - The ID of the conversation\n * @param {number} avatarId - The ID of the avatar\n * @param {number|string} turnIndex - The index of the turn (can be decimal for comments)\n * @param {string} contentText - The text content of the turn\n * @param {Array} contentVector - The vector representation of the content\n * @param {number} [turnKindId=TURN_KIND.REGULAR] - The kind of turn (regular or comment)\n * @param {number} [messageTypeId=null] - The type of message (1 for user, 2 for LLM)\n * @param {string|object} schemaOrPool - Either a schema name or a pool object\n * @returns {Promise<Object>} The created turn\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatarTurns\\deleteGrpConAvatarTurn.js",
+    "comment": "/**\n * Delete a group conversation avatar turn by ID\n * @param {number} id - The ID of the turn to delete\n * @param {string|object} schemaOrPool - Either a schema name or a pool object\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<boolean>} True if the turn was deleted, false if not found\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatarTurns\\getGrpConAvatarTurnById.js",
+    "comment": "/**\n * Get a group conversation avatar turn by ID\n * @param {number} id - The ID of the turn to retrieve\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>} The turn object or null if not found\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatarTurns\\getGrpConAvatarTurnsByConversation.js",
+    "comment": "/**\n * Parse a vector string from the database into an array of numbers\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {string} vectorStr - The vector string from the database (e.g., \"[0.1,0.2,0.3]\")\n * @returns {number[]} The parsed vector as an array of numbers\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatarTurns\\getGrpConAvatarTurnsByConversation.js",
+    "comment": "/**\n * Get all avatar turns for a specific conversation\n * \n * @param {number} conversationId - The ID of the conversation\n * @param {string|object} [schemaOrPool=null] - Schema name or custom pool\n * @returns {Promise<Array>} List of avatar turns for the conversation\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConAvatarTurns\\updateGrpConAvatarTurn.js",
+    "comment": "/**\n * Update a group conversation avatar turn\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} id - The ID of the turn to update\n * @param {string} newText - The new text content\n * @param {Array<number>} newVector - The new vector content\n \n * @returns {Promise<object>} The updated turn\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpCons\\createGrpCon.js",
+    "comment": "/**\n * Creates a new conversation under a group.\n * @param {number} groupId - The ID of the group.\n * @param {string} name - The conversation name.\n * @param {string} description - The conversation description.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} [typeId=1] - The type ID from grp_con_types table (1=conversation, 2=template)\n * @returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpCons\\deleteGrpCon.js",
+    "comment": "/**\n * Deletes a conversation by its ID.\n * @param {number} id - The conversation ID.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<boolean>} True if deleted, false otherwise.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpCons\\getGrpConById.js",
+    "comment": "/**\n * Retrieves a conversation by its ID.\n * @param {number} id - The conversation ID.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}|null>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpCons\\getGrpConsByGroup.js",
+    "comment": "/**\n * Retrieves conversations for a given group, ordered by creation date (newest first) and limited to 50.\n * Optionally filters by conversation type.\n * @param {number} groupId - The group ID.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number|null} [typeId=null] - The type ID to filter by (1=conversation, 2=template), or null for all types\n * @returns {Promise<Array<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}>>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpCons\\updateGrpCon.js",
+    "comment": "/**\n * Updates a conversation's name, description, and optionally its type.\n * @param {number} id - The conversation ID.\n * @param {string} newName - The new conversation name.\n * @param {string} newDescription - The new conversation description.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number|null} [newTypeId=null] - The new type ID from grp_con_types table (1=conversation, 2=template), or null to keep current type\n * @returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}|null>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConTemplateInstances\\createGrpConTemplateInstance.js",
+    "comment": "/**\n * @file src/db/grpConTemplateInstances/createGrpConTemplateInstance.js\n * @description Creates a new template instance.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConTemplateInstances\\createGrpConTemplateInstance.js",
+    "comment": "/**\n * Creates a new template instance.\n * @param {number} templateId - The ID of the template\n * @param {number} groupId - The ID of the group\n * @param {string} name - The name of the instance (optional, defaults to template name with timestamp)\n * @param {string} description - The description of the instance (optional)\n * @param {Pool} pool - The PostgreSQL connection pool\n * @returns {Promise<{id: number, template_id: number, group_id: number, name: string, description: string, created_at: Date}>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConTemplateInstances\\getGrpConTemplateInstancesByTemplate.js",
+    "comment": "/**\n * @file src/db/grpConTemplateInstances/getGrpConTemplateInstancesByTemplate.js\n * @description Lists all instances for a given template.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConTemplateInstances\\getGrpConTemplateInstancesByTemplate.js",
+    "comment": "/**\n * Fetches template instances for one template.\n * @param {Pool} pool - The PostgreSQL connection pool.\n * @param {number} templateId - The ID of the template\n * @returns {Promise<Array<{id: number, template_id: number, group_id: number, name: string, description: string, created_at: Date}>>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConTemplateTopics\\createGrpConTemplateTopic.js",
+    "comment": "/**\n * @file src/db/grpConTemplateTopics/createGrpConTemplateTopic.js\n * @description Creates a new topic for a template.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConTemplateTopics\\createGrpConTemplateTopic.js",
+    "comment": "/**\n * Inserts a new row into grp_con_template_topics.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} templateId - The ID of the template\n * @param {string} title - The title of the topic\n * @param {string} content - The content of the topic (can be empty)\n * @param {number} topicIndex - The index of the topic for ordering\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<{id: number, template_id: number, title: string, content: string, topic_index: number}>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConTemplateTopics\\deleteGrpConTemplateTopic.js",
+    "comment": "/**\n * @file src/db/grpConTemplateTopics/deleteGrpConTemplateTopic.js\n * @description Deletes a template topic.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConTemplateTopics\\deleteGrpConTemplateTopic.js",
+    "comment": "/**\n * Deletes a template topic by ID.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} topicId - The ID of the topic to delete\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<{id: number, template_id: number, title: string, content: string, topic_index: number}|null>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConTemplateTopics\\getGrpConTemplateTopicById.js",
+    "comment": "/**\n * @file src/db/grpConTemplateTopics/getGrpConTemplateTopicById.js\n * @description Retrieves a single template topic by its ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConTemplateTopics\\getGrpConTemplateTopicById.js",
+    "comment": "/**\n * Fetches a single template topic by ID.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} topicId - The ID of the topic to retrieve\n * @returns {Promise<{id: number, template_id: number, title: string, content: string, topic_index: number}|null>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConTemplateTopics\\getGrpConTemplateTopicsByTemplate.js",
+    "comment": "/**\n * @file src/db/grpConTemplateTopics/getGrpConTemplateTopicsByTemplate.js\n * @description Lists all topics for a given template, ordered by topic_index.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConTemplateTopics\\getGrpConTemplateTopicsByTemplate.js",
+    "comment": "/**\n * Fetches topic entries for one template.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} templateId - The ID of the template\n * @returns {Promise<Array<{id: number, template_id: number, title: string, content: string, topic_index: number}>>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConTemplateTopics\\updateGrpConTemplateTopic.js",
+    "comment": "/**\n * @file src/db/grpConTemplateTopics/updateGrpConTemplateTopic.js\n * @description Updates an existing template topic.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConTemplateTopics\\updateGrpConTemplateTopic.js",
+    "comment": "/**\n * Updates a template topic.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} topicId - The ID of the topic to update\n * @param {string} title - The updated title\n * @param {string} content - The updated content\n * @param {number} topicIndex - The updated topic index\n ** @returns {Promise<{id: number, template_id: number, title: string, content: string, topic_index: number}|null>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConUploads\\createGrpConUpload.js",
+    "comment": "/**\n * Create a new group conversation upload record\n * @module db/grpConUploads/createGrpConUpload\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConUploads\\createGrpConUpload.js",
+    "comment": "/**\n * Create a new group conversation upload record\n * @param {Object} uploadData - The upload data\n * @param {number} uploadData.grpConId - The group conversation ID\n * @param {number} [uploadData.turnId] - The turn ID (optional)\n * @param {string} uploadData.filename - The filename\n * @param {string} uploadData.mimeType - The MIME type\n * @param {string} uploadData.filePath - The file path in Supabase Storage\n * @param {string} [uploadData.publicUrl] - The public URL of the file (optional)\n * @param {string} [uploadData.bucketName] - The Supabase Storage bucket name (optional)\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Object>} - The created upload record\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConUploads\\deleteGrpConUpload.js",
+    "comment": "/**\n * Delete a group conversation upload record\n * @module db/grpConUploads/deleteGrpConUpload\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConUploads\\deleteGrpConUpload.js",
+    "comment": "/**\n * Delete a group conversation upload record\n * @param {number} id - The upload ID\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<boolean>} - True if deletion was successful\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConUploads\\getGrpConUploadById.js",
+    "comment": "/**\n * Get a group conversation upload by ID\n * @module db/grpConUploads/getGrpConUploadById\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConUploads\\getGrpConUploadById.js",
+    "comment": "/**\n * Get a group conversation upload by ID\n * @param {number} id - The upload ID\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Object|null>} - The upload record or null if not found\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConUploads\\getGrpConUploadsByConversation.js",
+    "comment": "/**\n * Get all uploads for a specific group conversation\n * @module db/grpConUploads/getGrpConUploadsByConversation\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConUploads\\getGrpConUploadsByConversation.js",
+    "comment": "/**\n * Get all uploads for a specific group conversation\n * @param {number} grpConId - The group conversation ID\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Array>} - Array of upload records\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConUploads\\index.js",
+    "comment": "/**\n * Group conversation uploads database operations\n * @module db/grpConUploads\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConUploadVectors\\createGrpConUploadVector.js",
+    "comment": "/**\n * Create a new group conversation upload vector record\n * @module db/grpConUploadVectors/createGrpConUploadVector\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConUploadVectors\\createGrpConUploadVector.js",
+    "comment": "/**\n * Create a new group conversation upload vector record\n * @param {Object} vectorData - The vector data\n * @param {number} vectorData.uploadId - The upload ID\n * @param {number} vectorData.chunkIndex - The chunk index\n * @param {string} vectorData.contentText - The text content of the chunk\n * @param {Array<number>} [vectorData.contentVector] - The vector representation of the content (optional)\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Object>} - The created vector record\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConUploadVectors\\getGrpConUploadVectorsByUpload.js",
+    "comment": "/**\n * Get group conversation upload vectors by upload ID\n * @module db/grpConUploadVectors/getGrpConUploadVectorsByUpload\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConUploadVectors\\getGrpConUploadVectorsByUpload.js",
+    "comment": "/**\n * Get group conversation upload vectors by upload ID\n * @param {number} uploadId - The upload ID\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Array<Object>>} - The vector records\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\grpConUploadVectors\\index.js",
+    "comment": "/**\n * Group conversation upload vectors database operations\n * @module db/grpConUploadVectors\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantAvatars\\createParticipantAvatar.js",
+    "comment": "/**\n * @file src/db/participantAvatars/createParticipantAvatar.js\n * @description Creates a new participant-avatar relationship.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantAvatars\\createParticipantAvatar.js",
+    "comment": "/**\n * Creates a new participant-avatar relationship.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} participantId - The ID of the participant\n * @param {number} avatarId - The ID of the avatar\n * @param {number} [createdByParticipantId=null] - The ID of the participant who created this relationship\n * @returns {Promise<object>} The newly created participant-avatar relationship\n * @throws {Error} If the operation fails\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantAvatars\\deleteParticipantAvatar.js",
+    "comment": "/**\n * @file src/db/participantAvatars/deleteParticipantAvatar.js\n * @description Deletes a participant-avatar relationship.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantAvatars\\deleteParticipantAvatar.js",
+    "comment": "/**\n * Deletes a participant-avatar relationship by ID.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} id - The ID of the participant-avatar relationship to delete\n * @returns {Promise<object|null>} The deleted relationship or null if not found\n * @throws {Error} If the operation fails\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantAvatars\\getParticipantAvatarById.js",
+    "comment": "/**\n * @file src/db/participantAvatars/getParticipantAvatarById.js\n * @description Retrieves a participant-avatar relationship by ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantAvatars\\getParticipantAvatarById.js",
+    "comment": "/**\n * Retrieves a participant-avatar relationship by ID.\n * @param {number} id - The ID of the participant-avatar relationship\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>} The participant-avatar relationship or null if not found\n * @throws {Error} If the operation fails\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantAvatars\\getParticipantAvatarsByAvatar.js",
+    "comment": "/**\n * @file src/db/participantAvatars/getParticipantAvatarsByAvatar.js\n * @description Retrieves all participant relationships for a specific avatar.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantAvatars\\getParticipantAvatarsByAvatar.js",
+    "comment": "/**\n * Retrieves all participant relationships for a specific avatar.\n * @param {number} avatarId - The ID of the avatar\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Array<object>>} Array of participant-avatar relationships\n * @throws {Error} If the operation fails\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantAvatars\\getParticipantAvatarsByParticipant.js",
+    "comment": "/**\n * @file src/db/participantAvatars/getParticipantAvatarsByParticipant.js\n * @description Retrieves all avatar relationships for a specific participant.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantAvatars\\getParticipantAvatarsByParticipant.js",
+    "comment": "/**\n * Retrieves all avatar relationships for a specific participant.\n * @param {number} participantId - The ID of the participant\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Array<object>>} Array of participant-avatar relationships\n * @throws {Error} If the operation fails\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantAvatars\\index.js",
+    "comment": "/**\n * @file src/db/participantAvatars/index.js\n * @description Exports all participant-avatar relationship database operations.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantEvents\\createParticipantEvent.js",
+    "comment": "/**\n * @file src/db/participantEvents/createParticipantEvent.js\n * @description Creates a new participant event record in the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantEvents\\createParticipantEvent.js",
+    "comment": "/**\n * Creates a new participant event in the database\n * @param {number} participantId - The ID of the participant\n * @param {number} eventTypeId - The ID of the event type\n * @param {object} [details=null] - Optional JSON details about the event\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object>} The newly created participant event record\n * @throws {Error} If an error occurs during creation\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantEvents\\getParticipantEventById.js",
+    "comment": "/**\n * @file src/db/participantEvents/getParticipantEventById.js\n * @description Retrieves a participant event by its ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantEvents\\getParticipantEventById.js",
+    "comment": "/**\n * Retrieves a participant event by its ID\n * @param {number} id - The ID of the participant event to retrieve\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>} The participant event record or null if not found\n * @throws {Error} If an error occurs during retrieval\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantEvents\\getParticipantEventsByParticipant.js",
+    "comment": "/**\n * @file src/db/participantEvents/getParticipantEventsByParticipant.js\n * @description Retrieves all events for a specific participant.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantEvents\\getParticipantEventsByParticipant.js",
+    "comment": "/**\n * Retrieves all events for a specific participant\n * @param {number} participantId - The ID of the participant\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Array>} Array of participant event records\n * @throws {Error} If an error occurs during retrieval\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantEvents\\getParticipantEventsByType.js",
+    "comment": "/**\n * @file src/db/participantEvents/getParticipantEventsByType.js\n * @description Retrieves all events of a specific type.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantEvents\\getParticipantEventsByType.js",
+    "comment": "/**\n * Retrieves all events of a specific type\n * @param {number} eventTypeId - The ID of the event type\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Array>} Array of participant event records\n * @throws {Error} If an error occurs during retrieval\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participantEvents\\index.js",
+    "comment": "/**\n * @file src/db/participantEvents/index.js\n * @description Export all participant events database functions\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\createParticipant.js",
+    "comment": "/**\n * @file src/db/participant/createParticipant.js\n * @description Creates a new participant record in the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\createParticipant.js",
+    "comment": "/**\n * The database connection pool\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\createParticipant.js",
+    "comment": "/**\n * Creates a new participant in the database\n * @param {string} name - The name of the participant\n * @param {string} email - The email of the participant (must be unique)\n * @param {string} password - The hashed password for the participant\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object>} The newly created participant record\n * @throws {Error} If email already exists or another error occurs\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\createParticipantHandler.js",
+    "comment": "/**\n * @file src/api/participants/createParticipantHandler.js\n * @description Handler for creating a new participant.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\createParticipantHandler.js",
+    "comment": "/**\n * Handles request to create a new participant\n * @param {object} req.body - Request body\n * @param {string} req.body.name - Participant name\n * @param {string} req.body.email - Participant email\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {string} req.body.password - Participant password (will be hashed)\n * @param {object} res - Express response object\n * @returns {Promise<void>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\deleteParticipant.js",
+    "comment": "/**\n * @file src/db/participant/deleteParticipant.js\n * @description Deletes a participant by ID from the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\deleteParticipant.js",
+    "comment": "/**\n * The database connection pool\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\deleteParticipant.js",
+    "comment": "/**\n * Deletes a participant from the database\n * @param {number} id - The ID of the participant to delete\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<boolean>} True if a participant was deleted, false otherwise\n * @throws {Error} If a database error occurs\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\deleteParticipantHandler.js",
+    "comment": "/**\n * @file src/api/participants/deleteParticipantHandler.js\n * @description Handler for deleting a participant.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\deleteParticipantHandler.js",
+    "comment": "/**\n * Handles request to delete a participant\n * @param {object} req - Express request object\n * @param {object} req.params - Request parameters\n * @param {string} req.params.id - Participant ID\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {object} res - Express response object\n * @returns {Promise<void>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\getAllParticipants.js",
+    "comment": "/**\n * @file src/db/participant/getAllParticipants.js\n * @description Retrieves all participant records from the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\getAllParticipants.js",
+    "comment": "/**\n * Retrieves all participants from the database\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object[]>} Array of participant records\n * @throws {Error} If a database error occurs\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\getAllParticipantsHandler.js",
+    "comment": "/**\n * @file src/api/participants/getAllParticipantsHandler.js\n * @description Handler for retrieving all participants.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\getAllParticipantsHandler.js",
+    "comment": "/**\n * Handles request to get all participants\n * \n * @param {object} req - Express request object\n * @param {object} res - Express response object\n * @returns {Promise<void>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\getParticipantByEmail.js",
+    "comment": "/**\n * @file src/db/participant/getParticipantByEmail.js\n * @description Retrieves a participant record from the database by email address.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\getParticipantByEmail.js",
+    "comment": "/**\n * Retrieves a participant by their email address\n * @param {string} email - The email of the participant to retrieve\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>} The participant record, or null if not found\n * @throws {Error} If a database error occurs\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\getParticipantByEmailHandler.js",
+    "comment": "/**\n * @file src/db/participants/getParticipantByEmailHandler.js\n * @description Handler for retrieving a participant by email.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\getParticipantByEmailHandler.js",
+    "comment": "/**\n * Handles request to get a participant by email\n * @param {object} req - Express request object\n * @param {object} req.query - Request query parameters\n * @param {string} req.query.email - Participant email\n * @param {object} res - Express response object\n * @returns {Promise<void>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\getParticipantById.js",
+    "comment": "/**\n * @file src/db/participant/getParticipantById.js\n * @description Retrieves a participant record from the database by its ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\getParticipantById.js",
+    "comment": "/**\n * Retrieves a participant by their ID\n * @param {number} id - The ID of the participant to retrieve\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>} The participant record, or null if not found\n * @throws {Error} If a database error occurs\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\getParticipantByIdHandler.js",
+    "comment": "/**\n * @file src/api/participants/getParticipantByIdHandler.js\n * @description Handler for retrieving a participant by ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\getParticipantByIdHandler.js",
+    "comment": "/**\n * Handles request to get a participant by ID\n * \n * @param {object} req - Express request object\n * @param {object} req.params - Request parameters\n * @param {string} req.params.id - Participant ID\n * @param {object} res - Express response object\n * @returns {Promise<void>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\getParticipantsByGroup.js",
+    "comment": "/**\n * @file src/db/participant/getParticipantsByGroup.js\n * @description Retrieves all participants in a specific group.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\getParticipantsByGroup.js",
+    "comment": "/**\n * Retrieves all participants in a specific group\n * @param {number} groupId - The ID of the group\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object[]>} Array of participant records with their roles in the group\n * @throws {Error} If a database error occurs\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\getParticipantsByGroupHandler.js",
+    "comment": "/**\n * @file src/api/participants/getParticipantsByGroupHandler.js\n * @description Handler for retrieving all participants in a group.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\getParticipantsByGroupHandler.js",
+    "comment": "/**\n * Handles request to get all participants in a group\n * \n * @param {object} req - Express request object\n * @param {object} req.params - Request parameters\n * @param {string} req.params.groupId - Group ID\n * @param {object} res - Express response object\n * @returns {Promise<void>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\index.js",
+    "comment": "/**\n * @file src/db/participants/index.js\n * @description Exports all participant-related database operations.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\updateParticipant.js",
+    "comment": "/**\n * @file src/db/participant/updateParticipant.js\n * @description Updates a participant's information in the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\updateParticipant.js",
+    "comment": "/**\n * Updates a participant's information\n * @param {number} id - The ID of the participant to update\n * @param {object} updates - Object containing fields to update\n * @param {string} [updates.name] - Updated name\n * @param {string} [updates.email] - Updated email\n * @param {string} [updates.password] - Updated password (should be hashed)\n * @param {number} [createdByParticipantId=null] - ID of participant making the change (for logging)\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>} The updated participant record, or null if not found\n * @throws {Error} If email already exists or another error occurs\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\updateParticipantHandler.js",
+    "comment": "/**\n * @file src/db/participants/updateParticipantHandler.js\n * @description Handler for updating a participant.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\participants\\updateParticipantHandler.js",
+    "comment": "/**\n * Handles request to update a participant\n * \n * @param {object} req - Express request object\n * @param {object} req.params - Request parameters\n * @param {string} req.params.id - Participant ID\n * @param {object} req.body - Request body\n * @param {string} [req.body.name] - Updated name\n * @param {string} [req.body.email] - Updated email\n * @param {string} [req.body.password] - Updated password (will be hashed)\n * @param {object} req.user - Authenticated user information\n * @param {number} req.user.participantId - ID of the authenticated participant\n * @param {object} res - Express response object\n * @returns {Promise<void>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\preferences\\createGroupPreference.js",
+    "comment": "/**\n * @file src/db/preferences/createGroupPreference.js\n * @description Creates or updates a group preference in the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\preferences\\createGroupPreference.js",
+    "comment": "/**\n * Creates or updates a group preference\n * @param {number} groupId - The ID of the group\n * @param {number} preferenceTypeId - The ID of the preference type\n * @param {number} value - The BIGINT value for the preference\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object>} The newly created or updated group preference\n * @throws {Error} If an error occurs during creation/update\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\preferences\\createParticipantPreference.js",
+    "comment": "/**\n * @file src/db/preferences/createParticipantPreference.js\n * @description Creates or updates a participant preference in the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\preferences\\createParticipantPreference.js",
+    "comment": "/**\n * Creates or updates a participant preference\n * @param {number} participantId - The ID of the participant\n * @param {number} preferenceTypeId - The ID of the preference type\n * @param {number} value - The BIGINT value for the preference\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object>} The newly created or updated participant preference\n * @throws {Error} If an error occurs during creation/update\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\preferences\\createSitePreference.js",
+    "comment": "/**\n * @file src/db/preferences/createSitePreference.js\n * @description Creates or updates a site-wide preference in the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\preferences\\createSitePreference.js",
+    "comment": "/**\n * Creates or updates a site-wide preference\n * @param {number} preferenceTypeId - The ID of the preference type\n * @param {number} value - The BIGINT value for the preference\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object>} The newly created or updated site preference\n * @throws {Error} If an error occurs during creation/update\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\preferences\\getAllPreferenceTypes.js",
+    "comment": "/**\n * @file src/db/preferences/getAllPreferenceTypes.js\n * @description Retrieves all preference types from the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\preferences\\getAllPreferenceTypes.js",
+    "comment": "/**\n * Retrieves all preference types\n * @param {object} [customPool=pool] - Database connection pool (for testing)\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Array>} Array of preference types\n * @throws {Error} If an error occurs during retrieval\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\preferences\\getPreferenceTypeByName.js",
+    "comment": "/**\n * @file src/db/preferences/getPreferenceTypeByName.js\n * @description Retrieves a preference type by its name from the database.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\preferences\\getPreferenceTypeByName.js",
+    "comment": "/**\n * Retrieves a preference type by its name\n * @param {string} name - The unique name of the preference type\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>} The preference type or null if not found\n * @throws {Error} If an error occurs during retrieval\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\preferences\\getPreferenceWithFallback.js",
+    "comment": "/**\n * @file src/db/preferences/getPreferenceWithFallback.js\n * @description Retrieves a preference with fallback hierarchy (participant -> group -> site -> default).\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\preferences\\getPreferenceWithFallback.js",
+    "comment": "/**\n * Retrieves a preference with fallback hierarchy\n * @param {string} preferenceName - The name of the preference type\n\n * @param {number} participantId - The ID of the participant (optional)\n * \n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object>} The preference value with source information\n * @throws {Error} If an error occurs during retrieval or preference type doesn't exist\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\db\\preferences\\index.js",
+    "comment": "/**\n * Preferences database operations\n * @module db/preferences\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\middleware\\auth.js",
+    "comment": "/**\n * Simplified dual authentication middleware that maintains the core\n * principles of the original implementation:\n * \n * 1. Primary: Uses HTTP-only cookies (more secure)\n * 2. Fallback: Checks Authorization headers with Bearer tokens\n * 3. Clear logging for debugging authentication issues\n * \n * This simplified approach maintains compatibility with your existing\n * dual authentication system while removing unnecessary complexity.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\middleware\\auth_old.js",
+    "comment": "/**\n * Simplified dual authentication middleware that maintains the core\n * principles of the original implementation:\n * \n * 1. Primary: Uses HTTP-only cookies (more secure)\n * 2. Fallback: Checks Authorization headers with Bearer tokens\n * 3. Clear logging for debugging authentication issues\n * \n * This simplified approach maintains compatibility with your existing\n * dual authentication system while removing unnecessary complexity.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\middleware\\setClientPool.js",
+    "comment": "/**\n * Middleware to create a database connection pool for the client schema\n * This middleware determines the schema directly from the request hostname\n * and uses a cached connection pool for that schema, attaching it to the request object\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\middleware\\setClientPool.js",
+    "comment": "/**\n * Determines the schema from the request hostname, gets or creates a connection pool,\n * and attaches it to the request object as req.clientPool\n * \n * @param {Object} req - Express request object\n * @param {Object} res - Express response object\n * @param {Function} next - Express next middleware function\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\middleware\\setClientSchema.js",
+    "comment": "/**\n * Utility functions for determining client schema\n * This file provides functions for determining the schema to use\n * based on hostname, participant attributes, etc.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\middleware\\setClientSchema.js",
+    "comment": "/**\n * Extract the subdomain from the hostname\n * \n * @param {string} hostname - The hostname from the request\n * @returns {string|null} - The subdomain or null if no subdomain\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\middleware\\setClientSchema.js",
+    "comment": "/**\n * Determines the client schema based on the hostname\n * \n * @param {string} hostname - The hostname from the request\n * @returns {string} - The schema name\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\middleware\\setClientSchema.js",
+    "comment": "/**\n * Determines the client schema for a participant\n * Uses the SUBDOMAIN_TO_SCHEMA mapping to determine the schema\n * based on the participant's organization or other attributes\n * \n * @param {Object} participant - The participant object\n * @param {Object} [options] - Additional options\n * @param {boolean} [options.isLocalhost] - Whether the request is from localhost\n * @returns {string} - The schema name for the participant\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\middleware\\setClientSchema.js",
+    "comment": "/**\n * Gets a list of all client schemas\n * This is used for operations that need to be performed across all schemas\n * \n * @returns {Promise<string[]>} - A promise that resolves to an array of schema names\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\middleware\\simplified-auth.js",
+    "comment": "/**\n * A simplified authentication middleware that prioritizes HTTP-only cookies\n * but provides a clear fallback mechanism for bearer tokens.\n * \n * This avoids complex conditional logic and provides consistent\n * authentication across environments.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\conversations.js",
+    "comment": "/**\n * @file src/routes/conversations.js\n * @description Routes for handling conversations between participants and LLMs\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\conversations.js",
+    "comment": "/**\n * POST /api/conversations/:conversationId/turns\n * \n * Creates a new turn in a conversation and generates an LLM response\n * Requires authentication\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\conversations.js",
+    "comment": "/**\n * GET /api/conversations/:conversationId/turns\n * \n * Gets all turns for a conversation\n * Requires authentication\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\direct-auth.js",
+    "comment": "/**\n * Direct authentication route that bypasses session and CSRF\n * This provides a reliable fallback when the main auth system has issues\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\direct-auth.js",
+    "comment": "/**\n * GET /api/direct-auth\n * A simplified authentication endpoint that only needs the JWT token\n * This bypasses the session system completely\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\groups.js",
+    "comment": "/**\n * @file src/routes/groups.js\n * @description Creates routes for all the group functions.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConAvatars.js",
+    "comment": "/**\n * POST   /api/grp-con-avatars\n *    body: { conversationId, avatarId }\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConAvatars.js",
+    "comment": "/**\n * GET    /api/grp-con-avatars/by-conversation/:conversationId\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConAvatars.js",
+    "comment": "/**\n * GET    /api/grp-con-avatars/by-avatar/:avatarId\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConAvatars.js",
+    "comment": "/**\n * DELETE /api/grp-con-avatars/:conversationId/:avatarId\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConAvatarTurnRelationships.js",
+    "comment": "/**\n * @file HTTP routes for managing avatar\u2010turn relationships in group conversations.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConAvatarTurnRelationships.js",
+    "comment": "/**\n * POST   /api/avatar-turn-relationships/\n * Create a new turn-relationship.\n * Expects JSON body: { turnId, targetTurnId, relationshipTypeId }\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConAvatarTurnRelationships.js",
+    "comment": "/**\n * GET    /api/avatar-turn-relationships/:id\n * Fetch a single relationship by its ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConAvatarTurnRelationships.js",
+    "comment": "/**\n * GET    /api/avatar-turn-relationships/by-turn/:turnId\n * List all relationships originating from a given turn.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConAvatarTurnRelationships.js",
+    "comment": "/**\n * PUT    /api/avatar-turn-relationships/:id\n * Update the relationship type of an existing relationship.\n * Expects JSON body: { newTypeId }\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConAvatarTurnRelationships.js",
+    "comment": "/**\n * DELETE /api/avatar-turn-relationships/:id\n * Remove a relationship by its ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConAvatarTurns.js",
+    "comment": "/**\n * @file src/routes/avatarTurns.js\n * @description HTTP routes for managing avatar\u2010turns in group conversations.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConAvatarTurns.js",
+    "comment": "/**\n * POST /api/avatar-turns\n * Create a new avatar-turn.\n * Expects JSON body: { conversationId, avatarId, turnIndex, contentText, contentVector, turnKindId }\n * If contentVector is not provided, it will be generated from contentText\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConAvatarTurns.js",
+    "comment": "/**\n * POST /api/avatar-turns/comment\n * Create a new comment on an existing turn.\n * Expects JSON body: { conversationId, avatarId, parentTurnId, contentText, contentVector }\n * Automatically calculates the appropriate turnIndex for the comment\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConAvatarTurns.js",
+    "comment": "/**\n * GET /api/avatar-turns/:id\n * Fetch a single turn by its ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConAvatarTurns.js",
+    "comment": "/**\n * GET /api/avatar-turns/by-conversation/:conversationId\n * List all turns within a given conversation.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConAvatarTurns.js",
+    "comment": "/**\n * PUT /api/avatar-turns/:id\n * Update text and/or vector of an existing turn.\n * Expects JSON body: { contentText, contentVector }\n * If contentVector is not provided but contentText is, a new vector will be generated\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConAvatarTurns.js",
+    "comment": "/**\n * DELETE /api/avatar-turns/:id\n * Remove a turn by its ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpCons.js",
+    "comment": "/**\n * POST   /api/grpCons\n *    body: { groupId, name, description, typeId }\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpCons.js",
+    "comment": "/**\n * GET    /api/grpCons/:id\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpCons.js",
+    "comment": "/**\n * GET    /api/grpCons/by-group/:groupId\n *    query: { typeId } - Optional filter by type (1=conversation, 2=template)\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpCons.js",
+    "comment": "/**\n * PUT    /api/grpCons/:id\n *    body: { newName, newDescription, newTypeId, template_id }\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpCons.js",
+    "comment": "/**\n * DELETE /api/grpCons/:id\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConTemplateInstances.js",
+    "comment": "/**\n * POST   /api/grp-con-template-instances\n *    body: { template_id, group_id, name, description }\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConTemplateInstances.js",
+    "comment": "/**\n * GET    /api/grp-con-template-instances/by-template/:templateId\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConTemplateTopics.js",
+    "comment": "/**\n * POST   /api/grp-con-template-topics\n *    body: { template_id, title, content, topic_index }\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConTemplateTopics.js",
+    "comment": "/**\n * GET    /api/grp-con-template-topics/by-template/:templateId\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConTemplateTopics.js",
+    "comment": "/**\n * GET    /api/grp-con-template-topics/:topicId\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConTemplateTopics.js",
+    "comment": "/**\n * PUT    /api/grp-con-template-topics/:topicId\n *    body: { title, content, topic_index }\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConTemplateTopics.js",
+    "comment": "/**\n * DELETE /api/grp-con-template-topics/:topicId\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConUploads.js",
+    "comment": "/**\n * Group conversation uploads routes\n * @module routes/grpConUploads\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConUploads.js",
+    "comment": "/**\n * Split text into chunks with overlap\n * @param {string} text - The text to split\n * @param {number} maxChunkSize - Maximum size of each chunk\n * @param {number} overlap - Number of characters to overlap between chunks\n * @returns {Array<string>} Array of text chunks\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConUploads.js",
+    "comment": "/**\n * Upload a file to a conversation\n * @name POST /api/grp-con-uploads\n * @function\n * @memberof module:routes/grpConUploads\n * @param {string} req.body.grpConId - The conversation ID\n * @param {string} req.body.avatarId - The avatar ID (optional, defaults to participant's avatar)\n * @param {File} req.file - The file to upload\n * @returns {Object} The created upload record with chunk count\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConUploads.js",
+    "comment": "/**\n * Get a specific file by ID\n * @name GET /api/grp-con-uploads/:id\n * @function\n * @memberof module:routes/grpConUploads\n * @param {string} req.params.id - The upload ID\n * @param {boolean} [req.query.vectors] - Whether to include vectors in the response\n * @returns {Object} The file data or upload record with vectors\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConUploads.js",
+    "comment": "/**\n * Get all files for a conversation\n * @name GET /api/grp-con-uploads/conversation/:grpConId\n * @function\n * @memberof module:routes/grpConUploads\n * @param {string} req.params.grpConId - The conversation ID\n * @returns {Array} Array of upload records\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpConUploads.js",
+    "comment": "/**\n * Delete a file\n * @name DELETE /api/grp-con-uploads/:id\n * @function\n * @memberof module:routes/grpConUploads\n * @param {string} req.params.id - The upload ID\n * @returns {Object} Success message\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpTemplates.js",
+    "comment": "/**\n * GET /api/grp-templates/by-group/:groupId\n * Fetches all templates belonging to a specific group\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpTemplates.js",
+    "comment": "/**\n * GET /api/grp-templates/:id\n * Fetches a specific template by ID\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpTemplates.js",
+    "comment": "/**\n * POST /api/grp-templates\n * Creates a new template for a group\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpTemplateTopics.js",
+    "comment": "/**\n * GET /api/grp-template-topics/by-template/:templateId\n * Fetches all topics belonging to a specific template\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpTemplateTopics.js",
+    "comment": "/**\n * GET /api/grp-template-topics/:id\n * Fetches a specific topic by ID\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\grpTemplateTopics.js",
+    "comment": "/**\n * POST /api/grp-template-topics\n * Creates a new topic for a template\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\me.js",
+    "comment": "/**\n * Route module for authenticated user info.\n *\n * @module routes/me\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\me.js",
+    "comment": "/**\n * GET /api/me\n *\n * Returns the authenticated user's information including participant details.\n * Requires a valid JWT or session via requireAuth middleware.\n *\n * @name GetMe\n * @route {GET} /api/me\n * @middleware requireAuth\n * @returns {Object} 200 - User object with participant details\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participantAvatars.js",
+    "comment": "/**\n * @file src/routes/participantAvatars.js\n * @description Routes for managing participant-avatar relationships.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participantAvatars.js",
+    "comment": "/**\n * Create a new participant-avatar relationship\n * POST /api/participant-avatars\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participantAvatars.js",
+    "comment": "/**\n * Get a participant-avatar relationship by ID\n * GET /api/participant-avatars/:id\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participantAvatars.js",
+    "comment": "/**\n * Get all avatar relationships for a participant\n * GET /api/participant-avatars/participant/:participantId\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participantAvatars.js",
+    "comment": "/**\n * Get all participant relationships for an avatar\n * GET /api/participant-avatars/avatar/:avatarId\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participantAvatars.js",
+    "comment": "/**\n * Delete a participant-avatar relationship\n * DELETE /api/participant-avatars/:id\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participantEvents.js",
+    "comment": "/**\n * @file src/routes/participantEvents.js\n * @description API routes for participant events\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participantEvents.js",
+    "comment": "/**\n * @route GET /api/participant-events\n * @description Get all events for the authenticated participant\n * @access Private\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participantEvents.js",
+    "comment": "/**\n * @route GET /api/participant-events/:id\n * @description Get a specific participant event by ID\n * @access Private\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participantEvents.js",
+    "comment": "/**\n * @route GET /api/participant-events/type/:typeId\n * @description Get all events of a specific type (admin only)\n * @access Private/Admin\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participantEvents.js",
+    "comment": "/**\n * @route POST /api/participant-events\n * @description Create a new participant event\n * @access Private\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participants.js",
+    "comment": "/**\n * @file src/routes/participants.js\n * @description Creates routes for all the participant functions.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participants.js",
+    "comment": "/**\n * POST /api/participants/login\n * Authenticate a participant and issue a token.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participants.js",
+    "comment": "/**\n * POST /api/participants/logout\n * Logout a participant and clear their token.\n * Requires authentication.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participants.js",
+    "comment": "/**\n * POST /api/participants\n * Create a new participant.\n * Body: { name, email, password }\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participants.js",
+    "comment": "/**\n * GET /api/participants\n * Retrieve all participants.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participants.js",
+    "comment": "/**\n * GET /api/participants/:id\n * Retrieve a single participant by ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participants.js",
+    "comment": "/**\n * PUT /api/participants/:id\n * Update a participant's data.\n * Body: { name?, email?, password? }\n * Note: Avatar preferences are now handled through the preferences system\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\participants.js",
+    "comment": "/**\n * DELETE /api/participants/:id\n * Delete a participant by ID.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\preferences.js",
+    "comment": "/**\n * @file src/routes/preferences.js\n * @description API routes for managing preferences\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\preferences.js",
+    "comment": "/**\n * @route GET /api/preferences/types\n * @description Get all preference types\n * @access Private\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\preferences.js",
+    "comment": "/**\n * @route GET /api/preferences/participant/by-name/:preferenceName\n * @description Get a participant preference by name\n * @access Private\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\preferences.js",
+    "comment": "/**\n * @route GET /api/preferences/:preferenceName\n * @description Get a preference with fallback hierarchy\n * @access Private\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\preferences.js",
+    "comment": "/**\n * @route POST /api/preferences/participant\n * @description Create or update a participant preference\n * @access Private\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\preferences.js",
+    "comment": "/**\n * @route POST /api/preferences/group\n * @description Create or update a group preference\n * @access Private (admin only)\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\routes\\preferences.js",
+    "comment": "/**\n * @route POST /api/preferences/site\n * @description Create or update a site preference\n * @access Private (super admin only)\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\authService.js",
+    "comment": "/**\n * @file src/services/authService.js\n * @description reusable JWT logic\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\authService.js",
+    "comment": "/**\n * creates a JWT token\n * \n * @param payload\n*/"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\authService.js",
+    "comment": "/**\n * verifies a JWT token\n * \n * @param token\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\embeddingService.js",
+    "comment": "/**\n * @file src/services/embeddingService.js\n * @description Service for generating embeddings (vectors) from text content using Anthropic API,\n * preprocessing prompts, and finding similar texts based on embedding similarity\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\embeddingService.js",
+    "comment": "/**\n * Initialize the embedding service with the provided configuration or environment variable\n * \n * @param {Object} config - The LLM configuration (optional)\n * @param {Object} options - Additional options\n * @param {string} options.schema - The schema to use for database operations (optional)\n * @returns {boolean} Whether the initialization was successful\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\embeddingService.js",
+    "comment": "/**\n * Generate an embedding vector for the given text\n * \n * @param {string} text - The text to generate an embedding for\n * @param {Object} config - The LLM configuration (optional)\n * @param {Object} options - Additional options\n * @param {string} options.schema - The schema to use for database operations (optional)\n * @returns {Promise<number[]>} The embedding vector\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\embeddingService.js",
+    "comment": "/**\n * Normalize a vector to ensure it has the correct dimension\n * \n * @param {number[]} arr - The vector to normalize\n * @returns {number[]} The normalized vector\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\embeddingService.js",
+    "comment": "/**\n * Generate a deterministic embedding vector based on the text content\n * This is a fallback method when the API embedding generation fails\n * \n * @param {string} text - The text to generate an embedding for\n * @returns {number[]} The deterministic embedding vector\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\embeddingService.js",
+    "comment": "/**\n * Check if a value is a valid embedding vector\n * \n * @param {any} vec - The value to check\n * @returns {boolean} True if the value is a valid embedding vector\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\embeddingService.js",
+    "comment": "/**\n * Calculate cosine similarity between two vectors\n * \n * @param {number[]} vec1 - First vector\n * @param {number[]} vec2 - Second vector\n * @returns {number} Cosine similarity (between -1 and 1, higher is more similar)\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\embeddingService.js",
+    "comment": "/**\n * Preprocess a prompt to extract key concepts and generate query variants\n * \n * @param {string} prompt - The original prompt\n * @returns {string[]} Array of query variants\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\embeddingService.js",
+    "comment": "/**\n * Find similar texts based on embedding similarity\n * \n * @param {number[]} queryEmbedding - The embedding vector to compare against\n * @param {Array<{text: string, embedding: number[]}>} embeddingDatabase - Array of objects containing text and embedding\n * @param {Object} options - Optional parameters\n * @param {number} options.threshold - Similarity threshold (default: SIMILARITY_THRESHOLD)\n * @param {number} options.maxResults - Maximum number of results to return (default: MAX_RESULTS)\n * @returns {Array<{text: string, similarity: number}>} Array of similar texts with their similarity scores\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\embeddingService.js",
+    "comment": "/**\n * Find similar texts using multiple query variants\n * \n * @param {string} prompt - The original prompt\n * @param {Array<{text: string, embedding: number[]}>} embeddingDatabase - Array of objects containing text and embedding\n * @param {Object} options - Optional parameters\n * @param {Object} options.config - LLM configuration to use for this request (optional)\n * @param {string} options.schema - The schema to use for database operations (optional)\n * @returns {Promise<Array<{text: string, similarity: number}>>} Array of similar texts with their similarity scores\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\llmService.js",
+    "comment": "/**\n * @file src/services/llmService.js\n * @description Service for interacting with various LLM providers via their APIs\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\llmService.js",
+    "comment": "/**\n * Get the LLM ID from preferences using the preference cascade\n * \n * @param {number} [participantId=null] - The participant ID to get the LLM ID for (optional)\n * @param {number} [groupId=null] - The group ID to get the LLM ID for (optional)\n * @returns {Promise<number>} The ID of the preferred LLM\n * @throws {Error} If no LLM ID is found in the preference cascade\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\llmService.js",
+    "comment": "/**\n * Get the LLM configuration for a specific LLM ID\n * \n * @param {number} llmId - The LLM ID to get the configuration for\n * @param {string} [schema=null] - The schema to use for database operations (optional)\n * @returns {Promise<Object|null>} The LLM configuration or null if not found\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\llmService.js",
+    "comment": "/**\n * Get the LLM configuration for a specific participant using the preference hierarchy\n * \n * @param {number} participantId - The participant ID to get the LLM configuration for\n * @param {string} [schema=null] - The schema to use for database operations (optional)\n * @returns {Promise<Object|null>} The LLM configuration or null if not found\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\llmService.js",
+    "comment": "/**\n * Get the default LLM configuration from site preferences\n * \n * @param {string} [schema=null] - The schema to use for database operations\n * @returns {Promise<Object>} The default LLM configuration\n * @throws {Error} If no default LLM configuration is found\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\llmService.js",
+    "comment": "/**\n * Get a list of available LLMs for a specific site\n * \n * @param {Object|string} poolOrSchema - Either a connection pool object or a schema name string\n * @returns {Promise<Array>} Array of available LLMs for the site\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\llmService.js",
+    "comment": "/**\n * Get the LLM name based on the preference system\n * \n * @param {number} [participantId=null] - The participant ID to get the LLM name for (optional)\n * @param {number} [groupId=null] - The group ID to get the LLM name for (optional)\n * @param {string} [schema=null] - The schema to use for database operations (optional)\n * @returns {Promise<string>} The name of the LLM or default name ('Anthropic Claude-3-Opus')\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\llmService.js",
+    "comment": "/**\n * Initialize the LLM service with the provided configuration, participant ID, group ID, or environment variable\n * \n * @param {Object|number} configOrParticipantId - The LLM configuration or participant ID (optional)\n * @param {Object} [options={}] - Additional options\n * @param {number} [options.groupId] - The group ID to use for preference lookup (optional)\n * @param {string} [options.schema=null] - The schema to use for database operations (optional)\n * @returns {Promise<boolean>} Whether the initialization was successful\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\llmService.js",
+    "comment": "/**\n * Handle a request to the Anthropic API\n * \n * @param {string} prompt - The user's message\n * @param {Object} config - The LLM configuration\n * @param {Object} options - Additional options\n * @returns {Promise<string>} The LLM's response\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\llmService.js",
+    "comment": "/**\n * Handle a request to the OpenAI Chat Completions API\n * \n * @param {string} prompt - The user's message\n * @param {Object} config - The LLM configuration\n * @param {Object} options - Additional options\n * @returns {Promise<string>} The LLM's response\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\llmService.js",
+    "comment": "/**\n * Handle a request to the OpenAI Assistants API (Custom GPTs)\n * \n * @param {string} prompt - The user's message\n * @param {Object} config - The LLM configuration\n * @param {Object} options - Additional options\n * @returns {Promise<string>} The LLM's response\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\llmService.js",
+    "comment": "/**\n * Get a response from LLM for the given prompt\n * \n * @param {string} prompt - The user's message\n * @param {Object} options - Optional parameters\n * @param {string} options.systemMessage - Custom system message (optional)\n * @param {Array<{role: string, content: string}>} options.messages - Array of message objects for conversation history (optional)\n * @param {number} options.temperature - Controls randomness (0.0-1.0, lower is more deterministic) (optional)\n * @param {number} options.topP - Controls diversity of responses (0.0-1.0) (optional)\n * @param {number} options.maxTokens - Maximum number of tokens in the response (optional)\n * @param {Object} options.config - LLM configuration to use for this request (optional)\n * @param {string} options.schema - The schema to use for database operations (optional)\n * @returns {Promise<string>} LLM's response\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\supabaseService.js",
+    "comment": "/**\n * Supabase service for file storage operations\n * @module services/supabaseService\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\supabaseService.js",
+    "comment": "/**\n * Upload a file to Supabase Storage\n * @param {Buffer} fileBuffer - The file buffer to upload\n * @param {string} fileName - The name of the file\n * @param {string} mimeType - The MIME type of the file\n * @param {string} clientSchema - The client schema (used for bucket organization)\n * @param {string} conversationId - The conversation ID\n * @returns {Promise<Object>} - The upload result with file path\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\supabaseService.js",
+    "comment": "/**\n * Get a file from Supabase Storage\n * @param {string} filePath - The path of the file in Supabase Storage\n * @param {string} clientSchema - The client schema (used as bucket name)\n * @returns {Promise<Object>} - The file data\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\services\\supabaseService.js",
+    "comment": "/**\n * Delete a file from Supabase Storage\n * @param {string} filePath - The path of the file in Supabase Storage\n * @param {string} clientSchema - The client schema (used as bucket name)\n * @returns {Promise<boolean>} - True if deletion was successful\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\utils\\clientSchema.js",
+    "comment": "/**\n * Utility functions for determining client schema\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\utils\\clientSchema.js",
+    "comment": "/**\n * Determines the client schema for a participant\n * Uses the SUBDOMAIN_TO_SCHEMA mapping to determine the schema\n * based on the participant's organization or other attributes\n * \n * @param {Object} participant - The participant object\n * @param {Object} [options] - Additional options\n * @param {boolean} [options.isLocalhost] - Whether the request is from localhost\n * @returns {string} - The schema name for the participant\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\previous\\src\\utils\\clientSchema.js",
+    "comment": "/**\n * Gets a list of all client schemas\n * This is used for operations that need to be performed across all schemas\n * \n * @returns {Promise<string[]>} - A promise that resolves to an array of schema names\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\scripts\\copy-build.js",
+    "comment": "/**\n * Script to copy React build files to the backend/public directory\n * Works cross-platform on both Windows and Linux environments\n */"
+  }
+]

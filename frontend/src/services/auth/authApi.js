@@ -5,8 +5,10 @@
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || window.location.origin;
 
+
+
 /**
- * Send login request to the server
+ * Send login request to the server and initialize LLM service
  * @param {string} email User's email
  * @param {string} password User's password
  * @returns {Promise<Object>} Response data including token and user info
@@ -34,7 +36,11 @@ export const loginUser = async (email, password) => {
   
   return {
     success: true,
-    user: { email }
+    user: { 
+      id: data.user.id,
+      email: email,
+      username: email
+    }
   };
 };
 

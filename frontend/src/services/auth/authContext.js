@@ -1,5 +1,9 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { loginUser, logoutUser, checkAuthStatus } from './authApi';
+import { initializeLLMService } from '../llmService';
+
+// Default client schema ID - this should be configured based on your application's needs
+const DEFAULT_CLIENT_SCHEMA_ID = 1;
 
 const AuthContext = createContext(null);
 
@@ -18,6 +22,18 @@ export const AuthProvider = ({ children }) => {
       const data = await checkAuthStatus();
       setIsAuthenticated(data.authenticated);
       setUser(data.user);
+
+      // If authenticated, initialize LLM service
+      if (data.authenticated && data.user) {
+        try {
+          console.log('Initializing LLM service...');
+          const llmConfig = await initializeLLMService(data.user.id, DEFAULT_CLIENT_SCHEMA_ID);
+          console.log('LLM service initialized with config:', llmConfig);
+        } catch (error) {
+          console.error('Failed to initialize LLM service:', error);
+          // Don't fail auth if LLM initialization fails
+        }
+      }
     } catch (error) {
       console.error('Auth check failed:', error);
       setIsAuthenticated(false);
@@ -31,14 +47,14 @@ export const AuthProvider = ({ children }) => {
   const login = useCallback(async (email, password) => {
     try {
       const data = await loginUser(email, password);
-      setIsAuthenticated(true);
-      setUser(data.user);
+      // After successful login, check auth status to get full user data
+      await checkAuth();
       return { success: true };
     } catch (error) {
       console.error('Login failed:', error);
       return { success: false, error: error.message };
     }
-  }, []);
+  }, [checkAuth]);
 
   // Handle logout
   const logout = useCallback(async () => {
