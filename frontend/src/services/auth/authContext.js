@@ -22,18 +22,6 @@ export const AuthProvider = ({ children }) => {
       const data = await checkAuthStatus();
       setIsAuthenticated(data.authenticated);
       setUser(data.user);
-
-      // If authenticated, initialize LLM service
-      if (data.authenticated && data.user) {
-        try {
-          console.log('Initializing LLM service...');
-          const llmConfig = await initializeLLMService(data.user.id, DEFAULT_CLIENT_SCHEMA_ID);
-          console.log('LLM service initialized with config:', llmConfig);
-        } catch (error) {
-          console.error('Failed to initialize LLM service:', error);
-          // Don't fail auth if LLM initialization fails
-        }
-      }
     } catch (error) {
       console.error('Auth check failed:', error);
       setIsAuthenticated(false);
@@ -43,12 +31,30 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  // Initialize LLM service
+  const initializeLLM = useCallback(async (userId) => {
+    try {
+      console.log('Initializing LLM service...');
+      const llmConfig = await initializeLLMService(userId, DEFAULT_CLIENT_SCHEMA_ID);
+      console.log('LLM service initialized with config:', llmConfig);
+      return llmConfig;
+    } catch (error) {
+      console.error('Failed to initialize LLM service:', error);
+      return null;
+    }
+  }, []);
+
   // Handle login
   const login = useCallback(async (email, password) => {
     try {
       const data = await loginUser(email, password);
-      // After successful login, check auth status to get full user data
-      await checkAuth();
+      setIsAuthenticated(true);
+      setUser(data.user);
+      
+      // Only initialize LLM after successful login
+      if (data.user) {
+        await initializeLLM(data.user.id);
+      }
       return { success: true };
     } catch (error) {
       console.error('Login failed:', error);
