@@ -180,9 +180,47 @@ export const refreshLLMConfig = async () => {
   );
 };
 
+/**
+ * Submits a prompt to the LLM and gets a response
+ * @param {string} prompt - The prompt to send
+ * @param {Object} options - Additional options
+ * @returns {Promise<Object>} The LLM response
+ */
+const submitPrompt = async (prompt, options = {}) => {
+  try {
+    const config = getCurrentLLMConfig();
+    if (!config) {
+      throw new Error('LLM service not initialized');
+    }
+
+    const response = await fetch('http://localhost:5000/api/llm/prompt', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prompt,
+        clientSchemaId: llmConfigCache.clientSchemaId,
+        ...options
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to submit prompt: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error submitting prompt:', error);
+    throw error;
+  }
+};
+
 export default {
   initializeLLMService,
   getCurrentLLMConfig,
   setCurrentLLMConfig,
   refreshLLMConfig,
+  submitPrompt
 };

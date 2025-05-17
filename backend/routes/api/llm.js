@@ -1,5 +1,7 @@
 import express from 'express';
 import { getClientSchemaLLMConfig, updateClientSchemaLLMConfig } from '../../db/llmConfig.js';
+import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 
 const router = express.Router();
 
@@ -111,6 +113,108 @@ router.put('/:clientSchemaId/llm-config', async (req, res) => {
   } catch (error) {
     console.error('Error updating LLM config:', error);
     res.status(500).json({ error: 'Failed to update LLM configuration' });
+  }
+});
+
+/**
+ * @route   POST /api/llm/prompt
+ * @desc    Submit a prompt to the LLM and get a response
+ * @access  Private
+ */
+router.post('/prompt', async (req, res) => {
+  let client;
+  try {
+    const { prompt, clientSchemaId } = req.body;
+
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
+
+    if (!clientSchemaId) {
+      return res.status(400).json({ error: 'Client schema ID is required' });
+    }
+
+    // Get a client from the pool
+    client = await req.clientPool.connect();
+
+    // Get the LLM config
+    const config = await getClientSchemaLLMConfig(clientSchemaId, req.clientPool);
+    
+    if (!config) {
+      return res.status(404).json({ error: 'LLM configuration not found for this client schema' });
+    }
+
+    // Call the appropriate LLM service based on config
+    let response;
+    switch (config.provider.toLowerCase()) {
+      case 'anthropic':
+        console.log('LLM API Key:', process.env.LLM_API_KEY ? 'Present' : 'Missing');
+        if (!process.env.LLM_API_KEY) {
+          throw new Error('LLM_API_KEY environment variable is not set');
+        }
+        const anthropicClient = new Anthropic({ apiKey: process.env.LLM_API_KEY });
+        const stream = await anthropicClient.messages.create({
+          model: config.model,
+          max_tokens: config.max_tokens,
+          temperature: config.temperature,
+          messages: [{ role: 'user', content: prompt }],
+          stream: true
+        });
+
+        let fullText = '';
+        for await (const chunk of stream) {
+          if (chunk.type === 'content_block_delta') {
+            fullText += chunk.delta.text;
+          }
+        }
+
+        response = {
+          text: fullText,
+          model: config.model,
+          usage: {
+            prompt_tokens: prompt.length,
+            completion_tokens: fullText.length,
+            total_tokens: prompt.length + fullText.length
+          }
+        };
+        break;
+
+      case 'openai':
+        const openaiClient = new OpenAI({ apiKey: process.env.LLM_API_KEY });
+        const openaiResponse = await openaiClient.chat.completions.create({
+          model: config.model,
+          max_tokens: config.max_tokens,
+          temperature: config.temperature,
+          messages: [{ role: 'user', content: prompt }]
+        });
+        response = {
+          text: openaiResponse.choices[0].message.content,
+          model: config.model,
+          usage: openaiResponse.usage
+        };
+        break;
+
+      default:
+        throw new Error(`Unsupported LLM provider: ${config.provider}`);
+    }
+
+    res.json(response);
+  } catch (error) {
+    console.error('Error in POST /api/llm/prompt:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+      detail: error.detail
+    });
+
+    res.status(500).json({
+      error: 'Failed to process prompt',
+      detail: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  } finally {
+    if (client) {
+      client.release();
+    }
   }
 });
 

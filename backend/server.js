@@ -30,7 +30,7 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cookieParser());
 
-// Configure CORS
+// Configure CORS for all routes
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
     ? false // No CORS needed in production since we serve frontend from same origin
@@ -89,18 +89,9 @@ app.use(express.static(staticPath, {
   }
 }));
 
-// Configure CORS with environment-aware settings - only for API routes
-app.use('/api', cors({
-  origin: config.clientURL,
-  credentials: true // Allow cookies to be sent with requests
-}));
-
-// Apply setClientPool middleware to all API routes
-// This will determine the schema and create a pool for each client
+// Apply setClientPool middleware to API routes and mount LLM routes
 app.use('/api', setClientPool);
-
-// LLM Configuration routes
-app.use('/api', llmRoutes);
+app.use('/api/llm', llmRoutes);
 
 // Simple authentication middleware
 const authenticate = (req, res, next) => {

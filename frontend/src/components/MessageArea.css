@@ -33,20 +33,23 @@
 
 /* Messages section in the middle */
 .messages-container {
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
   gap: 20px;
   margin-bottom: 20px;
   min-height: 0; /* Allow container to scroll */
+  overflow: hidden; /* Prevent container overflow */
+  height: 100%;
 }
 
 .messages-column {
-  flex: 1;
+  flex: 1 1 50%;
   display: flex;
   flex-direction: column;
   border: 1px solid #dee2e6;
   border-radius: 8px;
   overflow: hidden;
+  max-height: 100%;
 }
 
 .messages-header {
@@ -62,6 +65,16 @@
   overflow-y: auto;
   padding: 16px;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  scroll-behavior: smooth;
+  max-height: calc(100vh - 250px); /* Account for header and input area */
+}
+
+.messages-list > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Message input area at the bottom */

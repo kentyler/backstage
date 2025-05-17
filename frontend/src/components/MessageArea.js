@@ -1,21 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './MessageArea.css';
+import llmService from '../services/llmService';
 
 const MessageArea = ({ selectedTopic }) => {
+  const messagesEndRef = useRef(null);
   const [message, setMessage] = useState('');
   const [file, setFile] = useState(null);
 
-  // Example messages for demonstration
-  const topicMessages = [
+  const [topicMessages, setTopicMessages] = useState([
     {
       id: 1,
       content: "This is a message in the current topic path",
       timestamp: "2025-05-16T10:00:00Z",
       author: "User1"
     }
-  ];
+  ]);
 
-  const relatedMessages = [
+  const [relatedMessages, setRelatedMessages] = useState([
     {
       id: 2,
       content: "This is a semantically related message from another topic",
@@ -23,12 +24,49 @@ const MessageArea = ({ selectedTopic }) => {
       author: "User2",
       topic: "other.topic.path"
     }
-  ];
+  ]);
 
-  const handleSubmit = (e) => {
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [topicMessages]); // Scroll when messages change
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Handle message submission
-    console.log('Submitting:', message, file);
+    if (!message.trim()) return;
+
+    try {
+      // Add user message to UI
+      const userMessage = {
+        id: Date.now(),
+        content: message,
+        timestamp: new Date().toISOString(),
+        author: 'You'
+      };
+      setMessage('');
+
+      // Add message to list
+      const updatedMessages = [...topicMessages, userMessage];
+      setTopicMessages(updatedMessages);
+
+      // Submit to LLM
+      const response = await llmService.submitPrompt(message);
+
+      // Add LLM response to UI
+      const llmMessage = {
+        id: Date.now() + 1,
+        content: response.text,
+        timestamp: new Date().toISOString(),
+        author: 'Assistant'
+      };
+      setTopicMessages([...updatedMessages, llmMessage]);
+    } catch (error) {
+      console.error('Error submitting prompt:', error);
+      // TODO: Show error in UI
+    }
   };
 
   const handleFileChange = (e) => {
@@ -78,7 +116,10 @@ const MessageArea = ({ selectedTopic }) => {
             Messages in this topic
           </div>
           <div className="messages-list">
-            {topicMessages.map(renderMessage)}
+            <div>
+              {topicMessages.map(renderMessage)}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
         </div>
 
@@ -88,7 +129,9 @@ const MessageArea = ({ selectedTopic }) => {
             Related messages
           </div>
           <div className="messages-list">
-            {relatedMessages.map(renderMessage)}
+            <div>
+              {relatedMessages.map(renderMessage)}
+            </div>
           </div>
         </div>
       </div>
@@ -116,6 +159,7 @@ const MessageArea = ({ selectedTopic }) => {
             </label>
           </div>
         </form>
+        <div ref={messagesEndRef} />
       </div>
     </div>
   );
