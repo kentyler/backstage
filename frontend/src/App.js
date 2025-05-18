@@ -1,18 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
 // Auth components
-import { AuthProvider } from './services/auth/authContext';
+import { AuthProvider, useAuth } from './services/auth/authContext';
 import LoginForm from './components/auth/LoginForm';
 import PrivateRoute from './components/auth/PrivateRoute';
 
 // Main app components
 import MainLayout from './components/MainLayout';
-
-// Initialize auth context check
-import { useEffect } from 'react';
-import { useAuth } from './services/auth/authContext';
 
 /**
  * App component

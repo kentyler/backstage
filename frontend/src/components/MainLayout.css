@@ -1,31 +1,85 @@
-.main-layout {
-  height: 100vh;
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Main app layout */
+.app {
   display: flex;
-  flex-direction: column;
+  height: 100vh;
+  width: 100%;
   overflow: hidden;
 }
 
-.app-container {
-  width: 100%;
-  height: calc(100vh - 60px);
-  border-collapse: collapse;
+/* Main content area */
+.app-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
 }
 
-.topics-cell {
+/* Sidebar */
+.sidebar {
   width: 250px;
-  vertical-align: top;
-  padding: 0;
   background: #f8f9fa;
   border-right: 1px solid #dee2e6;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-.content-cell {
-  vertical-align: top;
+.sidebar-header {
+  padding: 1rem;
+  background: #2c3e50;
+  color: white;
+}
+
+.sidebar-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
   padding: 0;
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid #dee2e6;
+  text-align: center;
+}
+
+.logout-button {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
   width: 100%;
 }
 
-.app-content h2 {
-  color: #2c3e50;
-  margin-bottom: 1rem;
+.logout-button:hover {
+  background: #c82333;
+}
+
+/* Main content */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
 }

@@ -12,20 +12,31 @@ const MainLayout = () => {
   const [selectedTopic, setSelectedTopic] = useState(null);
 
   return (
-    <div className="main-layout">
-      <AppHeader />
-      <table className="app-container">
-        <tbody>
-          <tr>
-            <td className="topics-cell">
-              <TopicsMenu onTopicSelect={setSelectedTopic} />
-            </td>
-            <td className="content-cell">
-              <MessageArea selectedTopic={selectedTopic} />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div className="app">
+      <div className="app-content">
+        <div className="sidebar">
+          <div className="sidebar-header">
+            <h1>Conversational AI</h1>
+          </div>
+          <div className="sidebar-content">
+            <TopicsMenu onTopicSelect={setSelectedTopic} />
+          </div>
+          <div className="sidebar-footer">
+            <button 
+              className="logout-button"
+              onClick={() => {
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+              }}
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+        <div className="main-content">
+          <MessageArea selectedTopic={selectedTopic} />
+        </div>
+      </div>
     </div>
   );
 };
