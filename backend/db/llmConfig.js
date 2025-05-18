@@ -135,11 +135,6 @@ export const getClientSchemaLLMConfig = async (clientSchemaId, pool) => {
   } catch (error) {
     console.error('Error in getClientSchemaLLMConfig:', error);
     throw error;
-  } finally {
-    // Release the client back to the pool
-    if (client) {
-      await client.release();
-    }
   }
 };
 

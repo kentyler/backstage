@@ -1,17 +1,40 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import './MessageArea.css';
 import llmService from '../services/llmService';
 
 const MessageArea = ({ selectedTopic }) => {
-  // Log the selected topic for debugging and reset messages when topic changes
-  useEffect(() => {
-    console.log('Selected Topic:', selectedTopic);
-    if (selectedTopic && selectedTopic.id) {
-      // Clear messages when topic changes
+  // Load messages when a topic is selected
+  const loadMessages = useCallback(async () => {
+    if (!selectedTopic?.id) {
       setTopicMessages([]);
       setRelatedMessages([]);
+      return;
+    }
+
+    try {
+      console.log('Loading messages for topic:', selectedTopic.id);
+      const messages = await llmService.getMessagesByTopicPath(selectedTopic.id);
+      
+      // Transform the API response to match the component's message format
+      const formattedMessages = messages.map(msg => ({
+        id: msg.id,
+        content: msg.content,
+        timestamp: msg.createdAt,
+        author: msg.isUser ? 'You' : 'Assistant'
+      }));
+
+      console.log('Loaded messages:', formattedMessages);
+      setTopicMessages(formattedMessages);
+    } catch (error) {
+      console.error('Failed to load messages:', error);
+      // Optionally show an error message to the user
     }
   }, [selectedTopic]);
+
+  // Load messages when the selected topic changes
+  useEffect(() => {
+    loadMessages();
+  }, [loadMessages]);
   const messagesEndRef = useRef(null);
   const [message, setMessage] = useState('');
   const [file, setFile] = useState(null);
@@ -65,46 +88,75 @@ const MessageArea = ({ selectedTopic }) => {
     }
 
     try {
-      // Add user message to UI
+      // Add user message to UI immediately for better UX
       const userMessage = {
-        id: Date.now(),
+        id: `temp-${Date.now()}`,
         content: message,
         timestamp: new Date().toISOString(),
         author: 'You'
       };
+      
+      // Clear input field immediately
       setMessage('');
-
-      // Add message to list
-      const updatedMessages = [...topicMessages, userMessage];
-      setTopicMessages(updatedMessages);
+      
+      // Add user message to the UI
+      setTopicMessages(prev => [...prev, userMessage]);
 
       // Submit to LLM with the selected topic path
       console.log('Calling submitPrompt with:', {
         message,
         topicPathId: topicId,
-        avatarId: 1,
-        clientSchemaId: 1
+        avatarId: 1
       });
       
-      const response = await llmService.submitPrompt(message, {
-        topicPathId: topicId,
-        avatarId: 1, // TODO: Get the actual avatar ID from user context
-        clientSchemaId: 1 // TODO: Get the actual client schema ID from app context
-      });
-      
-      console.log('Received response:', response);
-
-      // Add LLM response to UI
-      const llmMessage = {
-        id: Date.now() + 1,
-        content: response.text,
+      // Show loading state
+      const loadingMessage = {
+        id: `loading-${Date.now()}`,
+        content: 'Thinking...',
         timestamp: new Date().toISOString(),
-        author: 'Assistant'
+        author: 'Assistant',
+        isLoading: true
       };
-      setTopicMessages([...updatedMessages, llmMessage]);
+      
+      setTopicMessages(prev => [...prev, loadingMessage]);
+      
+      try {
+        // Submit the prompt and get the response
+        await llmService.submitPrompt(message, {
+          topicPathId: topicId,
+          avatarId: 1
+        });
+        
+        // Refresh messages to get the latest from the server
+        await loadMessages();
+        
+      } catch (error) {
+        console.error('Error in LLM submission:', error);
+        // Remove loading message and show error
+        setTopicMessages(prev => [
+          ...prev.filter(m => m.id !== loadingMessage.id),
+          {
+            id: `error-${Date.now()}`,
+            content: `Error: ${error.message || 'Failed to get response'}`,
+            timestamp: new Date().toISOString(),
+            author: 'System',
+            isError: true
+          }
+        ]);
+      }
     } catch (error) {
-      console.error('Error submitting prompt:', error);
-      // TODO: Show error in UI
+      console.error('Error in handleSubmit:', error);
+      // Show error message in the UI
+      setTopicMessages(prev => [
+        ...prev,
+        {
+          id: `error-${Date.now()}`,
+          content: `Error: ${error.message || 'Failed to send message'}`,
+          timestamp: new Date().toISOString(),
+          author: 'System',
+          isError: true
+        }
+      ]);
     }
   };
 
@@ -129,18 +181,38 @@ const MessageArea = ({ selectedTopic }) => {
     );
   };
 
-  const renderMessage = (message) => (
-    <div key={message.id} className="message-item">
-      <div className="message-header">
-        <span>{message.author}</span>
-        <span>{new Date(message.timestamp).toLocaleString()}</span>
+  const renderMessage = (message) => {
+    const messageClasses = [
+      'message-item',
+      message.isLoading ? 'message-loading' : '',
+      message.isError ? 'message-error' : ''
+    ].filter(Boolean).join(' ');
+
+    return (
+      <div key={message.id} className={messageClasses}>
+        <div className="message-header">
+          <span className="message-author">{message.author}</span>
+          <span className="message-timestamp">
+            {new Date(message.timestamp).toLocaleString()}
+          </span>
+        </div>
+        <div className="message-content">
+          {message.isLoading ? (
+            <div className="loading-dots">
+              <span>.</span>
+              <span>.</span>
+              <span>.</span>
+            </div>
+          ) : message.content}
+        </div>
+        {message.topic && (
+          <div className="message-footer">
+            <span>From: {message.topic}</span>
+          </div>
+        )}
       </div>
-      <div className="message-content">{message.content}</div>
-      <div className="message-footer">
-        {message.topic && <span>From: {message.topic}</span>}
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="message-area">

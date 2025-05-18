@@ -186,19 +186,17 @@ export const refreshLLMConfig = async () => {
  * @param {Object} options - Additional options
  * @param {number} options.topicPathId - The ID of the topic path (required)
  * @param {number} options.avatarId - The ID of the user's avatar (required)
- * @param {number} options.clientSchemaId - The client schema ID (required)
  * @returns {Promise<Object>} The LLM response
  * @throws {Error} If required parameters are missing or invalid
  */
 const submitPrompt = async (prompt, options = {}) => {
-  const { topicPathId, avatarId, clientSchemaId } = options;
+  const { topicPathId, avatarId } = options;
   
   console.log('=== submitPrompt called ===');
   console.log('Prompt:', prompt);
   console.log('Options:', options);
   console.log('topicPathId:', topicPathId, 'Type:', typeof topicPathId);
   console.log('avatarId:', avatarId, 'Type:', typeof avatarId);
-  console.log('clientSchemaId:', clientSchemaId, 'Type:', typeof clientSchemaId);
   
   if (!topicPathId) {
     console.error('topicPathId is missing or empty');
@@ -208,36 +206,89 @@ const submitPrompt = async (prompt, options = {}) => {
   // Convert to string and trim any whitespace
   const cleanTopicPathId = String(topicPathId).trim();
   console.log('Using topicPathId:', cleanTopicPathId);
+  
   if (!avatarId) throw new Error('avatarId is required');
   if (isNaN(Number(avatarId))) throw new Error('avatarId must be a number');
-  if (!clientSchemaId) throw new Error('clientSchemaId is required');
-  if (isNaN(Number(clientSchemaId))) throw new Error('clientSchemaId must be a number');
 
   try {
+    console.log('Sending request to /api/llm/prompt with:', {
+      prompt,
+      topicPathId: cleanTopicPathId,
+      avatarId: Number(avatarId)
+    });
+    
     const response = await fetch('/api/llm/prompt', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', // Important for sending cookies with the request
       body: JSON.stringify({
         prompt,
         topicPathId: cleanTopicPathId,
-        avatarId: Number(avatarId),
-        clientSchemaId: Number(clientSchemaId)
+        avatarId: Number(avatarId)
       })
     });
 
+    const responseData = await response.json().catch(error => {
+      console.error('Error parsing JSON response:', error);
+      throw new Error('Invalid response from server');
+    });
+
+    if (!response.ok) {
+      console.error('Error response from server:', {
+        status: response.status,
+        statusText: response.statusText,
+        data: responseData
+      });
+      
+      const errorMessage = responseData.error || 
+                         responseData.message || 
+                         `Server responded with status ${response.status}`;
+      
+      throw new Error(errorMessage);
+    }
+
+    console.log('Successfully processed response:', {
+      status: response.status,
+      data: responseData
+    });
+    
+    return responseData;
+  } catch (error) {
+    console.error('Error submitting prompt:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    throw error;
+  }
+};
+
+/**
+ * Fetches conversation history for a specific topic path
+ * @param {string} topicPathId - The ID of the topic path
+ * @returns {Promise<Array>} Array of conversation messages
+ */
+export async function getMessagesByTopicPath(topicPathId) {
+  if (!topicPathId) {
+    throw new Error('topicPathId is required');
+  }
+
+  try {
+    const response = await fetch(`/api/conversations/topic/${encodeURIComponent(topicPathId)}`);
+    
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to get response from LLM');
+      throw new Error(error.error || 'Failed to fetch conversation history');
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error submitting prompt:', error);
+    console.error('Error fetching messages by topic path:', error);
     throw error;
   }
-};
+}
 
 export default {
   initializeLLMService,
@@ -245,4 +296,5 @@ export default {
   setCurrentLLMConfig,
   refreshLLMConfig,
   submitPrompt,
+  getMessagesByTopicPath,
 };

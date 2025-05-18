@@ -3,40 +3,71 @@ import { getClientSchemaLLMConfig, updateClientSchemaLLMConfig } from '../../db/
 import { pool } from '../../db/connection.js';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+import { generateEmbedding } from '../../services/embeddings.js';
 
-// Simple function to store a message
+/**
+ * Stores a message with its vector representation
+ * @param {string} topicPathId - The ID of the topic path
+ * @param {number} avatarId - The ID of the avatar (user/assistant)
+ * @param {string} content - The message content
+ * @param {boolean} isUser - Whether the message is from the user
+ * @returns {Promise<string|null>} The ID of the stored message or null if failed
+ */
 async function storeMessage(topicPathId, avatarId, content, isUser = true) {
+  if (!topicPathId) throw new Error('topicPathId is required');
+  if (!avatarId) throw new Error('avatarId is required');
+  if (!content) throw new Error('content is required');
+  
+  const client = await pool.connect();
+  let turnIndex;
+  
   try {
-    console.log('Storing message with:', { topicPathId, avatarId, contentLength: content?.length, isUser });
-    
-    // First, check if we need to create a new conversation
-    const result = await pool.query(
-      `INSERT INTO dev.grp_con_avatar_turns 
-       (topicpathid, avatar_id, content_text, message_type_id, turn_kind_id, turn_index)
-       VALUES ($1, $2, $3, $4, $5, 
-              COALESCE((SELECT MAX(turn_index) + 1 FROM dev.grp_con_avatar_turns WHERE topicpathid = $1), 1))
-       RETURNING id`,
-      [
-        topicPathId, 
-        avatarId, 
-        content, 
-        isUser ? 1 : 2, // message_type_id
-        isUser ? 1 : 2  // turn_kind_id (1 for user, 2 for assistant)
-      ]
+    // Get the next turn index
+    const indexResult = await client.query(
+      'SELECT COALESCE(MAX(turn_index), 0) + 1 as next_index FROM grp_con_avatar_turns WHERE topicpathid = $1',
+      [topicPathId]
     );
-    
-    console.log('Message stored successfully with ID:', result.rows[0]?.id);
-    return result.rows[0]?.id;
+    turnIndex = indexResult.rows[0].next_index;
+
+    // Only generate embedding for user messages
+    let contentVector = null;
+    if (isUser) {
+      try {
+        contentVector = await generateEmbedding(content);
+      } catch (error) {
+        console.error('Could not generate embedding, storing message without vector:', error.message);
+        // Continue without the vector
+      }
+    }
+
+    // Insert the message
+    const query = contentVector
+      ? {
+          text: `INSERT INTO grp_con_avatar_turns 
+                (topicpathid, avatar_id, content_text, content_vector, message_type_id, turn_kind_id, turn_index)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                RETURNING id`,
+          values: [topicPathId, avatarId, content, JSON.stringify(contentVector), isUser ? 1 : 2, isUser ? 1 : 2, turnIndex]
+        }
+      : {
+          text: `INSERT INTO grp_con_avatar_turns 
+                (topicpathid, avatar_id, content_text, message_type_id, turn_kind_id, turn_index)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                RETURNING id`,
+          values: [topicPathId, avatarId, content, isUser ? 1 : 2, isUser ? 1 : 2, turnIndex]
+        };
+
+    const result = await client.query(query);
+    return result.rows[0].id;
   } catch (error) {
-    console.error('Error storing message:', {
-      error: error.message,
-      stack: error.stack,
-      query: 'INSERT INTO dev.grp_con_avatar_turns (topicpathid, avatar_id, content_text, message_type_id, turn_index) VALUES ($1, $2, $3, $4, ...)'
-    });
-    // Don't fail the request if storage fails
-    return null;
+    console.error('Error storing message:', error);
+    throw error;
+  } finally {
+    client.release();
   }
 }
+    
+
 
 const router = express.Router();
 
@@ -164,7 +195,7 @@ router.put('/:clientSchemaId/llm-config', async (req, res) => {
 router.post('/prompt', async (req, res) => {
   let client;
   try {
-    let { prompt, topicPathId, avatarId, clientSchemaId } = req.body;
+    let { prompt, topicPathId, avatarId } = req.body;
     
     // Validate required fields
     if (!topicPathId) {
@@ -178,44 +209,37 @@ router.post('/prompt', async (req, res) => {
     // Convert topicPathId to string and trim
     topicPathId = String(topicPathId).trim();
     
-    // Convert other IDs to numbers
+    // Convert avatarId to number
     avatarId = Number(avatarId);
-    clientSchemaId = Number(clientSchemaId);
     
     if (isNaN(avatarId)) {
       return res.status(400).json({ error: 'avatarId must be a valid number' });
-    }
-    
-    if (isNaN(avatarId)) {
-      return res.status(400).json({ error: 'avatarId must be a valid number' });
-    }
-    
-    if (isNaN(clientSchemaId)) {
-      return res.status(400).json({ error: 'clientSchemaId must be a valid number' });
     }
 
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    if (!clientSchemaId) {
-      return res.status(400).json({ error: 'Client schema ID is required' });
-    }
-
     // Get a client from the pool
-    client = await req.clientPool.connect();
-
-    // Get the LLM config first
-    console.log('Fetching LLM config for client schema:', clientSchemaId);
-    const config = await getClientSchemaLLMConfig(clientSchemaId, req.clientPool);
+    client = await pool.connect();
     
-    if (!config) {
-      console.error('No LLM configuration found for client schema:', clientSchemaId);
+    // Set the schema if needed (assuming 'dev' schema for now)
+    await client.query('SET search_path TO dev, public');
+    
+    // Get the LLM configuration using the default schema ID (1)
+    const schemaId = 1; // Default schema ID
+    console.log('Fetching LLM config for schema ID:', schemaId);
+    const llmConfig = await getClientSchemaLLMConfig(schemaId, pool);
+    
+    if (!llmConfig) {
+      console.error('No LLM configuration found for schema ID:', schemaId);
       return res.status(404).json({ 
         error: 'LLM configuration not found',
-        details: `No configuration found for client schema ${clientSchemaId}`
+        details: `No configuration found for schema ID ${schemaId}`
       });
     }
+    
+    console.log('Using LLM config:', llmConfig);
     
     // Store the user's message with the topic path
     console.log('Storing user message...');
@@ -223,13 +247,13 @@ router.post('/prompt', async (req, res) => {
     console.log('User message stored with ID:', userMessageId);
     
     console.log('Retrieved LLM config:', {
-      provider: config.provider,
-      model: config.model,
-      hasApiKey: !!config.api_key,
-      type: config.type_name
+      provider: llmConfig.provider,
+      model: llmConfig.model,
+      hasApiKey: !!llmConfig.api_key,
+      type: llmConfig.type_name
     });
     
-    if (!config.api_key) {
+    if (!llmConfig.api_key) {
       console.error('API key is missing from the LLM configuration');
       return res.status(500).json({ 
         error: 'Configuration error',
@@ -239,23 +263,23 @@ router.post('/prompt', async (req, res) => {
 
     let response;
     
-    if (config.provider === 'anthropic') {
+    if (llmConfig.provider === 'anthropic') {
       console.log('Initializing Anthropic client with config:', {
-        hasApiKey: !!config.api_key,
-        model: config.model
+        hasApiKey: !!llmConfig.api_key,
+        model: llmConfig.model
       });
       
-      if (!config.api_key) {
+      if (!llmConfig.api_key) {
         throw new Error('Anthropic API key is missing in the configuration');
       }
       
       const anthropic = new Anthropic({
-        apiKey: config.api_key
+        apiKey: llmConfig.api_key
       });
       
       console.log('Sending prompt to Anthropic:', prompt);
       const msg = await anthropic.messages.create({
-        model: config.model,
+        model: llmConfig.model,
         max_tokens: 1000,
         messages: [{
           role: 'user',
@@ -266,17 +290,41 @@ router.post('/prompt', async (req, res) => {
       console.log('Received response from Anthropic');
       response = msg.content[0].text;
       
-      // Store the assistant's response
+      // Store the assistant's response with embedding
       console.log('Storing assistant response...');
       const assistantMessageId = await storeMessage(topicPathId, avatarId, response, false);
       console.log('Assistant response stored with ID:', assistantMessageId);
-    } else if (config.provider === 'openai') {
+      
+      // Generate and store embedding for the assistant's response
+      try {
+        const embedding = await generateEmbedding(response);
+        console.log('Generated embedding for assistant response');
+        
+        // Update the message with the embedding
+        await client.query(
+          'UPDATE grp_con_avatar_turns SET content_vector = $1 WHERE id = $2',
+          [JSON.stringify(embedding), assistantMessageId]
+        );
+        console.log('Updated assistant response with embedding');
+      } catch (embeddingError) {
+        console.error('Error generating/updating embedding for assistant response:', embeddingError);
+        // Continue without failing the request
+      }
+      
+      // Send success response with the assistant's response
+      res.json({ 
+        success: true, 
+        message: 'Prompt processed successfully',
+        response: response,
+        timestamp: new Date().toISOString()
+      });
+    } else if (llmConfig.provider === 'openai') {
       const openai = new OpenAI({
-        apiKey: config.apiKey
+        apiKey: llmConfig.apiKey
       });
       
       const completion = await openai.chat.completions.create({
-        model: config.model,
+        model: llmConfig.model,
         messages: [{
           role: 'user',
           content: prompt
@@ -285,24 +333,45 @@ router.post('/prompt', async (req, res) => {
       
       response = completion.choices[0].message.content;
       
-      // Store the assistant's response for OpenAI
+      // Store the assistant's response for OpenAI with embedding
       console.log('Storing assistant response (OpenAI)...');
       const assistantMessageId = await storeMessage(topicPathId, avatarId, response, false);
       console.log('Assistant response (OpenAI) stored with ID:', assistantMessageId);
+      
+      // Generate and store embedding for the assistant's response (OpenAI)
+      try {
+        const embedding = await generateEmbedding(response);
+        console.log('Generated embedding for OpenAI assistant response');
+        
+        // Update the message with the embedding
+        await client.query(
+          'UPDATE grp_con_avatar_turns SET content_vector = $1 WHERE id = $2',
+          [JSON.stringify(embedding), assistantMessageId]
+        );
+        console.log('Updated OpenAI assistant response with embedding');
+      } catch (embeddingError) {
+        console.error('Error generating/updating embedding for OpenAI assistant response:', embeddingError);
+        // Continue without failing the request
+      }
+      
+      // Send success response with the assistant's response
+      return res.json({ 
+        success: true, 
+        message: 'Prompt processed successfully',
+        response: response,
+        timestamp: new Date().toISOString()
+      });
     } else {
-      return res.status(400).json({ error: 'Unsupported LLM provider' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'Unsupported LLM provider',
+        details: `Provider '${llmConfig.provider}' is not supported`,
+        text: '',
+        topicPathId,
+        turnIndex: 0,
+        messageId: null
+      });
     }
-    
-    // Store the assistant's response
-    const assistantMessageId = await storeMessage(topicPathId, avatarId, response, false);
-
-    // Format response to match frontend expectations
-    res.json({ 
-      text: response, // The frontend expects a 'text' property
-      topicPathId,
-      turnIndex: 0, // TODO: Track turn index if needed
-      messageId: assistantMessageId
-    });
   } catch (error) {
     console.error('Error in POST /api/llm/prompt:', {
       message: error.message,

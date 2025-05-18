@@ -81,20 +81,25 @@ async function createConversationTurn(
 
 /**
  * Gets all turns for a conversation
- * @param {number} conversationId - The ID of the conversation
+ * @param {string} conversationId - The ID of the conversation
+ * @param {Object} client - The database client to use for the query
  * @returns {Promise<Array>} Array of conversation turns
  */
-async function getConversationTurns(conversationId) {
-  const queryText = `
-    SELECT id, grp_con_id, avatar_id, turn_index, content_text, created_at, turn_kind_id, message_type_id, template_topic_id
-    FROM dev.grp_con_avatar_turns
-    WHERE grp_con_id = $1
-    ORDER BY turn_index ASC
-  `;
-
+async function getConversationTurns(conversationId, client) {
   try {
-    const { rows } = await query(queryText, [conversationId]);
-    return rows;
+    console.log('Executing getConversationTurns with:', { conversationId });
+    
+    const queryText = `
+      SELECT id, grp_con_id, avatar_id, turn_index, content_text, created_at, turn_kind_id, message_type_id, template_topic_id
+      FROM grp_con_avatar_turns 
+      WHERE grp_con_id = $1
+      ORDER BY turn_index ASC
+    `;
+    
+    const result = await client.query(queryText, [conversationId]);
+    
+    console.log(`Found ${result.rows.length} messages for conversation ${conversationId}`);
+    return result.rows;
   } catch (error) {
     console.error('Error getting conversation turns:', error);
     throw error;
@@ -122,10 +127,50 @@ async function getNextTurnIndex(conversationId) {
   }
 }
 
+/**
+ * Gets all turns for a topic path
+ * @param {string} topicPathId - The ID of the topic path
+ * @param {Object} client - The database client to use for the query
+ * @param {number} [limit=100] - Maximum number of turns to return
+ * @returns {Promise<Array>} Array of conversation turns
+ */
+async function getTurnsByTopicPath(topicPathId, client, limit = 100) {
+  try {
+    console.log('Executing getTurnsByTopicPath with:', { topicPathId, limit });
+    
+    const result = await client.query(
+      `SELECT id, topicpathid, avatar_id, content_text, 
+              message_type_id, turn_kind_id, created_at, turn_index
+       FROM grp_con_avatar_turns
+       WHERE topicpathid = $1
+       ORDER BY turn_index ASC
+       LIMIT $2`,
+      [topicPathId, limit]
+    );
+    
+    console.log(`Found ${result.rows.length} messages for topic path ${topicPathId}`);
+    
+    return result.rows.map(row => ({
+      id: row.id,
+      topicPathId: row.topicpathid,
+      avatarId: row.avatar_id,
+      content: row.content_text,
+      isUser: row.message_type_id === MESSAGE_TYPE.USER,
+      turnKindId: row.turn_kind_id,
+      createdAt: row.created_at,
+      turnIndex: row.turn_index
+    }));
+  } catch (error) {
+    console.error('Error getting turns by topic path:', error);
+    throw error;
+  }
+}
+
 export {
   createConversationTurn,
   getConversationTurns,
   getNextTurnIndex,
+  getTurnsByTopicPath,
   TURN_KIND,
   MESSAGE_TYPE
 };

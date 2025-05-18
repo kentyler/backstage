@@ -1,0 +1,51 @@
+Vector Integration Progress Summary
+Current Status
+We've been working on integrating vector embeddings for both prompts and responses in the LLM service, specifically storing them in the content_vector field of the grp_con_avatar_turns table.
+
+Key Issues Encountered
+Vector Format Issue:
+Initially, vectors were being sent with curly braces {} but PostgreSQL's vector type requires square brackets []
+Fixed by updating the formatting in llm.js
+Vector Dimension Mismatch:
+The database column was defined as vector(1536) (for OpenAI embeddings)
+Anthropic's Claude model returns 32-dimensional vectors
+Attempted to modify the column to be dimension-agnostic, but ran into index creation issues
+Index Creation Problem:
+The ivfflat index requires a fixed dimension
+Attempted to modify the column to vector(96) (a multiple of 32) but need to verify if this is compatible with the index
+Next Steps
+Database Schema Update:
+Need to run the SQL to modify the content_vector column to accept the correct dimension
+Consider whether to:
+Use a fixed dimension that's compatible with both models (e.g., 96)
+Or modify the index type to support dynamic dimensions
+Testing:
+After schema changes, test with both OpenAI and Anthropic models
+Verify that vectors are being stored and retrieved correctly
+Error Handling:
+Add more detailed error logging for vector-related operations
+Consider adding validation for vector dimensions before insertion
+Performance:
+Monitor the performance impact of the vector operations
+Consider adding caching for frequently accessed vectors
+SQL To Run (First Thing Tomorrow)
+sql
+CopyInsert
+-- Drop existing index
+DROP INDEX IF EXISTS dev.idx_grp_con_avatar_turns_content_vector;
+
+-- Alter the column to use a fixed dimension that works with your models
+ALTER TABLE dev.grp_con_avatar_turns 
+ALTER COLUMN content_vector TYPE vector(96);
+
+-- Recreate the index
+CREATE INDEX idx_grp_con_avatar_turns_content_vector 
+ON dev.grp_con_avatar_turns 
+USING ivfflat (content_vector vector_cosine_ops) 
+WITH (lists = 100);
+Notes for Tomorrow
+Check if the vector dimension (96) is appropriate for your use case
+Be prepared to adjust the dimension or index type based on testing
+Consider adding a migration file to track these schema changes
+Let me know if you'd like me to elaborate on any of these points when you continue working on this!
+
