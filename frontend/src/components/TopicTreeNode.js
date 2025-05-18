@@ -42,7 +42,7 @@ const TopicTreeNode = ({ node, level = 0, onAddChild, expandedPaths, onToggleExp
     if (timeDiff < 300) { // Double click threshold
       setIsEditing(true);
     } else {
-      onSelect && onSelect();
+      onSelect && onSelect(node.id, node.fullPath || node.name);
     }
 
     setLastClickTime(currentTime);

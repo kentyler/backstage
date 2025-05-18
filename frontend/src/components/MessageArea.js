@@ -3,6 +3,15 @@ import './MessageArea.css';
 import llmService from '../services/llmService';
 
 const MessageArea = ({ selectedTopic }) => {
+  // Log the selected topic for debugging and reset messages when topic changes
+  useEffect(() => {
+    console.log('Selected Topic:', selectedTopic);
+    if (selectedTopic && selectedTopic.id) {
+      // Clear messages when topic changes
+      setTopicMessages([]);
+      setRelatedMessages([]);
+    }
+  }, [selectedTopic]);
   const messagesEndRef = useRef(null);
   const [message, setMessage] = useState('');
   const [file, setFile] = useState(null);
@@ -37,6 +46,23 @@ const MessageArea = ({ selectedTopic }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!message.trim()) return;
+    
+    console.log('Selected topic in handleSubmit:', selectedTopic);
+    
+    if (!selectedTopic || !selectedTopic.id) {
+      console.error('No valid topic selected');
+      alert('Please select a topic before sending a message');
+      return;
+    }
+    
+    const topicId = selectedTopic.id;
+    console.log('Using topic ID:', topicId, 'Type:', typeof topicId, 'Path:', selectedTopic.path);
+    
+    if (!topicId) {
+      console.error('Topic ID is falsy:', topicId);
+      alert('Invalid topic ID. Please try again.');
+      return;
+    }
 
     try {
       // Add user message to UI
@@ -52,8 +78,21 @@ const MessageArea = ({ selectedTopic }) => {
       const updatedMessages = [...topicMessages, userMessage];
       setTopicMessages(updatedMessages);
 
-      // Submit to LLM
-      const response = await llmService.submitPrompt(message);
+      // Submit to LLM with the selected topic path
+      console.log('Calling submitPrompt with:', {
+        message,
+        topicPathId: topicId,
+        avatarId: 1,
+        clientSchemaId: 1
+      });
+      
+      const response = await llmService.submitPrompt(message, {
+        topicPathId: topicId,
+        avatarId: 1, // TODO: Get the actual avatar ID from user context
+        clientSchemaId: 1 // TODO: Get the actual client schema ID from app context
+      });
+      
+      console.log('Received response:', response);
 
       // Add LLM response to UI
       const llmMessage = {
@@ -75,9 +114,9 @@ const MessageArea = ({ selectedTopic }) => {
   };
 
   const renderTopicBreadcrumb = () => {
-    if (!selectedTopic) return null;
+    if (!selectedTopic || !selectedTopic.path) return null;
     
-    const parts = selectedTopic.split('.');
+    const parts = selectedTopic.path.split('.');
     return (
       <div className="topic-breadcrumb">
         {parts.map((part, index) => (
@@ -105,6 +144,17 @@ const MessageArea = ({ selectedTopic }) => {
 
   return (
     <div className="message-area">
+      <div className="topic-header">
+        {selectedTopic && selectedTopic.id ? (
+          <div className="selected-topic">
+            {renderTopicBreadcrumb()}
+          </div>
+        ) : (
+          <div className="no-topic-selected">
+            <i className="fas fa-info-circle"></i> Please select a topic from the sidebar
+          </div>
+        )}
+      </div>
       {/* Topic breadcrumb */}
       {renderTopicBreadcrumb()}
 

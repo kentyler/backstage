@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import * as db from './db/index.js';
 import { getTopicPaths, createTopicPath, deleteTopicPath, updateTopicPath } from './db/topic-paths/index.js';
 import llmRoutes from './routes/api/llm.js';
+import conversationRoutes from './routes/api/conversations.js';
 import dotenv from 'dotenv';
 import config from './config.js';
 import fs from 'fs';
@@ -92,6 +93,7 @@ app.use(express.static(staticPath, {
 // Apply setClientPool middleware to API routes and mount LLM routes
 app.use('/api', setClientPool);
 app.use('/api/llm', llmRoutes);
+app.use('/api/conversations', conversationRoutes);
 
 // Simple authentication middleware
 const authenticate = (req, res, next) => {

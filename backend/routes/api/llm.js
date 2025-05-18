@@ -1,7 +1,42 @@
 import express from 'express';
 import { getClientSchemaLLMConfig, updateClientSchemaLLMConfig } from '../../db/llmConfig.js';
+import { pool } from '../../db/connection.js';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+
+// Simple function to store a message
+async function storeMessage(topicPathId, avatarId, content, isUser = true) {
+  try {
+    console.log('Storing message with:', { topicPathId, avatarId, contentLength: content?.length, isUser });
+    
+    // First, check if we need to create a new conversation
+    const result = await pool.query(
+      `INSERT INTO dev.grp_con_avatar_turns 
+       (topicpathid, avatar_id, content_text, message_type_id, turn_kind_id, turn_index)
+       VALUES ($1, $2, $3, $4, $5, 
+              COALESCE((SELECT MAX(turn_index) + 1 FROM dev.grp_con_avatar_turns WHERE topicpathid = $1), 1))
+       RETURNING id`,
+      [
+        topicPathId, 
+        avatarId, 
+        content, 
+        isUser ? 1 : 2, // message_type_id
+        isUser ? 1 : 2  // turn_kind_id (1 for user, 2 for assistant)
+      ]
+    );
+    
+    console.log('Message stored successfully with ID:', result.rows[0]?.id);
+    return result.rows[0]?.id;
+  } catch (error) {
+    console.error('Error storing message:', {
+      error: error.message,
+      stack: error.stack,
+      query: 'INSERT INTO dev.grp_con_avatar_turns (topicpathid, avatar_id, content_text, message_type_id, turn_index) VALUES ($1, $2, $3, $4, ...)'
+    });
+    // Don't fail the request if storage fails
+    return null;
+  }
+}
 
 const router = express.Router();
 
@@ -121,10 +156,43 @@ router.put('/:clientSchemaId/llm-config', async (req, res) => {
  * @desc    Submit a prompt to the LLM and get a response
  * @access  Private
  */
+/**
+ * @route   POST /api/llm/prompt
+ * @desc    Process a prompt and return a response, storing the conversation
+ * @access  Private
+ */
 router.post('/prompt', async (req, res) => {
   let client;
   try {
-    const { prompt, clientSchemaId } = req.body;
+    let { prompt, topicPathId, avatarId, clientSchemaId } = req.body;
+    
+    // Validate required fields
+    if (!topicPathId) {
+      return res.status(400).json({ error: 'topicPathId is required' });
+    }
+    
+    if (!avatarId) {
+      return res.status(400).json({ error: 'avatarId is required' });
+    }
+    
+    // Convert topicPathId to string and trim
+    topicPathId = String(topicPathId).trim();
+    
+    // Convert other IDs to numbers
+    avatarId = Number(avatarId);
+    clientSchemaId = Number(clientSchemaId);
+    
+    if (isNaN(avatarId)) {
+      return res.status(400).json({ error: 'avatarId must be a valid number' });
+    }
+    
+    if (isNaN(avatarId)) {
+      return res.status(400).json({ error: 'avatarId must be a valid number' });
+    }
+    
+    if (isNaN(clientSchemaId)) {
+      return res.status(400).json({ error: 'clientSchemaId must be a valid number' });
+    }
 
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
@@ -137,68 +205,104 @@ router.post('/prompt', async (req, res) => {
     // Get a client from the pool
     client = await req.clientPool.connect();
 
-    // Get the LLM config
+    // Get the LLM config first
+    console.log('Fetching LLM config for client schema:', clientSchemaId);
     const config = await getClientSchemaLLMConfig(clientSchemaId, req.clientPool);
     
     if (!config) {
-      return res.status(404).json({ error: 'LLM configuration not found for this client schema' });
+      console.error('No LLM configuration found for client schema:', clientSchemaId);
+      return res.status(404).json({ 
+        error: 'LLM configuration not found',
+        details: `No configuration found for client schema ${clientSchemaId}`
+      });
+    }
+    
+    // Store the user's message with the topic path
+    console.log('Storing user message...');
+    const userMessageId = await storeMessage(topicPathId, avatarId, prompt, true);
+    console.log('User message stored with ID:', userMessageId);
+    
+    console.log('Retrieved LLM config:', {
+      provider: config.provider,
+      model: config.model,
+      hasApiKey: !!config.api_key,
+      type: config.type_name
+    });
+    
+    if (!config.api_key) {
+      console.error('API key is missing from the LLM configuration');
+      return res.status(500).json({ 
+        error: 'Configuration error',
+        details: 'API key is missing from the LLM configuration'
+      });
     }
 
-    // Call the appropriate LLM service based on config
     let response;
-    switch (config.provider.toLowerCase()) {
-      case 'anthropic':
-        console.log('LLM API Key:', process.env.LLM_API_KEY ? 'Present' : 'Missing');
-        if (!process.env.LLM_API_KEY) {
-          throw new Error('LLM_API_KEY environment variable is not set');
-        }
-        const anthropicClient = new Anthropic({ apiKey: process.env.LLM_API_KEY });
-        const stream = await anthropicClient.messages.create({
-          model: config.model,
-          max_tokens: config.max_tokens,
-          temperature: config.temperature,
-          messages: [{ role: 'user', content: prompt }],
-          stream: true
-        });
-
-        let fullText = '';
-        for await (const chunk of stream) {
-          if (chunk.type === 'content_block_delta') {
-            fullText += chunk.delta.text;
-          }
-        }
-
-        response = {
-          text: fullText,
-          model: config.model,
-          usage: {
-            prompt_tokens: prompt.length,
-            completion_tokens: fullText.length,
-            total_tokens: prompt.length + fullText.length
-          }
-        };
-        break;
-
-      case 'openai':
-        const openaiClient = new OpenAI({ apiKey: process.env.LLM_API_KEY });
-        const openaiResponse = await openaiClient.chat.completions.create({
-          model: config.model,
-          max_tokens: config.max_tokens,
-          temperature: config.temperature,
-          messages: [{ role: 'user', content: prompt }]
-        });
-        response = {
-          text: openaiResponse.choices[0].message.content,
-          model: config.model,
-          usage: openaiResponse.usage
-        };
-        break;
-
-      default:
-        throw new Error(`Unsupported LLM provider: ${config.provider}`);
+    
+    if (config.provider === 'anthropic') {
+      console.log('Initializing Anthropic client with config:', {
+        hasApiKey: !!config.api_key,
+        model: config.model
+      });
+      
+      if (!config.api_key) {
+        throw new Error('Anthropic API key is missing in the configuration');
+      }
+      
+      const anthropic = new Anthropic({
+        apiKey: config.api_key
+      });
+      
+      console.log('Sending prompt to Anthropic:', prompt);
+      const msg = await anthropic.messages.create({
+        model: config.model,
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: prompt
+        }]
+      });
+      
+      console.log('Received response from Anthropic');
+      response = msg.content[0].text;
+      
+      // Store the assistant's response
+      console.log('Storing assistant response...');
+      const assistantMessageId = await storeMessage(topicPathId, avatarId, response, false);
+      console.log('Assistant response stored with ID:', assistantMessageId);
+    } else if (config.provider === 'openai') {
+      const openai = new OpenAI({
+        apiKey: config.apiKey
+      });
+      
+      const completion = await openai.chat.completions.create({
+        model: config.model,
+        messages: [{
+          role: 'user',
+          content: prompt
+        }]
+      });
+      
+      response = completion.choices[0].message.content;
+      
+      // Store the assistant's response for OpenAI
+      console.log('Storing assistant response (OpenAI)...');
+      const assistantMessageId = await storeMessage(topicPathId, avatarId, response, false);
+      console.log('Assistant response (OpenAI) stored with ID:', assistantMessageId);
+    } else {
+      return res.status(400).json({ error: 'Unsupported LLM provider' });
     }
+    
+    // Store the assistant's response
+    const assistantMessageId = await storeMessage(topicPathId, avatarId, response, false);
 
-    res.json(response);
+    // Format response to match frontend expectations
+    res.json({ 
+      text: response, // The frontend expects a 'text' property
+      topicPathId,
+      turnIndex: 0, // TODO: Track turn index if needed
+      messageId: assistantMessageId
+    });
   } catch (error) {
     console.error('Error in POST /api/llm/prompt:', {
       message: error.message,

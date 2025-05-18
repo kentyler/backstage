@@ -68,6 +68,7 @@ export const getClientSchemaLLMConfig = async (clientSchemaId, pool) => {
       rawValue: prefResult.rows[0]?.preference_value
     });
 
+    // Get the LLM configuration using the view
     const query = `
       SELECT 
         l.id AS id,
@@ -77,6 +78,7 @@ export const getClientSchemaLLMConfig = async (clientSchemaId, pool) => {
         l.temperature,
         l.max_tokens,
         l.additional_config,
+        l.api_key,
         lt.name AS type_name,
         lt.api_handler
       FROM llms l
@@ -89,14 +91,29 @@ export const getClientSchemaLLMConfig = async (clientSchemaId, pool) => {
     `;
 
     console.log('Executing LLM config query');
-    console.log('Executing query for client schema ID:', clientSchemaId, 'and preference type ID:', prefTypeResult.rows[0].id);
-    const result = await client.query(query, [clientSchemaId, prefTypeResult.rows[0].id]);
+    const preferenceTypeId = prefTypeResult.rows[0].id;
+    console.log('Executing query for client schema ID:', clientSchemaId, 'and preference type ID:', preferenceTypeId);
+    
+    const result = await client.query(query, [clientSchemaId, preferenceTypeId]);
+    
     console.log('LLM query details:', {
       sql: query,
-      params: [clientSchemaId, prefTypeResult.rows[0].id],
+      params: [clientSchemaId, preferenceTypeId],
       rowCount: result.rowCount,
-      rows: result.rows
+      rows: result.rows ? result.rows.map(r => ({
+        id: r.id,
+        name: r.name,
+        provider: r.provider,
+        model: r.model,
+        hasApiKey: !!r.api_key,
+        type_name: r.type_name
+      })) : 'No rows returned'
     });
+    
+    if (result.rows.length === 0) {
+      console.error('No LLM configuration found for client schema:', clientSchemaId);
+      return null;
+    }
     
     if (!result.rows || result.rows.length === 0) {
       throw new Error('No preferred LLM configuration found for client schema ' + clientSchemaId);

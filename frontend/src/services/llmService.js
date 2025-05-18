@@ -184,30 +184,52 @@ export const refreshLLMConfig = async () => {
  * Submits a prompt to the LLM and gets a response
  * @param {string} prompt - The prompt to send
  * @param {Object} options - Additional options
+ * @param {number} options.topicPathId - The ID of the topic path (required)
+ * @param {number} options.avatarId - The ID of the user's avatar (required)
+ * @param {number} options.clientSchemaId - The client schema ID (required)
  * @returns {Promise<Object>} The LLM response
+ * @throws {Error} If required parameters are missing or invalid
  */
 const submitPrompt = async (prompt, options = {}) => {
-  try {
-    const config = getCurrentLLMConfig();
-    if (!config) {
-      throw new Error('LLM service not initialized');
-    }
+  const { topicPathId, avatarId, clientSchemaId } = options;
+  
+  console.log('=== submitPrompt called ===');
+  console.log('Prompt:', prompt);
+  console.log('Options:', options);
+  console.log('topicPathId:', topicPathId, 'Type:', typeof topicPathId);
+  console.log('avatarId:', avatarId, 'Type:', typeof avatarId);
+  console.log('clientSchemaId:', clientSchemaId, 'Type:', typeof clientSchemaId);
+  
+  if (!topicPathId) {
+    console.error('topicPathId is missing or empty');
+    throw new Error('topicPathId is required');
+  }
+  
+  // Convert to string and trim any whitespace
+  const cleanTopicPathId = String(topicPathId).trim();
+  console.log('Using topicPathId:', cleanTopicPathId);
+  if (!avatarId) throw new Error('avatarId is required');
+  if (isNaN(Number(avatarId))) throw new Error('avatarId must be a number');
+  if (!clientSchemaId) throw new Error('clientSchemaId is required');
+  if (isNaN(Number(clientSchemaId))) throw new Error('clientSchemaId must be a number');
 
-    const response = await fetch('http://localhost:5000/api/llm/prompt', {
+  try {
+    const response = await fetch('/api/llm/prompt', {
       method: 'POST',
-      credentials: 'include',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         prompt,
-        clientSchemaId: llmConfigCache.clientSchemaId,
-        ...options
+        topicPathId: cleanTopicPathId,
+        avatarId: Number(avatarId),
+        clientSchemaId: Number(clientSchemaId)
       })
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to submit prompt: ${response.statusText}`);
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to get response from LLM');
     }
 
     return await response.json();
@@ -222,5 +244,5 @@ export default {
   getCurrentLLMConfig,
   setCurrentLLMConfig,
   refreshLLMConfig,
-  submitPrompt
+  submitPrompt,
 };

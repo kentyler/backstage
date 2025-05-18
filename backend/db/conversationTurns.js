@@ -1,4 +1,5 @@
-const { query } = require('../db/connection');
+import { pool } from './connection.js';
+const { query } = pool;
 
 // Constants
 const VECTOR_DIM = 1536;
@@ -121,7 +122,7 @@ async function getNextTurnIndex(conversationId) {
   }
 }
 
-module.exports = {
+export {
   createConversationTurn,
   getConversationTurns,
   getNextTurnIndex,

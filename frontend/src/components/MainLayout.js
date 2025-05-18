@@ -9,7 +9,17 @@ import './MainLayout.css';
  * Main layout container for the authenticated application
  */
 const MainLayout = () => {
-  const [selectedTopic, setSelectedTopic] = useState(null);
+  const [selectedTopic, setSelectedTopic] = useState({
+    id: null,
+    path: null
+  });
+  
+  const handleTopicSelect = (topicId, topicPath) => {
+    setSelectedTopic({
+      id: topicId,
+      path: topicPath
+    });
+  };
 
   return (
     <div className="app">
@@ -19,7 +29,7 @@ const MainLayout = () => {
             <h1>Conversational AI</h1>
           </div>
           <div className="sidebar-content">
-            <TopicsMenu onTopicSelect={setSelectedTopic} />
+            <TopicsMenu onTopicSelect={handleTopicSelect} />
           </div>
           <div className="sidebar-footer">
             <button 

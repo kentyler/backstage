@@ -39,6 +39,7 @@ const buildTopicTree = (paths) => {
  */
 const TopicsMenu = ({ onTopicSelect }) => {
   const [topicTree, setTopicTree] = useState([]);
+  const [topics, setTopics] = useState([]);
   const [isAdding, setIsAdding] = useState(false);
   const [newPath, setNewPath] = useState('');
   const [addError, setAddError] = useState(null);
@@ -65,9 +66,17 @@ const TopicsMenu = ({ onTopicSelect }) => {
   }, []);
 
   const refreshTopics = async () => {
-    const paths = await fetchTopicPaths();
-    const tree = buildTopicTree(paths);
-    setTopicTree(tree);
+    try {
+      const paths = await fetchTopicPaths();
+      setTopics(paths);
+      const tree = buildTopicTree(paths);
+      setTopicTree(tree);
+      return paths;
+    } catch (error) {
+      console.error('Error refreshing topics:', error);
+      setError('Failed to refresh topics');
+      throw error;
+    }
   };
 
   const handleAddPath = async (e) => {
@@ -157,7 +166,7 @@ const TopicsMenu = ({ onTopicSelect }) => {
                   setExpandedPaths(newExpandedPaths);
                 }}
                 refreshTopics={refreshTopics}
-                onSelect={() => onTopicSelect && onTopicSelect(topic.fullPath)}
+                onSelect={onTopicSelect}
               />
             ))}
           </ul>
