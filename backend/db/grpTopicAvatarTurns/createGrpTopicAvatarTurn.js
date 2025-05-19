@@ -15,6 +15,8 @@ export const MESSAGE_TYPE = {
 };
 
 function normalizeVector(arr) {
+  // If contentVector is null or undefined, return an empty array of the right dimension
+  if (!arr) return new Array(VECTOR_DIM).fill(0);
   if (!Array.isArray(arr)) throw new TypeError('contentVector must be an array');
   if (arr.length === VECTOR_DIM) return arr;
   if (arr.length > VECTOR_DIM) return arr.slice(0, VECTOR_DIM);

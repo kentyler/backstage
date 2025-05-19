@@ -52,15 +52,16 @@ async function getNextTurnIndex(topicPathId) {
 /**
  * Gets all turns for a topic path
  * @param {string} topicPathId - The ID of the topic path
- * @param {Object} client - The database client to use for the query
+ * @param {Object} pool - The database pool to use for the query
  * @param {number} [limit=100] - Maximum number of turns to return
  * @returns {Promise<Array>} Array of topic path turns
  */
-async function getTurnsByTopicPath(topicPathId, client, limit = 100) {
+async function getTurnsByTopicPath(topicPathId, pool, limit = 100) {
   try {
     console.log('Executing getTurnsByTopicPath with:', { topicPathId, limit });
     
-    const result = await client.query(
+    // The pool will determine the correct schema based on its configuration
+    const result = await pool.query(
       `SELECT id, topicpathid, avatar_id, content_text, 
               message_type_id, turn_kind_id, created_at, turn_index
        FROM grp_topic_avatar_turns

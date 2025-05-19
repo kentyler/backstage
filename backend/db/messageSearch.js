@@ -44,7 +44,7 @@ export async function findSimilarMessages(embedding, excludeTopicPath, limit = 1
           m.content_vector <-> $1 as distance,
           m.turn_index
         FROM grp_topic_avatar_turns m
-        LEFT JOIN topic_paths tp ON CAST(m.topicpathid AS INTEGER) = tp.id
+        LEFT JOIN topic_paths tp ON m.topicpathid = tp.path::text
         WHERE m.topicpathid != $2
         AND m.content_text IS NOT NULL
         AND m.content_text != ''
