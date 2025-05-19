@@ -61,6 +61,14 @@ router.post('/', requireAuth, async (req, res) => {
       throw new Error(`Unsupported provider: ${config.provider}`);
     }
 
+    // Log the response before sending it back to the client
+    console.log('LLM Response:', {
+      model: config.model,
+      provider: config.provider,
+      responseLength: response.text.length,
+      first100Chars: response.text.substring(0, 100) + (response.text.length > 100 ? '...' : '')
+    });
+    
     res.json(response);
   } catch (error) {
     console.error('Error in prompt submission:', error);

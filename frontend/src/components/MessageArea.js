@@ -122,10 +122,31 @@ const MessageArea = ({ selectedTopic }) => {
       
       try {
         // Submit the prompt and get the response
-        await llmService.submitPrompt(message, {
+        const response = await llmService.submitPrompt(message, {
           topicPathId: topicId,
           avatarId: 1
         });
+        
+        // Process relevant messages if they exist in the response
+        if (response.relevantMessages && response.relevantMessages.length > 0) {
+          console.log(`Processing ${response.relevantMessages.length} relevant messages from response`);
+          
+          // Format the relevant messages for display
+          const formattedRelevantMessages = response.relevantMessages.map(msg => ({
+            id: msg.id,
+            content: msg.content,
+            timestamp: msg.timestamp || new Date().toISOString(),
+            author: 'Assistant',
+            topicPath: msg.topicPathId, // Store the topic path ID
+            score: msg.score // Keep the relevance score
+          }));
+          
+          // Update the related messages state
+          setRelatedMessages(formattedRelevantMessages);
+        } else {
+          console.log('No relevant messages found in response');
+          setRelatedMessages([]);
+        }
         
         // Refresh messages to get the latest from the server
         await loadMessages();
@@ -205,9 +226,14 @@ const MessageArea = ({ selectedTopic }) => {
             </div>
           ) : message.content}
         </div>
-        {message.topic && (
+        {message.topicPath && (
           <div className="message-footer">
-            <span>From: {message.topic}</span>
+            <span className="message-topic-path">Topic: {message.topicPath}</span>
+            {message.score && (
+              <span className="message-relevance-score">
+                Relevance: {Math.round(message.score * 100)}%
+              </span>
+            )}
           </div>
         )}
       </div>

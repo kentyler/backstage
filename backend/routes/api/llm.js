@@ -4,6 +4,7 @@ import { pool } from '../../db/connection.js';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { generateEmbedding } from '../../services/embeddings.js';
+import { findSimilarMessages } from '../../db/messageSearch.js';
 
 /**
  * Stores a message with its vector representation
@@ -296,7 +297,10 @@ router.post('/prompt', async (req, res) => {
       console.log('Assistant response stored with ID:', assistantMessageId);
       
       // Generate and store embedding for the assistant's response
+      // Also search for relevant messages using the same embedding
+      let relevantMessages = [];
       try {
+        // Generate embedding for the assistant response
         const embedding = await generateEmbedding(response);
         console.log('Generated embedding for assistant response');
         
@@ -306,16 +310,52 @@ router.post('/prompt', async (req, res) => {
           [JSON.stringify(embedding), assistantMessageId]
         );
         console.log('Updated assistant response with embedding');
-      } catch (embeddingError) {
-        console.error('Error generating/updating embedding for assistant response:', embeddingError);
+        
+        // Now find relevant messages using the embedding we just generated
+        console.log('Finding relevant messages for the response...');
+        relevantMessages = await findSimilarMessages(embedding, topicPathId, 5); // Increase limit to 5
+        console.log(`Found ${relevantMessages.length} relevant messages`);
+        
+        if (relevantMessages.length > 0) {
+          console.log('First relevant message:', {
+            topicPathId: relevantMessages[0].topicPathId,
+            score: relevantMessages[0].score,
+            snippet: relevantMessages[0].content?.substring(0, 50) + '...'
+          });
+        } else {
+          console.log('No relevant messages found. Embedding details:', {
+            embeddingType: typeof embedding,
+            embeddingIsArray: Array.isArray(embedding),
+            embeddingLength: embedding?.length,
+            topicPathId: topicPathId
+          });
+          
+          // Try querying with a very small limit just to check if any messages exist
+          console.log('Attempting broader search with no threshold limit...');
+          const testMessages = await client.query(
+            'SELECT COUNT(*) FROM grp_con_avatar_turns WHERE content_vector IS NOT NULL AND topicpathid != $1',
+            [topicPathId]
+          );
+          console.log('Database has', testMessages.rows[0].count, 'messages with embeddings in other topics');
+        }
+      } catch (error) {
+        console.error('Error in embedding generation or finding relevant messages:', error);
         // Continue without failing the request
       }
       
-      // Send success response with the assistant's response
+      // Log the response before sending it back
+      console.log('Sending response to client:', {
+        responseLength: response?.length || 0,
+        relevantMessagesCount: relevantMessages.length,
+        preview: response?.substring(0, 100) + (response?.length > 100 ? '...' : '')
+      });
+      
+      // Send success response with the assistant's response and relevant messages
       res.json({ 
+        text: response,
+        relevantMessages, // Include the relevant messages in the response
         success: true, 
         message: 'Prompt processed successfully',
-        response: response,
         timestamp: new Date().toISOString()
       });
     } else if (llmConfig.provider === 'openai') {

@@ -249,10 +249,26 @@ const submitPrompt = async (prompt, options = {}) => {
       throw new Error(errorMessage);
     }
 
-    console.log('Successfully processed response:', {
-      status: response.status,
-      data: responseData
+    // Log detailed response information
+    console.log('=== LLM Response Received ===');
+    console.log('Status:', response.status);
+    console.log('Response Data:', {
+      text: responseData.text ? `[${responseData.text.length} chars]` : 'No text',
+      relevantMessages: responseData.relevantMessages ? responseData.relevantMessages.length : 0,
+      ...(responseData.text ? { preview: responseData.text.substring(0, 100) + (responseData.text.length > 100 ? '...' : '') } : {})
     });
+    
+    // Log information about relevant messages if they exist
+    if (responseData.relevantMessages && responseData.relevantMessages.length > 0) {
+      console.log(`Found ${responseData.relevantMessages.length} relevant messages:`);
+      responseData.relevantMessages.forEach((msg, index) => {
+        console.log(`Message ${index + 1}:`, {
+          topicPathId: msg.topicPathId,
+          score: msg.score ? `${Math.round(msg.score * 100)}%` : 'N/A',
+          contentPreview: msg.content ? msg.content.substring(0, 50) + '...' : 'No content'
+        });
+      });
+    }
     
     return responseData;
   } catch (error) {
