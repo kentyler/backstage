@@ -38,11 +38,13 @@ export async function findSimilarMessages(embedding, excludeTopicPath, limit = 1
           m.id,
           m.content_text as content,
           m.topicpathid as "topicPathId",
+          tp.path::text as "topicPath",
           m.created_at as "createdAt",
           m.message_type_id = 1 as "isUser",
           m.content_vector <-> $1 as distance,
           m.turn_index
-        FROM grp_con_avatar_turns m
+        FROM grp_topic_avatar_turns m
+        LEFT JOIN topic_paths tp ON CAST(m.topicpathid AS INTEGER) = tp.id
         WHERE m.topicpathid != $2
         AND m.content_text IS NOT NULL
         AND m.content_text != ''
@@ -64,14 +66,22 @@ export async function findSimilarMessages(embedding, excludeTopicPath, limit = 1
         id: result.rows[0].id,
         content: result.rows[0].content?.substring(0, 100) + '...',
         distance: result.rows[0].distance,
-        topicPathId: result.rows[0].topicPathId
+        topicPathId: result.rows[0].topicPathId,
+        topicPath: result.rows[0].topicPath || 'Not found in query result'
       });
+      
+      // Log all returned topic paths to help debug
+      console.log('All topic paths from query:', result.rows.map(r => ({
+        topicPathId: r.topicPathId,
+        topicPath: r.topicPath
+      })));
     }
     
     return result.rows.map(row => ({
       id: row.id,
       content: row.content,
       topicPathId: row.topicPathId,
+      topicPath: row.topicPath || 'Unknown', // Include the human-readable topic path
       isUser: row.isUser,
       timestamp: row.createdAt,
       score: 1 - row.distance  // Convert distance to similarity score (0-1)

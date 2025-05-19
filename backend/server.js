@@ -9,7 +9,9 @@ import { fileURLToPath } from 'url';
 import * as db from './db/index.js';
 import { getTopicPaths, createTopicPath, deleteTopicPath, updateTopicPath } from './db/topic-paths/index.js';
 import llmRoutes from './routes/api/llm.js';
-import conversationRoutes from './routes/api/conversations.js';
+import topicRoutes from './routes/api/topics.js';
+import fileUploadRoutes from './routes/api/fileUploads.js';
+// Removed conversation routes import as part of migration to topic-based architecture
 import dotenv from 'dotenv';
 import config from './config.js';
 import fs from 'fs';
@@ -93,7 +95,8 @@ app.use(express.static(staticPath, {
 // Apply setClientPool middleware to API routes and mount LLM routes
 app.use('/api', setClientPool);
 app.use('/api/llm', llmRoutes);
-app.use('/api/conversations', conversationRoutes);
+app.use('/api/topics', topicRoutes);
+app.use('/api/file-uploads', fileUploadRoutes);
 
 // Simple authentication middleware
 const authenticate = (req, res, next) => {
@@ -367,87 +370,8 @@ app.get('/api/schema-info', (req, res) => {
   });
 });
 
-// Get conversations for a specific group - DIRECT SQL QUERY VERSION
-app.get('/api/conversations', authenticate, async (req, res) => {
-  console.log('------------------- /api/conversations endpoint called -------------------');
-  let client = null;
-  
-  try {
-    // Get the schema for this request
-    const schema = db.getSchemaFromRequest(req);
-    console.log(`Using schema: ${schema}`);
-    
-    // Get a client from the pool
-    client = await db.pool.connect();
-    
-    // Set the search_path for this connection
-    await client.query(`SET search_path TO ${schema}, public;`);
-    console.log(`Search path set to ${schema}, public`);
-    
-    // Get group ID from query parameter
-    let groupId = req.query.group_id;
-    console.log(`Raw group_id from query: ${groupId}`);
-    
-    // Parse groupId as integer if provided
-    if (groupId) {
-      groupId = parseInt(groupId, 10);
-      console.log(`Parsed group_id: ${groupId}`);
-      
-      // Check if parsing was successful
-      if (isNaN(groupId)) {
-        return res.status(400).json({ error: 'Invalid group ID format' });
-      }
-    } else {
-      console.log(`No group_id provided, finding default group`);
-      // If no group ID is provided, get the first group ID
-      const groupsResult = await client.query('SELECT id FROM groups LIMIT 1');
-      console.log(`Found groups:`, groupsResult.rows);
-      
-      if (!groupsResult.rows.length) {
-        console.log(`No groups found in database`);
-        return res.status(404).json({ error: 'No groups found in database' });
-      }
-      
-      groupId = groupsResult.rows[0].id;
-      console.log(`Using first group with ID: ${groupId}`);
-    }
-    
-    console.log(`Executing direct SQL query for conversations with group ID: ${groupId}`);
-    
-    // Execute a direct SQL query instead of using the helper function
-    const query = `
-      SELECT id, group_id, name, description, type_id, created_at
-      FROM grp_cons
-      WHERE group_id = $1
-      ORDER BY created_at DESC
-      LIMIT 50
-    `;
-    
-    console.log('SQL Query:', query.trim());
-    console.log('Query parameters:', [groupId]);
-    
-    // Execute query directly
-    const result = await client.query(query, [groupId]);
-    console.log(`Query executed successfully. Fetched ${result.rows.length} conversations.`);
-    
-    // Return the conversations, even if it's an empty array
-    return res.status(200).json(result.rows);
-    
-  } catch (err) {
-    console.error('Error in conversations endpoint:', err);
-    return res.status(500).json({ 
-      error: 'Failed to fetch conversations', 
-      message: err.message,
-      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
-    });
-  } finally {
-    // Release the client back to the pool
-    if (client) {
-      client.release();
-      console.log('Database client released');
-    }
-  }
-});
+// The '/api/conversations' endpoint has been removed as part of migration to topic-based architecture
+// Frontend should use '/api/topics/:topicPathId/turns' or '/api/topics/path/:topicPathId' instead
 
 // Database test endpoints
 app.get('/api/db-test', async (req, res) => {

@@ -24,6 +24,7 @@
     📄 config.js
     📁 db/
       📄 connection.js
+      📄 conversationTurns.js
       📁 core/
         📄 connection.js
         📄 getTableInfo.js
@@ -88,6 +89,8 @@
         📄 getGrpConUploadVectorsByUpload.js
         📄 index.js
       📄 index.js
+      📄 llmConfig.js
+      📄 messageSearch.js
       📁 participantAvatars/
         📄 createParticipantAvatar.js
         📄 deleteParticipantAvatar.js
@@ -138,16 +141,31 @@
       📄 setClientSchema.js
     📄 package-lock.json
     📄 package.json
+    📁 routes/
+      📁 api/
+        📄 conversations.js
+        📄 llm.js
+        📄 prompt.js
+        📄 search.js
     📄 server.js
+    📁 services/
+      📄 embeddings.js
+      📄 llm.js
     📄 sessions.sqlite
+    📁 test/
+      📄 llmConfig.test.js
+      📄 test-loader.js
+      📄 test-setup.js
+    📁 test-logs/
+      📄 llm-config-tests.log
+    📄 test_output.log
   📄 build-and-run.ps1
   📄 deployment-test.js
   📄 dir-tree.js
   📄 directory-tree.txt
   📁 docs/
-    📁 api/
-    📁 architecture/
     📄 ARCHITECTURE.md
+    📄 debugging-guide.md
     📁 decisions/
       📄 2025-05-16-client-and-schema-management.md
       📄 2025-05-16-documentation-structure.md
@@ -156,7 +174,9 @@
       📄 TEMPLATE.md
     📁 design/
       📄 llm-management.md
+    📄 directory_tree.txt
     📄 jsdocs.json
+    📄 llm-configuration.md
     📄 schema_dump.sql
   📄 documentation.md
   📄 extract_jsdocs.py
@@ -196,6 +216,8 @@
         📄 MainLayout.js
         📄 MessageArea.css
         📄 MessageArea.js
+        📄 RelatedMessages.css
+        📄 RelatedMessages.js
         📄 TopicsMenu.css
         📄 TopicsMenu.js
         📄 TopicTreeNode.js
@@ -206,6 +228,8 @@
         📁 auth/
           📄 authApi.js
           📄 authContext.js
+        📄 llmService.js
+        📄 searchService.js
         📁 topics/
           📄 topicsApi.js
     📁 vanilla-build/
@@ -239,6 +263,7 @@
       📄 topics.js
       📄 utils.js
   📄 neon_schema.sql
+  📄 package-lock.json
   📄 package.json
   📄 pg_dump_schema.ps1
   📁 previous/
@@ -278,7 +303,6 @@
           📄 logoutHandler.js
       📁 db/
         📄 connection.js
-        📁 groups/
         📁 grpConAvatars/
           📄 createGrpConAvatar.js
           📄 deleteGrpConAvatar.js
@@ -411,3 +435,4 @@
     📄 copy-build.js
     📄 new-decision.ps1
     📄 update-architecture.ps1
+  📄 Vector Integration Progress Summary.txt

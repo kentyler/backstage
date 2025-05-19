@@ -16,8 +16,44 @@
     "comment": "/**\n * Creates a database connection pool with a specific schema search path\n * \n * @param {string} schema - The schema to use (defaults to 'public')\n * @returns {Pool} - A PostgreSQL connection pool configured for the specified schema\n */"
   },
   {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\conversationTurns.js",
+    "comment": "/**\n * Normalizes a vector to the required dimensions\n * @param {Array} arr - The vector array to normalize\n * @returns {Array} - Normalized vector\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\conversationTurns.js",
+    "comment": "/**\n * Creates a new conversation turn\n * @param {number} conversationId - The ID of the conversation\n * @param {number} avatarId - The ID of the avatar (user/assistant)\n * @param {number} turnIndex - The index of the turn\n * @param {string} contentText - The text content of the turn\n * @param {Array} contentVector - The vector representation of the content\n * @param {number} [turnKindId=TURN_KIND.REGULAR] - The kind of turn (regular or comment)\n * @param {number} [messageTypeId] - The type of message (1 for user, 2 for LLM)\n * @param {number} [templateTopicId] - Optional template topic ID\n * @returns {Promise<Object>} The created turn\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\conversationTurns.js",
+    "comment": "/**\n * Gets all turns for a conversation\n * @param {string} conversationId - The ID of the conversation\n * @param {Object} client - The database client to use for the query\n * @returns {Promise<Array>} Array of conversation turns\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\conversationTurns.js",
+    "comment": "/**\n * Gets the next turn index for a conversation\n * @param {number} conversationId - The ID of the conversation\n * @returns {Promise<number>} The next turn index\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\conversationTurns.js",
+    "comment": "/**\n * Gets all turns for a topic path\n * @param {string} topicPathId - The ID of the topic path\n * @param {Object} client - The database client to use for the query\n * @param {number} [limit=100] - Maximum number of turns to return\n * @returns {Promise<Array>} Array of conversation turns\n */"
+  },
+  {
     "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\index.js",
     "comment": "/**\n * Database module - Main entry point\n * \n * This file exports all database functions from various modules\n * in a structured format.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\llmConfig.js",
+    "comment": "/**\n * @file db/llmConfig.js\n * @description Database operations for LLM configurations\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\llmConfig.js",
+    "comment": "/**\n * Gets the LLM configuration for a client schema using the llm_config_view\n * @param {number} clientSchemaId - The client schema ID\n * @param {Object} pool - The database connection pool\n * @returns {Promise<Object>} The LLM configuration\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\llmConfig.js",
+    "comment": "/**\n * Updates the LLM configuration for a client schema\n * @param {number} clientSchemaId - The client schema ID\n * @param {number} llmId - The LLM ID to set\n * @param {Object} pool - The database connection pool\n * @returns {Promise<Object>} The updated LLM configuration\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\messageSearch.js",
+    "comment": "/**\n * Find similar messages using vector similarity search\n * @param {number[]} embedding - The embedding vector to compare against\n * @param {string} excludeTopicPath - Topic path to exclude from results\n * @param {number} limit - Maximum number of results to return\n * @returns {Promise<Array>} - Array of similar messages with their topic paths\n */"
   },
   {
     "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\core\\connection.js",
@@ -628,6 +664,46 @@
     "comment": "/**\n * Gets a list of all client schemas\n * This is used for operations that need to be performed across all schemas\n * \n * @returns {Promise<string[]>} - A promise that resolves to an array of schema names\n */"
   },
   {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\conversations.js",
+    "comment": "/**\n * @route   GET /api/conversations/:conversationId/turns\n * @desc    Get all turns for a conversation\n * @access  Private\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\conversations.js",
+    "comment": "/**\n * @route   GET /api/conversations/topic/:topicPathId\n * @desc    Get all turns for a topic path\n * @access  Private\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\llm.js",
+    "comment": "/**\n * Stores a message with its vector representation\n * @param {string} topicPathId - The ID of the topic path\n * @param {number} avatarId - The ID of the avatar (user/assistant)\n * @param {string} content - The message content\n * @param {boolean} isUser - Whether the message is from the user\n * @returns {Promise<string|null>} The ID of the stored message or null if failed\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\llm.js",
+    "comment": "/**\n * @route   GET /api/client-schemas/:clientSchemaId/llm-config\n * @desc    Get the LLM configuration for a client schema\n * @access  Private\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\llm.js",
+    "comment": "/**\n * @route   PUT /api/client-schemas/:clientSchemaId/llm-config\n * @desc    Update the LLM configuration for a client schema\n * @access  Private\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\llm.js",
+    "comment": "/**\n * @route   POST /api/llm/prompt\n * @desc    Submit a prompt to the LLM and get a response\n * @access  Private\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\llm.js",
+    "comment": "/**\n * @route   POST /api/llm/prompt\n * @desc    Process a prompt and return a response, storing the conversation\n * @access  Private\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\prompt.js",
+    "comment": "/**\n * Submit a prompt to the LLM\n * POST /api/prompts\n * Body: { prompt: string }\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\search.js",
+    "comment": "/**\n * @route   POST /api/search/similar-messages\n * @desc    Find messages similar to the provided text\n * @access  Private\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\embeddings.js",
+    "comment": "/**\n * Generates an embedding vector for the given text using OpenAI\n * @param {string} text - The text to generate embedding for\n * @returns {Promise<number[]>} The embedding vector\n * @throws {Error} If embedding generation fails\n */"
+  },
+  {
     "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\App.js",
     "comment": "/**\n * App component\n * Sets up routing and authentication\n */"
   },
@@ -642,6 +718,10 @@
   {
     "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\components\\MainLayout.js",
     "comment": "/**\n * MainLayout component\n * Main layout container for the authenticated application\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\components\\RelatedMessages.js",
+    "comment": "/**\n * Displays a list of related messages with clickable topic paths\n * @param {Object} props\n * @param {Array} props.messages - Array of related messages\n * @param {boolean} props.isLoading - Whether the messages are currently loading\n * @param {Function} props.onTopicSelect - Callback when a topic is selected\n * @param {string} props.selectedMessageId - ID of the currently selected message (if any)\n */"
   },
   {
     "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\components\\TopicsMenu.js",
@@ -668,12 +748,56 @@
     "comment": "/**\n * PrivateRoute component\n * Protects routes that require authentication\n * Redirects to login if user is not authenticated\n */"
   },
   {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\llmService.js",
+    "comment": "/**\n * @file src/services/llmService.js\n * @description Service for managing LLM configurations with client schema preferences\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\llmService.js",
+    "comment": "/**\n * Fetches the LLM configuration for a client schema\n * @param {number} clientSchemaId - The client schema ID\n * @returns {Promise<Object>} The LLM configuration\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\llmService.js",
+    "comment": "/**\n * Updates the LLM configuration for a client schema\n * @param {number} clientSchemaId - The client schema ID\n * @param {string} llmId - The ID of the LLM to set\n * @returns {Promise<Object>} The updated LLM configuration\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\llmService.js",
+    "comment": "/**\n * Initializes the LLM service with the current participant and client schema\n * @param {number} participantId - The current participant ID\n * @param {number} clientSchemaId - The client schema ID\n * @returns {Promise<Object>} The current LLM configuration\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\llmService.js",
+    "comment": "/**\n * Gets the current LLM configuration\n * @returns {Object} The current LLM configuration or null if not initialized\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\llmService.js",
+    "comment": "/**\n * Updates the current LLM configuration\n * @param {string} llmId - The ID of the LLM to set as current\n * @returns {Promise<Object>} The updated LLM configuration\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\llmService.js",
+    "comment": "/**\n * Refreshes the LLM configuration cache\n * @returns {Promise<Object>} The updated LLM configuration\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\llmService.js",
+    "comment": "/**\n * Submits a prompt to the LLM and gets a response\n * @param {string} prompt - The prompt to send\n * @param {Object} options - Additional options\n * @param {number} options.topicPathId - The ID of the topic path (required)\n * @param {number} options.avatarId - The ID of the user's avatar (required)\n * @returns {Promise<Object>} The LLM response\n * @throws {Error} If required parameters are missing or invalid\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\llmService.js",
+    "comment": "/**\n * Fetches conversation history for a specific topic path\n * @param {string} topicPathId - The ID of the topic path\n * @returns {Promise<Array>} Array of conversation messages\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\searchService.js",
+    "comment": "/**\n * Search service for finding similar messages\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\searchService.js",
+    "comment": "/**\n * Find messages similar to the given text\n * @param {string} text - The text to find similar messages for\n * @param {string} excludeTopicPath - Topic path to exclude from results\n * @returns {Promise<Array>} - Array of similar messages\n */"
+  },
+  {
     "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\auth\\authApi.js",
     "comment": "/**\n * Authentication API service\n * Handles all authentication-related API calls\n */"
   },
   {
     "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\auth\\authApi.js",
-    "comment": "/**\n * Send login request to the server\n * @param {string} email User's email\n * @param {string} password User's password\n * @returns {Promise<Object>} Response data including token and user info\n */"
+    "comment": "/**\n * Send login request to the server and initialize LLM service\n * @param {string} email User's email\n * @param {string} password User's password\n * @returns {Promise<Object>} Response data including token and user info\n */"
   },
   {
     "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\services\\auth\\authApi.js",

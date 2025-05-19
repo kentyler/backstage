@@ -292,11 +292,12 @@ export async function getMessagesByTopicPath(topicPathId) {
   }
 
   try {
-    const response = await fetch(`/api/conversations/topic/${encodeURIComponent(topicPathId)}`);
+    // Updated to use the new topics-based API path
+    const response = await fetch(`/api/topics/path/${encodeURIComponent(topicPathId)}`);
     
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to fetch conversation history');
+      throw new Error(error.error || 'Failed to fetch topic history');
     }
 
     return await response.json();

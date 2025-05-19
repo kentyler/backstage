@@ -5,6 +5,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { generateEmbedding } from '../../services/embeddings.js';
 import { findSimilarMessages } from '../../db/messageSearch.js';
+import { createGrpTopicAvatarTurn, updateTurnVector } from '../../db/grpTopicAvatarTurns/index.js';
 
 /**
  * Stores a message with its vector representation
@@ -25,7 +26,7 @@ async function storeMessage(topicPathId, avatarId, content, isUser = true) {
   try {
     // Get the next turn index
     const indexResult = await client.query(
-      'SELECT COALESCE(MAX(turn_index), 0) + 1 as next_index FROM grp_con_avatar_turns WHERE topicpathid = $1',
+      'SELECT COALESCE(MAX(turn_index), 0) + 1 as next_index FROM grp_topic_avatar_turns WHERE topicpathid = $1',
       [topicPathId]
     );
     turnIndex = indexResult.rows[0].next_index;
@@ -41,24 +42,31 @@ async function storeMessage(topicPathId, avatarId, content, isUser = true) {
       }
     }
 
-    // Insert the message
-    const query = contentVector
-      ? {
-          text: `INSERT INTO grp_con_avatar_turns 
-                (topicpathid, avatar_id, content_text, content_vector, message_type_id, turn_kind_id, turn_index)
-                VALUES ($1, $2, $3, $4, $5, $6, $7)
-                RETURNING id`,
-          values: [topicPathId, avatarId, content, JSON.stringify(contentVector), isUser ? 1 : 2, isUser ? 1 : 2, turnIndex]
-        }
-      : {
-          text: `INSERT INTO grp_con_avatar_turns 
-                (topicpathid, avatar_id, content_text, message_type_id, turn_kind_id, turn_index)
-                VALUES ($1, $2, $3, $4, $5, $6)
-                RETURNING id`,
-          values: [topicPathId, avatarId, content, isUser ? 1 : 2, isUser ? 1 : 2, turnIndex]
-        };
-
-    const result = await client.query(query);
+    // Insert the message using our central function
+    let result;
+    try {
+      const messageTypeId = isUser ? 1 : 2;
+      const turnKindId = isUser ? 1 : 2;
+      const templateTopicId = null; // This can be updated if needed in the future
+      
+      const insertResult = await createGrpTopicAvatarTurn(
+        topicPathId,
+        avatarId,
+        turnIndex,
+        content,
+        contentVector || null, // Handle the case where contentVector is undefined
+        turnKindId,
+        messageTypeId,
+        templateTopicId,
+        client // Pass the client to maintain transaction context
+      );
+      
+      // Create a result object matching the expected structure
+      result = { rows: [{ id: insertResult.id }] };
+    } catch (error) {
+      console.error('Error inserting message:', error);
+      throw error;
+    }
     return result.rows[0].id;
   } catch (error) {
     console.error('Error storing message:', error);
@@ -304,11 +312,8 @@ router.post('/prompt', async (req, res) => {
         const embedding = await generateEmbedding(response);
         console.log('Generated embedding for assistant response');
         
-        // Update the message with the embedding
-        await client.query(
-          'UPDATE grp_con_avatar_turns SET content_vector = $1 WHERE id = $2',
-          [JSON.stringify(embedding), assistantMessageId]
-        );
+        // Update the message with the embedding using our abstraction function
+        await updateTurnVector(assistantMessageId, embedding, client);
         console.log('Updated assistant response with embedding');
         
         // Now find relevant messages using the embedding we just generated
@@ -333,7 +338,7 @@ router.post('/prompt', async (req, res) => {
           // Try querying with a very small limit just to check if any messages exist
           console.log('Attempting broader search with no threshold limit...');
           const testMessages = await client.query(
-            'SELECT COUNT(*) FROM grp_con_avatar_turns WHERE content_vector IS NOT NULL AND topicpathid != $1',
+            'SELECT COUNT(*) FROM grp_topic_avatar_turns WHERE content_vector IS NOT NULL AND topicpathid != $1',
             [topicPathId]
           );
           console.log('Database has', testMessages.rows[0].count, 'messages with embeddings in other topics');
@@ -383,11 +388,8 @@ router.post('/prompt', async (req, res) => {
         const embedding = await generateEmbedding(response);
         console.log('Generated embedding for OpenAI assistant response');
         
-        // Update the message with the embedding
-        await client.query(
-          'UPDATE grp_con_avatar_turns SET content_vector = $1 WHERE id = $2',
-          [JSON.stringify(embedding), assistantMessageId]
-        );
+        // Update the message with the embedding using our abstraction function
+        await updateTurnVector(assistantMessageId, embedding, client);
         console.log('Updated OpenAI assistant response with embedding');
       } catch (embeddingError) {
         console.error('Error generating/updating embedding for OpenAI assistant response:', embeddingError);

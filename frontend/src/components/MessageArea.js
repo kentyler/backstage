@@ -137,7 +137,7 @@ const MessageArea = ({ selectedTopic }) => {
             content: msg.content,
             timestamp: msg.timestamp || new Date().toISOString(),
             author: 'Assistant',
-            topicPath: msg.topicPathId, // Store the topic path ID
+            topicPath: msg.topicPath || msg.topicPathId, // Use human-readable path if available, fall back to ID
             score: msg.score // Keep the relevance score
           }));
           
@@ -228,10 +228,10 @@ const MessageArea = ({ selectedTopic }) => {
         </div>
         {message.topicPath && (
           <div className="message-footer">
-            <span className="message-topic-path">Topic: {message.topicPath}</span>
+            <span className="message-topic-path">{message.topicPath}</span>
             {message.score && (
               <span className="message-relevance-score">
-                Relevance: {Math.round(message.score * 100)}%
+                {Math.round(message.score * 100)}% match
               </span>
             )}
           </div>

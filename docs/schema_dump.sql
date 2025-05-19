@@ -2277,15 +2277,16 @@ ALTER SEQUENCE dev.grp_con_avatar_turn_relationships_id_seq OWNED BY dev.grp_con
 
 CREATE TABLE dev.grp_con_avatar_turns (
     id bigint NOT NULL,
-    grp_con_id bigint NOT NULL,
+    grp_con_id bigint,
     avatar_id bigint NOT NULL,
     turn_index numeric(10,2) NOT NULL,
     content_text text NOT NULL,
-    content_vector public.vector(1536),
     created_at timestamp with time zone DEFAULT now(),
     turn_kind_id integer NOT NULL,
     message_type_id integer,
-    template_topic_id bigint
+    template_topic_id bigint,
+    topicpathid text,
+    content_vector public.vector(1536)
 );
 
 
@@ -2536,6 +2537,135 @@ CREATE SEQUENCE dev.grp_templates_id_seq
 --
 
 ALTER SEQUENCE dev.grp_templates_id_seq OWNED BY dev.grp_templates.id;
+
+
+--
+-- Name: llm_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.llm_types (
+    id integer NOT NULL,
+    name character varying(50) NOT NULL,
+    description text,
+    api_handler character varying(100) NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+--
+-- Name: TABLE llm_types; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.llm_types IS 'Lookup table for different LLM API types';
+
+
+--
+-- Name: COLUMN llm_types.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.llm_types.name IS 'Unique name for this LLM type';
+
+
+--
+-- Name: COLUMN llm_types.description; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.llm_types.description IS 'Description of this LLM type and its capabilities';
+
+
+--
+-- Name: COLUMN llm_types.api_handler; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.llm_types.api_handler IS 'The function or method that handles API calls for this type';
+
+
+--
+-- Name: llms; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.llms (
+    id integer NOT NULL,
+    name character varying(255) NOT NULL,
+    provider character varying(255) NOT NULL,
+    model character varying(255) NOT NULL,
+    api_key text NOT NULL,
+    temperature double precision DEFAULT 0.7 NOT NULL,
+    max_tokens integer DEFAULT 1000 NOT NULL,
+    type_id integer,
+    additional_config jsonb,
+    subdomain character varying(255) DEFAULT 'public'::character varying NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+--
+-- Name: preference_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.preference_types (
+    id integer NOT NULL,
+    name character varying(255) NOT NULL,
+    description text,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+--
+-- Name: TABLE preference_types; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.preference_types IS 'Defines types of preferences that can be set at participant, group, or site level';
+
+
+--
+-- Name: COLUMN preference_types.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.preference_types.name IS 'Unique identifier for the preference type';
+
+
+--
+-- Name: COLUMN preference_types.description; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.preference_types.description IS 'Human-readable description of what this preference controls';
+
+
+--
+-- Name: llm_config_view; Type: VIEW; Schema: dev; Owner: -
+--
+
+CREATE VIEW dev.llm_config_view AS
+ SELECT l.id AS llm_id,
+    l.name AS llm_name,
+    l.provider,
+    l.model,
+    l.temperature,
+    l.max_tokens,
+    l.additional_config,
+    l.created_at,
+    l.updated_at,
+    lt.id AS llm_type_id,
+    lt.name AS llm_type_name,
+    lt.description AS llm_type_description,
+    lt.api_handler,
+    pt.id AS preference_type_id,
+    pt.name AS preference_type_name,
+    pt.description AS preference_type_description,
+    csp.client_schema_id,
+    csp.preference_value,
+    csp.created_at AS preference_created_at
+   FROM (((public.llms l
+     JOIN public.llm_types lt ON ((l.type_id = lt.id)))
+     LEFT JOIN dev.client_schema_preferences csp ON (((l.id = (((csp.preference_value)::jsonb ->> 'llmId'::text))::integer) AND (csp.preference_type_id = ( SELECT preference_types.id
+           FROM public.preference_types
+          WHERE ((preference_types.name)::text = 'llm_preference'::text))))))
+     LEFT JOIN public.preference_types pt ON ((pt.id = csp.preference_type_id)))
+  ORDER BY l.name;
 
 
 --
@@ -3820,48 +3950,6 @@ ALTER SEQUENCE public.grp_con_types_id_seq OWNED BY public.grp_con_types.id;
 
 
 --
--- Name: llm_types; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.llm_types (
-    id integer NOT NULL,
-    name character varying(50) NOT NULL,
-    description text,
-    api_handler character varying(100) NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
-);
-
-
---
--- Name: TABLE llm_types; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON TABLE public.llm_types IS 'Lookup table for different LLM API types';
-
-
---
--- Name: COLUMN llm_types.name; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.llm_types.name IS 'Unique name for this LLM type';
-
-
---
--- Name: COLUMN llm_types.description; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.llm_types.description IS 'Description of this LLM type and its capabilities';
-
-
---
--- Name: COLUMN llm_types.api_handler; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.llm_types.api_handler IS 'The function or method that handles API calls for this type';
-
-
---
 -- Name: llm_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -3879,26 +3967,6 @@ CREATE SEQUENCE public.llm_types_id_seq
 --
 
 ALTER SEQUENCE public.llm_types_id_seq OWNED BY public.llm_types.id;
-
-
---
--- Name: llms; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.llms (
-    id integer NOT NULL,
-    name character varying(255) NOT NULL,
-    provider character varying(255) NOT NULL,
-    model character varying(255) NOT NULL,
-    api_key text NOT NULL,
-    temperature double precision DEFAULT 0.7 NOT NULL,
-    max_tokens integer DEFAULT 1000 NOT NULL,
-    type_id integer,
-    additional_config jsonb,
-    subdomain character varying(255) DEFAULT 'public'::character varying NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
-);
 
 
 --
@@ -4055,40 +4123,6 @@ CREATE TABLE public.participants (
     password text NOT NULL,
     created_at timestamp with time zone DEFAULT now()
 );
-
-
---
--- Name: preference_types; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.preference_types (
-    id integer NOT NULL,
-    name character varying(255) NOT NULL,
-    description text,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
-);
-
-
---
--- Name: TABLE preference_types; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON TABLE public.preference_types IS 'Defines types of preferences that can be set at participant, group, or site level';
-
-
---
--- Name: COLUMN preference_types.name; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.preference_types.name IS 'Unique identifier for the preference type';
-
-
---
--- Name: COLUMN preference_types.description; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.preference_types.description IS 'Human-readable description of what this preference controls';
 
 
 --
@@ -8407,6 +8441,13 @@ CREATE INDEX idx_dev_grp_con_avatar_turns_template_topic_id ON dev.grp_con_avata
 --
 
 CREATE INDEX idx_dev_grp_cons_template_id ON dev.grp_cons USING btree (template_id);
+
+
+--
+-- Name: idx_grp_con_avatar_turns_content_vector; Type: INDEX; Schema: dev; Owner: -
+--
+
+CREATE INDEX idx_grp_con_avatar_turns_content_vector ON dev.grp_con_avatar_turns USING ivfflat (content_vector public.vector_cosine_ops) WITH (lists='100');
 
 
 --

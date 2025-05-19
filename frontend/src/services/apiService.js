@@ -86,18 +86,8 @@ export const apiService = {
     }
   },
   
-  // Get conversations for a specific group
-  getConversations: async (groupId = null) => {
-    try {
-      // If groupId is provided, use it as a query parameter
-      const url = groupId ? `/conversations?group_id=${groupId}` : '/conversations';
-      const response = await api.get(url);
-      return response.data;
-    } catch (error) {
-      console.error('Get conversations error:', error);
-      throw error;
-    }
-  },
+  // Note: The conversations endpoint has been removed in favor of topic-based architecture
+  // Use llmService.getTopicPathMessages instead for retrieving conversation content
 
   // Database tests
   testDbConnection: async () => {
