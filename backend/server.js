@@ -107,51 +107,102 @@ const authenticate = (req, res, next) => {
   return res.status(401).json({ error: 'Unauthorized' });
 };
 
-// Login endpoint
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-  console.log('Login attempt for:', username);
+// Import getParticipantByEmail function and bcrypt
+import { getParticipantByEmail } from './db/participants/getParticipantByEmail.js';
+import bcrypt from 'bcrypt';
+
+// Login endpoint with real database lookup
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
   
-  // For testing: any username/password combo works
-  if (username && password) {
-    // Set session values directly
-    req.session.userId = 1;
-    req.session.username = username;
-    req.session.authenticated = true;
+  // Email is required
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+  
+  console.log('Login attempt for:', email);
+  
+  try {
+    // In production you should have a root pool for authentication
+    // For now we'll use the default clientPool set by middleware
+    if (!req.clientPool) {
+      console.error('Database connection pool not available');
+      return res.status(500).json({ 
+        error: 'Database connection not available',
+        message: 'The application is unable to access the database.'
+      });
+    }
     
-    // Log the session details
-    console.log('Session created:', {
-      sessionID: req.sessionID,
-      session: req.session
-    });
+    // Look up the participant by email
+    const participant = await getParticipantByEmail(email, req.clientPool);
     
-    // Force immediate session save
-    req.session.save(err => {
-      if (err) {
-        console.error('Session save error:', err);
-        return res.status(500).json({ error: 'Session save failed', details: err.message });
-      }
-      
-      console.log('Session saved successfully');
-      
-      // Set cookie explicitly to ensure it's sent
-      res.cookie('connect.sid', req.sessionID, {
-        path: '/',
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000,
-        secure: false,
-        sameSite: 'lax'
+    if (!participant) {
+      console.warn(`No participant found with email: ${email}`);
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    // Verify password using bcrypt
+    // In development mode, also allow a fallback for unencrypted passwords
+    const passwordMatch = await bcrypt.compare(password, participant.password)
+      .catch(() => {
+        // If bcrypt.compare fails (perhaps the password isn't hashed),
+        // this is probably a development environment with plain text passwords
+        console.warn('bcrypt.compare failed, falling back to direct comparison');
+        return process.env.NODE_ENV !== 'production' && password === participant.password;
       });
       
-      return res.status(200).json({
-        message: 'Logged in successfully',
-        user: { id: 1, username },
+    if (passwordMatch) {
+      // Set session with real user data
+      req.session.userId = participant.id;
+      req.session.username = participant.name;
+      req.session.authenticated = true;
+      
+      // Log session details (redact sensitive info in production)
+      console.log('Session created:', {
         sessionID: req.sessionID,
-        authenticated: true
+        userId: participant.id,
+        userName: participant.name
       });
+      
+      // Force immediate session save
+      req.session.save(err => {
+        if (err) {
+          console.error('Session save error:', err);
+          return res.status(500).json({ error: 'Session save failed', details: err.message });
+        }
+        
+        console.log('Session saved successfully');
+        
+        // Set cookie explicitly to ensure it's sent
+        res.cookie('connect.sid', req.sessionID, {
+          path: '/',
+          httpOnly: true,
+          maxAge: 24 * 60 * 60 * 1000,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax'
+        });
+        
+        return res.status(200).json({
+          message: 'Logged in successfully',
+          user: { 
+            id: participant.id, 
+            username: participant.name,
+            email: participant.email
+          },
+          sessionID: req.sessionID,
+          authenticated: true
+        });
+      });
+    } else {
+      console.warn('Invalid password for:', email);
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    return res.status(500).json({ 
+      error: 'Authentication failed', 
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
-  } else {
-    return res.status(400).json({ error: 'Invalid credentials' });
   }
 });
 

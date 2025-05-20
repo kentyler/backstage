@@ -1,7 +1,9 @@
 /**
  * @file src/db/participant/createParticipant.js
- * @description Creates a new participant record in the database.
+ * @description Creates a new participant record in the database with hashed password.
  */
+
+import { hashPassword } from '../../utils/passwordUtils.js';
 
 /**
  * The database connection pool
@@ -27,14 +29,17 @@ export async function createParticipant(name, email, password, pool) {
     if (existingEmail.rows.length > 0) {
       throw new Error(`Participant with email ${email} already exists`);
     }
-
+    
+    // Hash the password before storing
+    const hashedPassword = await hashPassword(password);
+    
     // Insert new participant
     const query = `
       INSERT INTO participants (name, email, password)
       VALUES ($1, $2, $3)
       RETURNING *
     `;
-    const values = [name, email, password];
+    const values = [name, email, hashedPassword];
 
     const result = await pool.query(query, values);
     return result.rows[0];
