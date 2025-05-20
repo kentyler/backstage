@@ -15,12 +15,17 @@ const MessageArea = ({ selectedTopic }) => {
       console.log('Loading messages for topic:', selectedTopic.id);
       const messages = await llmService.getMessagesByTopicPath(selectedTopic.id);
       
+      // Log raw messages from API to check their structure
+      console.log('Raw messages from API:', messages);
+      
       // Transform the API response to match the component's message format
       const formattedMessages = messages.map(msg => ({
         id: msg.id,
         content: msg.content,
         timestamp: msg.createdAt,
-        author: msg.isUser ? 'You' : 'Assistant'
+        author: msg.isUser ? 'You' : 'Assistant',
+        // Preserve the turn_index field from the backend
+        turn_index: msg.turn_index
       }));
 
       console.log('Loaded messages:', formattedMessages);
@@ -183,7 +188,95 @@ const MessageArea = ({ selectedTopic }) => {
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    setFile(selectedFile);
+    if (selectedFile) {
+      setFile(selectedFile);
+      uploadFile(selectedFile);
+    }
+  };
+  
+  const uploadFile = async (file) => {
+    if (!file || !selectedTopic || !selectedTopic.id) {
+      console.error('Cannot upload file: No file selected or no topic selected');
+      return;
+    }
+    
+    try {
+      // Create a FormData object to send the file
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('topicPathId', selectedTopic.id); // Add the current topic ID
+      formData.append('description', 'Uploaded from chat');
+      
+      // Calculate the next turn index based on the number of messages
+      // Since they're already ordered, we can use the count as the next index
+      const nextTurnIndex = topicMessages.length;
+      
+      console.log(`Using turn index ${nextTurnIndex} for file upload (based on message count)`);
+      console.log('Current message count:', topicMessages.length);
+      
+      formData.append('turnIndex', nextTurnIndex.toString());
+      
+      // Add a temporary message showing the upload in progress
+      const uploadingMessage = {
+        id: `upload-${Date.now()}`,
+        content: `Uploading file: ${file.name}...`,
+        timestamp: new Date().toISOString(),
+        author: 'System',
+        isLoading: true
+      };
+      
+      setTopicMessages(prev => [...prev, uploadingMessage]);
+      
+      // Upload the file
+      const response = await fetch('/api/file-uploads', {
+        method: 'POST',
+        body: formData,
+        // No need to set Content-Type header - browser will set it with correct boundary
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log('File uploaded successfully:', result);
+      
+      // Replace the uploading message with a success message
+      setTopicMessages(prev => [
+        ...prev.filter(m => m.id !== uploadingMessage.id),
+        {
+          id: `upload-success-${Date.now()}`,
+          content: `File uploaded: ${file.name}`,
+          timestamp: new Date().toISOString(),
+          author: 'System'
+        }
+      ]);
+      
+      // Refresh messages to show the new file upload message from the server
+      await loadMessages();
+      
+      // Clear the file state
+      setFile(null);
+      
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      
+      // Show error message in the UI
+      // Database IDs are numbers (bigint), only temp UI messages use string IDs with prefixes
+      const tempUploadMsgId = `upload-error-${Date.now()}`;
+      
+      setTopicMessages(prev => [
+        // Keep all messages - the temporary uploading message will be removed during the next loadMessages() call
+        ...prev,
+        {
+          id: tempUploadMsgId, // Use a string ID for UI-generated messages
+          content: `Error uploading file: ${error.message}`,
+          timestamp: new Date().toISOString(),
+          author: 'System',
+          isError: true
+        }
+      ]);
+    }
   };
 
   const renderTopicBreadcrumb = () => {

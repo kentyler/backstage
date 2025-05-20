@@ -5,7 +5,8 @@
  * Works with schema-aware file storage to support multi-tenant applications.
  */
 
-import { createReadStream } from 'fs';
+import { createReadStream, readFileSync } from 'fs';
+import * as fs from 'fs';
 import { extname } from 'path';
 import { fileTypeFromFile } from 'file-type';
 import { parse as parseCsv } from 'csv-parse/sync';
@@ -14,6 +15,40 @@ import { createFileUploadVector } from '../db/fileUploadVectors/index.js';
 import { generateEmbedding } from './embeddings.js';
 import { createPool } from '../db/connection.js';
 import { getDefaultSchema } from '../config/schema.js';
+import { createClient } from '@supabase/supabase-js';
+import { Transform, Readable } from 'stream';
+import { promisify } from 'util';
+import { pipeline } from 'stream/promises';
+
+// Track which files are currently being processed to prevent deletion
+const filesInProcessing = new Map(); // fileId -> timestamp
+
+/**
+ * Check if a file is currently being processed
+ * @param {number} fileId - The ID of the file to check
+ * @returns {boolean} - True if the file is being processed
+ */
+export function isFileInProcessing(fileId) {
+  return filesInProcessing.has(fileId);
+}
+
+/**
+ * Mark a file as being processed
+ * @param {number} fileId - The ID of the file to mark
+ */
+function markFileAsProcessing(fileId) {
+  filesInProcessing.set(fileId, Date.now());
+  console.log(`Marked file ${fileId} as being processed - total files in processing: ${filesInProcessing.size}`);
+}
+
+/**
+ * Mark a file as no longer being processed
+ * @param {number} fileId - The ID of the file to unmark
+ */
+function markFileAsProcessed(fileId) {
+  filesInProcessing.delete(fileId);
+  console.log(`Marked file ${fileId} as processed - total files in processing: ${filesInProcessing.size}`);
+}
 
 // Maximum size for each text chunk (in characters)
 const MAX_CHUNK_SIZE = 1000;
@@ -45,30 +80,90 @@ export async function processFile(fileData, options = {}, pool) {
     skipVectorization = false
   } = options;
 
+  // Client for database operations
+  let client = null;
+  let fileUpload = null;
+
   try {
     // 1. Detect file type if needed
     const detectedType = await fileTypeFromFile(fileData.path);
     const mimeType = detectedType?.mime || fileData.mimetype;
+    const fileSize = fileData.size;
     
-    // 2. Upload to storage service (Supabase or similar)
-    const storageFilePath = `uploads/${schemaName}/${Date.now()}-${fileData.originalname}`;
-    const publicUrl = await uploadToStorage(fileData.path, storageFilePath, schemaName);
+    // 2. Generate a storage path and unique filename
+    const timestamp = Date.now();
+    const originalName = fileData.originalname.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+    const filename = `${timestamp}-${originalName}`;
+    const storagePath = `uploads/${filename}`;
     
-    // 3. Create file upload record in database
-    const fileUpload = await createFileUpload({
-      filename: fileData.originalname,
-      mimeType,
-      filePath: storageFilePath,
-      fileSize: fileData.size,
-      publicUrl,
-      bucketName: schemaName,
-      description,
-      tags
-    }, pool);
+    // Use the schema name as the bucket name for proper multi-tenant separation
+    const bucketName = schemaName;
     
-    // 4. Extract and process text content if applicable (and not skipped)
-    if (!skipVectorization) {
-      await extractAndVectorizeContent(fileData.path, fileUpload.id, mimeType, pool);
+    console.log(`Using bucket '${bucketName}' for file storage based on schema`);
+    
+    // 3. Upload to storage
+    const publicUrl = await uploadToStorage(fileData.path, storagePath, bucketName);
+    console.log(`File uploaded to storage at: ${publicUrl}`);
+    
+    // 4. Create file upload record in database as a transaction
+    client = await pool.connect();
+    
+    try {
+      await client.query('BEGIN');
+      await client.query(`SET search_path TO ${schemaName}, public;`);
+      
+      const result = await client.query(
+        `INSERT INTO file_uploads (
+          filename, mime_type, file_size, 
+          file_path, public_url, description, tags
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+        [
+          fileData.originalname, // Using originalname from the upload as the filename 
+          mimeType,
+          fileSize,
+          storagePath,
+          publicUrl,
+          description,
+          tags
+        ]
+      );
+      
+      fileUpload = result.rows[0];
+      console.log(`File upload record created with ID: ${fileUpload.id} in schema: ${schemaName}`);
+      
+      await client.query('COMMIT');
+    } catch (dbError) {
+      await client.query('ROLLBACK');
+      throw dbError;
+    } finally {
+      client.release();
+    }
+    
+    // 5. Start content extraction and vectorization in the background (if not skipped)
+    if (!skipVectorization && fileUpload) {
+      console.log(`Setting up background processing for file ${fileUpload.id}`);
+      
+      // Small delay to ensure transaction completes fully
+      setTimeout(() => {
+        // Create a function to verify file existence and process content
+        const processFileContent = async () => {
+          try {
+            console.log(`Starting background processing for file ${fileUpload.id}`);
+            await extractAndVectorizeContent(
+              fileData.path, 
+              fileUpload.id, 
+              mimeType, 
+              pool, 
+              schemaName
+            );
+          } catch (error) {
+            console.error(`Error in background processing for file ${fileUpload.id}:`, error);
+          }
+        };
+        
+        // Start the processing
+        processFileContent();
+      }, 1000);
     }
     
     return fileUpload;
@@ -79,29 +174,74 @@ export async function processFile(fileData, options = {}, pool) {
 }
 
 /**
- * Upload a file to storage (Supabase or similar)
+ * Upload a file to storage (Supabase)
  * 
  * @param {string} filePath - Path to the file on disk
  * @param {string} storagePath - Path in storage where the file should be stored
- * @param {string} bucketName - Storage bucket name
+ * @param {string} bucketName - Storage bucket name (defaults to schema name)
  * @returns {Promise<string>} - Public URL of the uploaded file
  */
 async function uploadToStorage(filePath, storagePath, bucketName) {
   try {
-    // This is a placeholder - actual implementation would use Supabase or another storage service
-    // For now, we'll just return a mock URL since we don't have the actual storage integration
+    // Initialize Supabase client
+    console.log('Initializing Supabase client...');
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     
-    // In a real implementation:
-    // 1. Create a read stream from the file
-    // const fileStream = createReadStream(filePath);
-    // 2. Upload to storage service (e.g., Supabase)
-    // 3. Get and return the public URL
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Supabase configuration missing. Check environment variables.');
+    }
     
-    console.log(`Mock: Uploading ${filePath} to ${bucketName}/${storagePath}`);
+    console.log('Creating Supabase client with URL:', supabaseUrl);
+    const supabase = createClient(supabaseUrl, supabaseKey);
     
-    return `https://storage.example.com/${bucketName}/${storagePath}`;
+    // Check if bucket exists
+    console.log(`Checking if bucket '${bucketName}' exists in Supabase storage...`);
+    const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+    
+    if (bucketsError) {
+      console.error('Error listing buckets:', bucketsError);
+      throw new Error(`Failed to check storage buckets: ${bucketsError.message}`);
+    }
+    
+    const bucketExists = buckets.some(b => b.name === bucketName);
+    if (!bucketExists) {
+      console.error(`Bucket '${bucketName}' does not exist. Available buckets:`, buckets.map(b => b.name));
+      throw new Error(`Storage bucket '${bucketName}' does not exist`);
+    }
+    
+    // Read file contents
+    console.log(`Reading file from: ${filePath}`);
+    const fileBuffer = readFileSync(filePath);
+    console.log(`File read successfully, size: ${fileBuffer.length} bytes`);
+    
+    console.log(`Uploading ${filePath} to Supabase storage: ${bucketName}/${storagePath}`);
+    
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from(bucketName)
+      .upload(storagePath, fileBuffer, {
+        contentType: 'application/octet-stream', // Let Supabase detect the content type
+        upsert: true // Overwrite if file exists
+      });
+      
+    if (error) {
+      console.error('Supabase storage upload error:', error);
+      throw error;
+    }
+    
+    console.log('File successfully uploaded to storage');
+    
+    // Get the public URL
+    const { data: urlData } = supabase.storage
+      .from(bucketName)
+      .getPublicUrl(storagePath);
+      
+    console.log('File uploaded successfully to Supabase storage');
+    
+    return urlData.publicUrl;
   } catch (error) {
-    console.error('Error uploading to storage:', error);
+    console.error('Error uploading to Supabase storage:', error);
     throw error;
   }
 }
@@ -113,45 +253,258 @@ async function uploadToStorage(filePath, storagePath, bucketName) {
  * @param {number} fileUploadId - ID of the file upload record
  * @param {string} mimeType - MIME type of the file
  * @param {Object} pool - Database pool to use
+ * @param {string} schemaName - Schema name to use for database operations
  * @returns {Promise<void>}
  */
-async function extractAndVectorizeContent(filePath, fileUploadId, mimeType, pool) {
+async function extractAndVectorizeContent(filePath, fileUploadId, mimeType, pool, schemaName = 'public') {
   try {
-    // 1. Extract text based on file type
-    const extractedText = await extractText(filePath, mimeType);
-    if (!extractedText) {
-      console.log(`No text could be extracted from file ${fileUploadId}`);
+    // Mark file as being processed
+    markFileAsProcessing(fileUploadId);
+    
+    console.log(`Starting streaming content extraction for file ${fileUploadId}`);
+    
+    // Create stream-based text extractor based on mime type
+    const textStream = await createTextExtractionStream(filePath, mimeType);
+    if (!textStream) {
+      console.log(`No text extraction stream could be created for file ${fileUploadId}`);
       return;
     }
     
-    // 2. Split text into chunks
-    const chunks = chunkText(extractedText);
-    console.log(`Split text into ${chunks.length} chunks for file ${fileUploadId}`);
+    // Create a chunker stream that will emit chunks of text
+    const chunker = createChunkerStream(MAX_CHUNK_SIZE, CHUNK_OVERLAP);
     
-    // 3. Generate embeddings and store for each chunk
-    for (const [index, chunk] of chunks.entries()) {
-      try {
-        // Generate embedding for this chunk
-        const embedding = await generateEmbedding(chunk);
+    // Create a vectorizer stream that will generate embeddings and save to database
+    // Pass schema name to ensure consistent database operations
+    const vectorizer = createVectorizerStream(fileUploadId, pool, schemaName);
+    
+    console.log(`Using schema '${schemaName}' for file ${fileUploadId} vectorization`);
+    
+    // Set up the pipeline: textStream -> chunker -> vectorizer
+    console.log(`Setting up processing pipeline for file ${fileUploadId}`);
+    await pipeline(
+      textStream,
+      chunker,
+      vectorizer
+    );
+    
+    console.log(`Completed streaming processing for file ${fileUploadId}`);
+  } catch (error) {
+    console.error(`Error in streaming extraction pipeline for file ${fileUploadId}:`, error);
+    throw error;
+  } finally {
+    // Always mark as processed even if there was an error
+    markFileAsProcessed(fileUploadId);
+  }
+}
+
+/**
+ * Creates a readable stream that extracts text from a file
+ * 
+ * @param {string} filePath - Path to the file
+ * @param {string} mimeType - MIME type of the file
+ * @returns {Promise<Readable>} A readable stream of text content
+ */
+async function createTextExtractionStream(filePath, mimeType) {
+  console.log(`Creating text extraction stream for ${filePath} with type ${mimeType}`);
+  
+  try {
+    // Different file types require different extraction approaches
+    if (mimeType === 'text/plain' || mimeType.includes('text/')) {
+      // For plain text, we can just return the file stream directly
+      return createReadStream(filePath, { encoding: 'utf8' });
+    } else if (mimeType === 'application/pdf' || mimeType.includes('pdf')) {
+      // For PDFs, we would need a proper PDF parser that supports streaming
+      // For simplicity, we'll fall back to non-streaming for PDF files
+      console.log('PDF streaming not yet supported - falling back to full extraction');
+      const text = await extractFromPdf(filePath);
+      return Readable.from([text]);
+    } else if (mimeType.includes('spreadsheetml') || mimeType.includes('excel') || 
+              mimeType.includes('csv') || extname(filePath) === '.csv') {
+      // CSV processing
+      console.log('CSV streaming not yet supported - falling back to full extraction');
+      const text = await extractFromCsv(filePath);
+      return Readable.from([text]);
+    } else {
+      // For other types, fall back to full extraction
+      console.log(`Streaming not yet supported for ${mimeType} - falling back to full extraction`);
+      const text = await extractText(filePath, mimeType);
+      return Readable.from([text || '']);
+    }
+  } catch (error) {
+    console.error('Error creating text extraction stream:', error);
+    // Return an empty stream as fallback
+    return Readable.from(['']);
+  }
+}
+
+/**
+ * Creates a transform stream that chunks text into smaller pieces
+ * 
+ * @param {number} maxChunkSize - Maximum size of each chunk
+ * @param {number} overlap - Overlap between chunks
+ * @returns {Transform} A transform stream that outputs text chunks
+ */
+function createChunkerStream(maxChunkSize, overlap) {
+  let buffer = '';
+  let chunkIndex = 0;
+  
+  return new Transform({
+    objectMode: true,
+    transform(chunk, encoding, callback) {
+      // Add the new text to our buffer
+      buffer += chunk.toString();
+      
+      // While we have enough text for a complete chunk
+      while (buffer.length >= maxChunkSize) {
+        // Extract a chunk
+        const chunkText = buffer.slice(0, maxChunkSize);
         
-        // Store chunk with its embedding
+        // Remove from buffer, keeping the overlap
+        buffer = buffer.slice(maxChunkSize - overlap);
+        
+        // Send the chunk downstream
+        this.push({ text: chunkText, index: chunkIndex++ });
+      }
+      
+      callback();
+    },
+    flush(callback) {
+      // Push any remaining text as the final chunk
+      if (buffer.length > 0) {
+        this.push({ text: buffer, index: chunkIndex });
+      }
+      callback();
+    }
+  });
+}
+
+/**
+ * Creates a transform stream that processes chunks and saves vectors to the database
+ * 
+ * @param {number} fileUploadId - ID of the file upload
+ * @param {Object} pool - Database connection pool
+ * @returns {Transform} A transform stream that processes chunks
+ */
+function createVectorizerStream(fileUploadId, pool, schemaName = 'public') {
+  // Keep track of active promises to avoid memory issues
+  let activePromises = 0;
+  const MAX_CONCURRENT = 3; // Only process 3 chunks at a time
+  const queue = [];
+  
+  // First check if the file still exists in the database
+  let fileExists = false;
+  
+  const verifyFileExists = async () => {
+    try {
+      // Direct query to ensure we're checking the exact same schema and connection
+      // This is more reliable than using the imported function
+      const client = await pool.connect();
+      try {
+        // Use the explicitly provided schema name
+        const schema = client.escapeIdentifier ? 
+          client.escapeIdentifier(schemaName) : 
+          `"${schemaName}"`;
+          
+        await client.query(`SET search_path TO ${schema}, public;`);
+        
+        // Direct query to check file existence
+        const result = await client.query(
+          'SELECT id FROM file_uploads WHERE id = $1',
+          [fileUploadId]
+        );
+        
+        fileExists = result.rowCount > 0;
+        
+        if (!fileExists) {
+          console.error(`File ${fileUploadId} no longer exists in database (direct query), aborting vectorization`);
+        } else {
+          console.log(`Verified file ${fileUploadId} exists in database (direct query), proceeding with vectorization`);
+          // Log the schema being used
+          console.log(`Using schema: ${pool._schema || 'public'} for file ${fileUploadId} verification`);
+        }
+        
+        return fileExists;
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      console.error(`Error verifying file ${fileUploadId} existence:`, error);
+      return false;
+    }
+  };
+  
+  const processQueue = async (stream) => {
+    // If we haven't checked file existence yet, do it now
+    if (fileExists === false) {
+      const exists = await verifyFileExists();
+      if (!exists) return; // Stop processing if file doesn't exist
+    }
+    
+    // While we have capacity and items in the queue
+    while (activePromises < MAX_CONCURRENT && queue.length > 0) {
+      const chunk = queue.shift();
+      activePromises++;
+      
+      try {
+        console.log(`Vectorizing chunk ${chunk.index + 1} for file ${fileUploadId}`);
+        
+        // Generate embedding
+        const embedding = await generateEmbedding(chunk.text);
+        
+        // Double-check file still exists before inserting vector
+        const stillExists = await verifyFileExists();
+        if (!stillExists) {
+          console.log(`File ${fileUploadId} was deleted during processing, skipping vector creation`);
+          return; // Exit early
+        }
+        
+        // Store in database
         await createFileUploadVector({
           fileUploadId,
-          chunkIndex: index,
-          contentText: chunk,
+          chunkIndex: chunk.index,
+          contentText: chunk.text,
           contentVector: embedding
         }, pool);
         
-        console.log(`Processed chunk ${index + 1}/${chunks.length} for file ${fileUploadId}`);
+        console.log(`Completed processing chunk ${chunk.index + 1} for file ${fileUploadId}`);
       } catch (error) {
-        console.error(`Error processing chunk ${index} for file ${fileUploadId}:`, error);
-        // Continue with other chunks even if one fails
+        console.error(`Error vectorizing chunk ${chunk.index}:`, error);
+      } finally {
+        activePromises--;
+        // Process more items if available
+        if (queue.length > 0 && fileExists) {
+          processQueue(stream);
+        }
       }
     }
-  } catch (error) {
-    console.error('Error extracting content:', error);
-    throw error;
-  }
+  };
+  
+  return new Transform({
+    objectMode: true,
+    transform(chunk, encoding, callback) {
+      // Add the chunk to our processing queue
+      queue.push(chunk);
+      
+      // Start processing if we have capacity
+      if (activePromises < MAX_CONCURRENT) {
+        processQueue(this);
+      }
+      
+      callback();
+    },
+    flush(callback) {
+      // Return a promise that resolves when all chunks are processed
+      const checkComplete = () => {
+        if (activePromises === 0 && queue.length === 0) {
+          callback();
+        } else {
+          setTimeout(checkComplete, 100);
+        }
+      };
+      
+      checkComplete();
+    }
+  });
 }
 
 /**

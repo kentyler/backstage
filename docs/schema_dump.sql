@@ -2091,6 +2091,78 @@ ALTER SEQUENCE dev.file_types_id_seq OWNED BY dev.file_types.id;
 
 
 --
+-- Name: file_upload_vectors; Type: TABLE; Schema: dev; Owner: -
+--
+
+CREATE TABLE dev.file_upload_vectors (
+    id integer NOT NULL,
+    file_upload_id integer NOT NULL,
+    chunk_index integer NOT NULL,
+    content_text text NOT NULL,
+    content_vector public.vector(1536),
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: file_upload_vectors_id_seq; Type: SEQUENCE; Schema: dev; Owner: -
+--
+
+CREATE SEQUENCE dev.file_upload_vectors_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: file_upload_vectors_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: -
+--
+
+ALTER SEQUENCE dev.file_upload_vectors_id_seq OWNED BY dev.file_upload_vectors.id;
+
+
+--
+-- Name: file_uploads; Type: TABLE; Schema: dev; Owner: -
+--
+
+CREATE TABLE dev.file_uploads (
+    id integer NOT NULL,
+    filename text NOT NULL,
+    mime_type text NOT NULL,
+    file_path text NOT NULL,
+    file_size bigint,
+    public_url text,
+    bucket_name text,
+    description text,
+    tags text[],
+    uploaded_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: file_uploads_id_seq; Type: SEQUENCE; Schema: dev; Owner: -
+--
+
+CREATE SEQUENCE dev.file_uploads_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: file_uploads_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: -
+--
+
+ALTER SEQUENCE dev.file_uploads_id_seq OWNED BY dev.file_uploads.id;
+
+
+--
 -- Name: group_conversation_avatar_turn_relationships_id_seq; Type: SEQUENCE; Schema: dev; Owner: -
 --
 
@@ -2240,87 +2312,6 @@ ALTER SEQUENCE dev.groups_id_seq OWNED BY dev.groups.id;
 
 
 --
--- Name: grp_con_avatar_turn_relationships; Type: TABLE; Schema: dev; Owner: -
---
-
-CREATE TABLE dev.grp_con_avatar_turn_relationships (
-    id bigint NOT NULL,
-    turn_id bigint NOT NULL,
-    target_turn_id bigint NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    turn_relationship_type_id integer DEFAULT 1 NOT NULL
-);
-
-
---
--- Name: grp_con_avatar_turn_relationships_id_seq; Type: SEQUENCE; Schema: dev; Owner: -
---
-
-CREATE SEQUENCE dev.grp_con_avatar_turn_relationships_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: grp_con_avatar_turn_relationships_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: -
---
-
-ALTER SEQUENCE dev.grp_con_avatar_turn_relationships_id_seq OWNED BY dev.grp_con_avatar_turn_relationships.id;
-
-
---
--- Name: grp_con_avatar_turns; Type: TABLE; Schema: dev; Owner: -
---
-
-CREATE TABLE dev.grp_con_avatar_turns (
-    id bigint NOT NULL,
-    grp_con_id bigint,
-    avatar_id bigint NOT NULL,
-    turn_index numeric(10,2) NOT NULL,
-    content_text text NOT NULL,
-    created_at timestamp with time zone DEFAULT now(),
-    turn_kind_id integer NOT NULL,
-    message_type_id integer,
-    template_topic_id bigint,
-    topicpathid text,
-    content_vector public.vector(1536)
-);
-
-
---
--- Name: grp_con_avatar_turns_id_seq; Type: SEQUENCE; Schema: dev; Owner: -
---
-
-CREATE SEQUENCE dev.grp_con_avatar_turns_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: grp_con_avatar_turns_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: -
---
-
-ALTER SEQUENCE dev.grp_con_avatar_turns_id_seq OWNED BY dev.grp_con_avatar_turns.id;
-
-
---
--- Name: grp_con_avatars; Type: TABLE; Schema: dev; Owner: -
---
-
-CREATE TABLE dev.grp_con_avatars (
-    grp_con_id bigint NOT NULL,
-    avatar_id bigint NOT NULL,
-    added_at timestamp with time zone DEFAULT now()
-);
-
-
---
 -- Name: grp_con_avatars_avatar_id_seq; Type: SEQUENCE; Schema: dev; Owner: -
 --
 
@@ -2342,117 +2333,6 @@ CREATE SEQUENCE dev.grp_con_avatars_grp_con_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
---
--- Name: grp_con_upload_vectors; Type: TABLE; Schema: dev; Owner: -
---
-
-CREATE TABLE dev.grp_con_upload_vectors (
-    id bigint NOT NULL,
-    upload_id bigint NOT NULL,
-    chunk_index integer NOT NULL,
-    content_text text NOT NULL,
-    content_vector public.vector(1536),
-    created_at timestamp with time zone DEFAULT now()
-);
-
-
---
--- Name: grp_con_upload_vectors_id_seq; Type: SEQUENCE; Schema: dev; Owner: -
---
-
-CREATE SEQUENCE dev.grp_con_upload_vectors_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: grp_con_upload_vectors_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: -
---
-
-ALTER SEQUENCE dev.grp_con_upload_vectors_id_seq OWNED BY dev.grp_con_upload_vectors.id;
-
-
---
--- Name: grp_con_uploads; Type: TABLE; Schema: dev; Owner: -
---
-
-CREATE TABLE dev.grp_con_uploads (
-    id bigint NOT NULL,
-    grp_con_id bigint NOT NULL,
-    turn_id bigint NOT NULL,
-    filename text NOT NULL,
-    mime_type text,
-    file_path text NOT NULL,
-    uploaded_at timestamp with time zone DEFAULT now(),
-    public_url text,
-    bucket_name text
-);
-
-
---
--- Name: grp_con_uploads_id_seq; Type: SEQUENCE; Schema: dev; Owner: -
---
-
-CREATE SEQUENCE dev.grp_con_uploads_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: grp_con_uploads_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: -
---
-
-ALTER SEQUENCE dev.grp_con_uploads_id_seq OWNED BY dev.grp_con_uploads.id;
-
-
---
--- Name: grp_cons; Type: TABLE; Schema: dev; Owner: -
---
-
-CREATE TABLE dev.grp_cons (
-    id bigint NOT NULL,
-    group_id bigint,
-    name text NOT NULL,
-    description text,
-    created_at timestamp with time zone DEFAULT now(),
-    type_id integer,
-    parent_grp_con_id bigint,
-    template_id integer
-);
-
-
---
--- Name: COLUMN grp_cons.parent_grp_con_id; Type: COMMENT; Schema: dev; Owner: -
---
-
-COMMENT ON COLUMN dev.grp_cons.parent_grp_con_id IS 'For template instances (type_id=3), references the parent template (type_id=2) this instance was created from';
-
-
---
--- Name: grp_cons_id_seq; Type: SEQUENCE; Schema: dev; Owner: -
---
-
-CREATE SEQUENCE dev.grp_cons_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: grp_cons_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: -
---
-
-ALTER SEQUENCE dev.grp_cons_id_seq OWNED BY dev.grp_cons.id;
 
 
 --
@@ -2537,6 +2417,77 @@ CREATE SEQUENCE dev.grp_templates_id_seq
 --
 
 ALTER SEQUENCE dev.grp_templates_id_seq OWNED BY dev.grp_templates.id;
+
+
+--
+-- Name: grp_topic_avatar_turns; Type: TABLE; Schema: dev; Owner: -
+--
+
+CREATE TABLE dev.grp_topic_avatar_turns (
+    id integer NOT NULL,
+    topicpathid text NOT NULL,
+    avatar_id integer NOT NULL,
+    turn_index numeric NOT NULL,
+    content_text text NOT NULL,
+    content_vector public.vector(1536),
+    turn_kind_id integer DEFAULT 1 NOT NULL,
+    message_type_id integer,
+    template_topic_id integer,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: grp_topic_avatar_turns_id_seq; Type: SEQUENCE; Schema: dev; Owner: -
+--
+
+CREATE SEQUENCE dev.grp_topic_avatar_turns_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: grp_topic_avatar_turns_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: -
+--
+
+ALTER SEQUENCE dev.grp_topic_avatar_turns_id_seq OWNED BY dev.grp_topic_avatar_turns.id;
+
+
+--
+-- Name: grp_topic_avatars; Type: TABLE; Schema: dev; Owner: -
+--
+
+CREATE TABLE dev.grp_topic_avatars (
+    id integer NOT NULL,
+    topic_path_id text NOT NULL,
+    avatar_id bigint NOT NULL,
+    added_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: grp_topic_avatars_id_seq; Type: SEQUENCE; Schema: dev; Owner: -
+--
+
+CREATE SEQUENCE dev.grp_topic_avatars_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: grp_topic_avatars_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: -
+--
+
+ALTER SEQUENCE dev.grp_topic_avatars_id_seq OWNED BY dev.grp_topic_avatars.id;
 
 
 --
@@ -2925,31 +2876,12 @@ ALTER SEQUENCE dev.site_preferences_id_seq OWNED BY dev.site_preferences.id;
 --
 
 CREATE TABLE dev.topic_paths (
-    id bigint NOT NULL,
     path public.ltree NOT NULL,
     created_by integer,
     created_on timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    id text NOT NULL,
     CONSTRAINT valid_path CHECK ((path IS NOT NULL))
 );
-
-
---
--- Name: topic_paths_id_seq; Type: SEQUENCE; Schema: dev; Owner: -
---
-
-CREATE SEQUENCE dev.topic_paths_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: topic_paths_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: -
---
-
-ALTER SEQUENCE dev.topic_paths_id_seq OWNED BY dev.topic_paths.id;
 
 
 --
@@ -3828,6 +3760,78 @@ CREATE SEQUENCE public.file_types_id_seq
 --
 
 ALTER SEQUENCE public.file_types_id_seq OWNED BY public.file_types.id;
+
+
+--
+-- Name: file_upload_vectors; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.file_upload_vectors (
+    id integer NOT NULL,
+    file_upload_id integer NOT NULL,
+    chunk_index integer NOT NULL,
+    content_text text NOT NULL,
+    content_vector public.vector(1536),
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: file_upload_vectors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.file_upload_vectors_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: file_upload_vectors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.file_upload_vectors_id_seq OWNED BY public.file_upload_vectors.id;
+
+
+--
+-- Name: file_uploads; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.file_uploads (
+    id integer NOT NULL,
+    filename text NOT NULL,
+    mime_type text,
+    file_path text NOT NULL,
+    file_size bigint,
+    public_url text,
+    bucket_name text,
+    uploaded_at timestamp with time zone DEFAULT now(),
+    description text,
+    tags text[]
+);
+
+
+--
+-- Name: file_uploads_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.file_uploads_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: file_uploads_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.file_uploads_id_seq OWNED BY public.file_uploads.id;
 
 
 --
@@ -6149,6 +6153,20 @@ ALTER TABLE ONLY dev.file_types ALTER COLUMN id SET DEFAULT nextval('dev.file_ty
 
 
 --
+-- Name: file_upload_vectors id; Type: DEFAULT; Schema: dev; Owner: -
+--
+
+ALTER TABLE ONLY dev.file_upload_vectors ALTER COLUMN id SET DEFAULT nextval('dev.file_upload_vectors_id_seq'::regclass);
+
+
+--
+-- Name: file_uploads id; Type: DEFAULT; Schema: dev; Owner: -
+--
+
+ALTER TABLE ONLY dev.file_uploads ALTER COLUMN id SET DEFAULT nextval('dev.file_uploads_id_seq'::regclass);
+
+
+--
 -- Name: group_preferences id; Type: DEFAULT; Schema: dev; Owner: -
 --
 
@@ -6163,41 +6181,6 @@ ALTER TABLE ONLY dev.groups ALTER COLUMN id SET DEFAULT nextval('dev.groups_id_s
 
 
 --
--- Name: grp_con_avatar_turn_relationships id; Type: DEFAULT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.grp_con_avatar_turn_relationships ALTER COLUMN id SET DEFAULT nextval('dev.grp_con_avatar_turn_relationships_id_seq'::regclass);
-
-
---
--- Name: grp_con_avatar_turns id; Type: DEFAULT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.grp_con_avatar_turns ALTER COLUMN id SET DEFAULT nextval('dev.grp_con_avatar_turns_id_seq'::regclass);
-
-
---
--- Name: grp_con_upload_vectors id; Type: DEFAULT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.grp_con_upload_vectors ALTER COLUMN id SET DEFAULT nextval('dev.grp_con_upload_vectors_id_seq'::regclass);
-
-
---
--- Name: grp_con_uploads id; Type: DEFAULT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.grp_con_uploads ALTER COLUMN id SET DEFAULT nextval('dev.grp_con_uploads_id_seq'::regclass);
-
-
---
--- Name: grp_cons id; Type: DEFAULT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.grp_cons ALTER COLUMN id SET DEFAULT nextval('dev.grp_cons_id_seq'::regclass);
-
-
---
 -- Name: grp_template_topics id; Type: DEFAULT; Schema: dev; Owner: -
 --
 
@@ -6209,6 +6192,20 @@ ALTER TABLE ONLY dev.grp_template_topics ALTER COLUMN id SET DEFAULT nextval('de
 --
 
 ALTER TABLE ONLY dev.grp_templates ALTER COLUMN id SET DEFAULT nextval('dev.grp_templates_id_seq'::regclass);
+
+
+--
+-- Name: grp_topic_avatar_turns id; Type: DEFAULT; Schema: dev; Owner: -
+--
+
+ALTER TABLE ONLY dev.grp_topic_avatar_turns ALTER COLUMN id SET DEFAULT nextval('dev.grp_topic_avatar_turns_id_seq'::regclass);
+
+
+--
+-- Name: grp_topic_avatars id; Type: DEFAULT; Schema: dev; Owner: -
+--
+
+ALTER TABLE ONLY dev.grp_topic_avatars ALTER COLUMN id SET DEFAULT nextval('dev.grp_topic_avatars_id_seq'::regclass);
 
 
 --
@@ -6251,13 +6248,6 @@ ALTER TABLE ONLY dev.participant_preferences ALTER COLUMN id SET DEFAULT nextval
 --
 
 ALTER TABLE ONLY dev.site_preferences ALTER COLUMN id SET DEFAULT nextval('dev.site_preferences_id_seq'::regclass);
-
-
---
--- Name: topic_paths id; Type: DEFAULT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.topic_paths ALTER COLUMN id SET DEFAULT nextval('dev.topic_paths_id_seq'::regclass);
 
 
 --
@@ -6384,6 +6374,20 @@ ALTER TABLE ONLY public.avatar_event_types ALTER COLUMN id SET DEFAULT nextval('
 --
 
 ALTER TABLE ONLY public.file_types ALTER COLUMN id SET DEFAULT nextval('public.file_types_id_seq'::regclass);
+
+
+--
+-- Name: file_upload_vectors id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.file_upload_vectors ALTER COLUMN id SET DEFAULT nextval('public.file_upload_vectors_id_seq'::regclass);
+
+
+--
+-- Name: file_uploads id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.file_uploads ALTER COLUMN id SET DEFAULT nextval('public.file_uploads_id_seq'::regclass);
 
 
 --
@@ -7235,6 +7239,30 @@ ALTER TABLE ONLY dev.file_types
 
 
 --
+-- Name: file_upload_vectors file_upload_vectors_file_upload_id_chunk_index_key; Type: CONSTRAINT; Schema: dev; Owner: -
+--
+
+ALTER TABLE ONLY dev.file_upload_vectors
+    ADD CONSTRAINT file_upload_vectors_file_upload_id_chunk_index_key UNIQUE (file_upload_id, chunk_index);
+
+
+--
+-- Name: file_upload_vectors file_upload_vectors_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
+--
+
+ALTER TABLE ONLY dev.file_upload_vectors
+    ADD CONSTRAINT file_upload_vectors_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: file_uploads file_uploads_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
+--
+
+ALTER TABLE ONLY dev.file_uploads
+    ADD CONSTRAINT file_uploads_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: group_preferences group_preferences_group_id_preference_type_id_key; Type: CONSTRAINT; Schema: dev; Owner: -
 --
 
@@ -7259,54 +7287,6 @@ ALTER TABLE ONLY dev.groups
 
 
 --
--- Name: grp_con_avatar_turn_relationships grp_con_avatar_turn_relationships_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.grp_con_avatar_turn_relationships
-    ADD CONSTRAINT grp_con_avatar_turn_relationships_pkey PRIMARY KEY (id);
-
-
---
--- Name: grp_con_avatar_turns grp_con_avatar_turns_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.grp_con_avatar_turns
-    ADD CONSTRAINT grp_con_avatar_turns_pkey PRIMARY KEY (id);
-
-
---
--- Name: grp_con_avatars grp_con_avatars_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.grp_con_avatars
-    ADD CONSTRAINT grp_con_avatars_pkey PRIMARY KEY (grp_con_id, avatar_id);
-
-
---
--- Name: grp_con_upload_vectors grp_con_upload_vectors_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.grp_con_upload_vectors
-    ADD CONSTRAINT grp_con_upload_vectors_pkey PRIMARY KEY (id);
-
-
---
--- Name: grp_con_uploads grp_con_uploads_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.grp_con_uploads
-    ADD CONSTRAINT grp_con_uploads_pkey PRIMARY KEY (id);
-
-
---
--- Name: grp_cons grp_cons_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.grp_cons
-    ADD CONSTRAINT grp_cons_pkey PRIMARY KEY (id);
-
-
---
 -- Name: grp_template_topics grp_template_topics_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
 --
 
@@ -7320,6 +7300,22 @@ ALTER TABLE ONLY dev.grp_template_topics
 
 ALTER TABLE ONLY dev.grp_templates
     ADD CONSTRAINT grp_templates_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: grp_topic_avatar_turns grp_topic_avatar_turns_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
+--
+
+ALTER TABLE ONLY dev.grp_topic_avatar_turns
+    ADD CONSTRAINT grp_topic_avatar_turns_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: grp_topic_avatars grp_topic_avatars_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
+--
+
+ALTER TABLE ONLY dev.grp_topic_avatars
+    ADD CONSTRAINT grp_topic_avatars_pkey PRIMARY KEY (id);
 
 
 --
@@ -7416,6 +7412,14 @@ ALTER TABLE ONLY dev.topic_paths
 
 ALTER TABLE ONLY dev.topic_paths
     ADD CONSTRAINT topic_paths_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: grp_topic_avatars uq_topic_path_avatar; Type: CONSTRAINT; Schema: dev; Owner: -
+--
+
+ALTER TABLE ONLY dev.grp_topic_avatars
+    ADD CONSTRAINT uq_topic_path_avatar UNIQUE (topic_path_id, avatar_id);
 
 
 --
@@ -7640,6 +7644,30 @@ ALTER TABLE ONLY public.file_types
 
 ALTER TABLE ONLY public.file_types
     ADD CONSTRAINT file_types_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: file_upload_vectors file_upload_vectors_file_upload_id_chunk_index_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.file_upload_vectors
+    ADD CONSTRAINT file_upload_vectors_file_upload_id_chunk_index_key UNIQUE (file_upload_id, chunk_index);
+
+
+--
+-- Name: file_upload_vectors file_upload_vectors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.file_upload_vectors
+    ADD CONSTRAINT file_upload_vectors_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: file_uploads file_uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.file_uploads
+    ADD CONSTRAINT file_uploads_pkey PRIMARY KEY (id);
 
 
 --
@@ -8423,45 +8451,10 @@ CREATE INDEX idx_grp_cons_type_id ON conflict_club.grp_cons USING btree (type_id
 
 
 --
--- Name: grp_con_avatar_turn_relationships_target_turn_id_idx; Type: INDEX; Schema: dev; Owner: -
+-- Name: idx_file_upload_vectors_content_vector; Type: INDEX; Schema: dev; Owner: -
 --
 
-CREATE INDEX grp_con_avatar_turn_relationships_target_turn_id_idx ON dev.grp_con_avatar_turn_relationships USING btree (target_turn_id);
-
-
---
--- Name: idx_dev_grp_con_avatar_turns_template_topic_id; Type: INDEX; Schema: dev; Owner: -
---
-
-CREATE INDEX idx_dev_grp_con_avatar_turns_template_topic_id ON dev.grp_con_avatar_turns USING btree (template_topic_id);
-
-
---
--- Name: idx_dev_grp_cons_template_id; Type: INDEX; Schema: dev; Owner: -
---
-
-CREATE INDEX idx_dev_grp_cons_template_id ON dev.grp_cons USING btree (template_id);
-
-
---
--- Name: idx_grp_con_avatar_turns_content_vector; Type: INDEX; Schema: dev; Owner: -
---
-
-CREATE INDEX idx_grp_con_avatar_turns_content_vector ON dev.grp_con_avatar_turns USING ivfflat (content_vector public.vector_cosine_ops) WITH (lists='100');
-
-
---
--- Name: idx_grp_con_avatar_turns_message_type_id; Type: INDEX; Schema: dev; Owner: -
---
-
-CREATE INDEX idx_grp_con_avatar_turns_message_type_id ON dev.grp_con_avatar_turns USING btree (message_type_id);
-
-
---
--- Name: idx_grp_cons_parent_id; Type: INDEX; Schema: dev; Owner: -
---
-
-CREATE INDEX idx_grp_cons_parent_id ON dev.grp_cons USING btree (parent_grp_con_id);
+CREATE INDEX idx_file_upload_vectors_content_vector ON dev.file_upload_vectors USING ivfflat (content_vector public.vector_cosine_ops) WITH (lists='100');
 
 
 --
@@ -8490,6 +8483,27 @@ CREATE INDEX idx_grp_templates_group_id ON dev.grp_templates USING btree (group_
 --
 
 CREATE INDEX idx_grp_templates_participant_id ON dev.grp_templates USING btree (created_by_participant_id);
+
+
+--
+-- Name: idx_grp_topic_avatar_turns_avatar_id; Type: INDEX; Schema: dev; Owner: -
+--
+
+CREATE INDEX idx_grp_topic_avatar_turns_avatar_id ON dev.grp_topic_avatar_turns USING btree (avatar_id);
+
+
+--
+-- Name: idx_grp_topic_avatar_turns_content_vector; Type: INDEX; Schema: dev; Owner: -
+--
+
+CREATE INDEX idx_grp_topic_avatar_turns_content_vector ON dev.grp_topic_avatar_turns USING ivfflat (content_vector public.vector_cosine_ops) WITH (lists='100');
+
+
+--
+-- Name: idx_grp_topic_avatar_turns_topicpathid; Type: INDEX; Schema: dev; Owner: -
+--
+
+CREATE INDEX idx_grp_topic_avatar_turns_topicpathid ON dev.grp_topic_avatar_turns USING btree (topicpathid);
 
 
 --
@@ -8870,6 +8884,14 @@ ALTER TABLE ONLY dev.client_schemas
 
 
 --
+-- Name: file_upload_vectors file_upload_vectors_file_upload_id_fkey; Type: FK CONSTRAINT; Schema: dev; Owner: -
+--
+
+ALTER TABLE ONLY dev.file_upload_vectors
+    ADD CONSTRAINT file_upload_vectors_file_upload_id_fkey FOREIGN KEY (file_upload_id) REFERENCES dev.file_uploads(id) ON DELETE CASCADE;
+
+
+--
 -- Name: grp_templates fk_group; Type: FK CONSTRAINT; Schema: dev; Owner: -
 --
 
@@ -8878,19 +8900,19 @@ ALTER TABLE ONLY dev.grp_templates
 
 
 --
--- Name: grp_con_avatar_turns fk_message_type; Type: FK CONSTRAINT; Schema: dev; Owner: -
+-- Name: grp_topic_avatars fk_grp_topic_avatars_avatar; Type: FK CONSTRAINT; Schema: dev; Owner: -
 --
 
-ALTER TABLE ONLY dev.grp_con_avatar_turns
-    ADD CONSTRAINT fk_message_type FOREIGN KEY (message_type_id) REFERENCES public.message_types(id);
+ALTER TABLE ONLY dev.grp_topic_avatars
+    ADD CONSTRAINT fk_grp_topic_avatars_avatar FOREIGN KEY (avatar_id) REFERENCES dev.avatars(id) ON DELETE CASCADE;
 
 
 --
--- Name: grp_cons fk_parent_grp_con; Type: FK CONSTRAINT; Schema: dev; Owner: -
+-- Name: grp_topic_avatars fk_grp_topic_avatars_topic_path; Type: FK CONSTRAINT; Schema: dev; Owner: -
 --
 
-ALTER TABLE ONLY dev.grp_cons
-    ADD CONSTRAINT fk_parent_grp_con FOREIGN KEY (parent_grp_con_id) REFERENCES dev.grp_cons(id) ON DELETE SET NULL;
+ALTER TABLE ONLY dev.grp_topic_avatars
+    ADD CONSTRAINT fk_grp_topic_avatars_topic_path FOREIGN KEY (topic_path_id) REFERENCES dev.topic_paths(id) ON DELETE CASCADE;
 
 
 --
@@ -8918,27 +8940,11 @@ ALTER TABLE ONLY dev.grp_template_topics
 
 
 --
--- Name: grp_cons fk_template; Type: FK CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.grp_cons
-    ADD CONSTRAINT fk_template FOREIGN KEY (template_id) REFERENCES dev.grp_templates(id) ON DELETE SET NULL;
-
-
---
 -- Name: groups groups_group_type_id_fkey; Type: FK CONSTRAINT; Schema: dev; Owner: -
 --
 
 ALTER TABLE ONLY dev.groups
     ADD CONSTRAINT groups_group_type_id_fkey FOREIGN KEY (group_type_id) REFERENCES public.group_types(id);
-
-
---
--- Name: grp_con_avatar_turns grp_con_avatar_turns_template_topic_id_fkey; Type: FK CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.grp_con_avatar_turns
-    ADD CONSTRAINT grp_con_avatar_turns_template_topic_id_fkey FOREIGN KEY (template_topic_id) REFERENCES dev.grp_template_topics(id) ON DELETE SET NULL;
 
 
 --
@@ -9019,6 +9025,14 @@ ALTER TABLE ONLY first_congregational.grp_cons
 
 ALTER TABLE ONLY first_congregational.groups
     ADD CONSTRAINT groups_group_type_id_fkey FOREIGN KEY (group_type_id) REFERENCES public.group_types(id);
+
+
+--
+-- Name: file_upload_vectors file_upload_vectors_file_upload_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.file_upload_vectors
+    ADD CONSTRAINT file_upload_vectors_file_upload_id_fkey FOREIGN KEY (file_upload_id) REFERENCES public.file_uploads(id) ON DELETE CASCADE;
 
 
 --

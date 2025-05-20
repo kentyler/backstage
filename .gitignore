@@ -39,3 +39,6 @@ logs
 
 # Optional eslint cache
 .eslintcache
+
+# utility scripts
+.scripts

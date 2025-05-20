@@ -24,13 +24,24 @@
     📄 config.js
     📁 db/
       📄 connection.js
-      📄 conversationTurns.js
       📁 core/
         📄 connection.js
         📄 getTableInfo.js
         📄 query.js
         📄 schema.js
         📄 testConnection.js
+      📁 fileUploads/
+        📄 createFileUpload.js
+        📄 deleteFileUpload.js
+        📄 getFileUploadById.js
+        📄 getFileUploadsBySchema.js
+        📄 index.js
+        📄 searchFileUploads.js
+      📁 fileUploadVectors/
+        📄 createFileUploadVector.js
+        📄 getFileUploadVectors.js
+        📄 index.js
+        📄 searchSimilarVectors.js
       📁 groups/
         📄 createGroup.js
         📄 deleteGroup.js
@@ -40,54 +51,18 @@
         📄 getGroupsByParticipant.js
         📄 index.js
         📄 updateGroup.js
-      📁 grpConAvatars/
-        📄 createGrpConAvatar.js
-        📄 deleteGrpConAvatar.js
-        📄 getGrpConAvatarsByConversation.js
-        📄 getGrpConsByAvatar.js
+      📁 grpTopicAvatars/
+        📄 createGrpTopicAvatar.js
+        📄 deleteGrpTopicAvatar.js
+        📄 getAvatarsByTopicPath.js
+        📄 getTopicPathsByAvatar.js
         📄 index.js
-      📁 grpConAvatarTurnRelationships/
-        📄 createGrpConAvatarTurnRelationship.js
-        📄 deleteGrpConAvatarTurnRelationship.js
-        📄 getGrpConAvatarTurnRelationshipById.js
-        📄 getGrpConAvatarTurnRelationshipsByTurn.js
+      📁 grpTopicAvatarTurns/
+        📄 createGrpTopicAvatarTurn.js
+        📄 createGrpTopicTurn.js
         📄 index.js
-        📄 updateGrpConAvatarTurnRelationship.js
-      📁 grpConAvatarTurns/
-        📄 createGrpConAvatarTurn.js
-        📄 deleteGrpConAvatarTurn.js
-        📄 getGrpConAvatarTurnById.js
-        📄 getGrpConAvatarTurnsByConversation.js
-        📄 index.js
-        📄 updateGrpConAvatarTurn.js
-      📁 grpCons/
-        📄 createGrpCon.js
-        📄 deleteGrpCon.js
-        📄 getGrpConById.js
-        📄 getGrpConsByGroup.js
-        📄 index.js
-        📄 updateGrpCon.js
-      📁 grpConTemplateInstances/
-        📄 createGrpConTemplateInstance.js
-        📄 getGrpConTemplateInstancesByTemplate.js
-        📄 index.js
-      📁 grpConTemplateTopics/
-        📄 createGrpConTemplateTopic.js
-        📄 deleteGrpConTemplateTopic.js
-        📄 getGrpConTemplateTopicById.js
-        📄 getGrpConTemplateTopicsByTemplate.js
-        📄 index.js
-        📄 updateGrpConTemplateTopic.js
-      📁 grpConUploads/
-        📄 createGrpConUpload.js
-        📄 deleteGrpConUpload.js
-        📄 getGrpConUploadById.js
-        📄 getGrpConUploadsByConversation.js
-        📄 index.js
-      📁 grpConUploadVectors/
-        📄 createGrpConUploadVector.js
-        📄 getGrpConUploadVectorsByUpload.js
-        📄 index.js
+        📄 updateTurnVector.js
+      📄 grpTopicTurns.js
       📄 index.js
       📄 llmConfig.js
       📄 messageSearch.js
@@ -130,6 +105,7 @@
         📄 getPreferenceWithFallback.js
         📄 index.js
       📁 topic-paths/
+        📄 18may25summary.md
         📄 createTopicPath.js
         📄 deleteTopicPath.js
         📄 getTopicPaths.js
@@ -143,13 +119,15 @@
     📄 package.json
     📁 routes/
       📁 api/
-        📄 conversations.js
+        📄 fileUploads.js
         📄 llm.js
         📄 prompt.js
         📄 search.js
+        📄 topics.js
     📄 server.js
     📁 services/
       📄 embeddings.js
+      📄 fileProcessing.js
       📄 llm.js
     📄 sessions.sqlite
     📁 test/
@@ -159,7 +137,24 @@
     📁 test-logs/
       📄 llm-config-tests.log
     📄 test_output.log
+    📁 uploads/
+      📁 temp/
+        📄 1747696960115-145146850.txt
+        📄 1747697334591-281718602.txt
+        📄 1747697560308-719752010.txt
+        📄 1747697842699-335358361.txt
+        📄 1747698096667-563926615.txt
+        📄 1747698357296-314865715.txt
+        📄 1747699015449-974558320.txt
+        📄 1747699469527-606400527.txt
+        📄 1747699814404-500076995.txt
+        📄 1747700115284-388020114.txt
+        📄 1747700588037-722516087.txt
+        📄 1747700885940-302237851.txt
+        📄 1747701373969-695297414.txt
+        📄 1747701702713-564060809.txt
   📄 build-and-run.ps1
+  📄 copy_dev_to_first_congregational.sql
   📄 deployment-test.js
   📄 dir-tree.js
   📄 directory-tree.txt
@@ -175,6 +170,7 @@
     📁 design/
       📄 llm-management.md
     📄 directory_tree.txt
+    📄 File Upload Implementation Summary.md
     📄 jsdocs.json
     📄 llm-configuration.md
     📄 schema_dump.sql

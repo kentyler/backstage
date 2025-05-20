@@ -16,24 +16,16 @@
     "comment": "/**\n * Creates a database connection pool with a specific schema search path\n * \n * @param {string} schema - The schema to use (defaults to 'public')\n * @returns {Pool} - A PostgreSQL connection pool configured for the specified schema\n */"
   },
   {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\conversationTurns.js",
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpTopicTurns.js",
     "comment": "/**\n * Normalizes a vector to the required dimensions\n * @param {Array} arr - The vector array to normalize\n * @returns {Array} - Normalized vector\n */"
   },
   {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\conversationTurns.js",
-    "comment": "/**\n * Creates a new conversation turn\n * @param {number} conversationId - The ID of the conversation\n * @param {number} avatarId - The ID of the avatar (user/assistant)\n * @param {number} turnIndex - The index of the turn\n * @param {string} contentText - The text content of the turn\n * @param {Array} contentVector - The vector representation of the content\n * @param {number} [turnKindId=TURN_KIND.REGULAR] - The kind of turn (regular or comment)\n * @param {number} [messageTypeId] - The type of message (1 for user, 2 for LLM)\n * @param {number} [templateTopicId] - Optional template topic ID\n * @returns {Promise<Object>} The created turn\n */"
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpTopicTurns.js",
+    "comment": "/**\n * Gets the next turn index for a topic path\n * @param {string} topicPathId - The ID of the topic path\n * @returns {Promise<number>} The next turn index\n */"
   },
   {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\conversationTurns.js",
-    "comment": "/**\n * Gets all turns for a conversation\n * @param {string} conversationId - The ID of the conversation\n * @param {Object} client - The database client to use for the query\n * @returns {Promise<Array>} Array of conversation turns\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\conversationTurns.js",
-    "comment": "/**\n * Gets the next turn index for a conversation\n * @param {number} conversationId - The ID of the conversation\n * @returns {Promise<number>} The next turn index\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\conversationTurns.js",
-    "comment": "/**\n * Gets all turns for a topic path\n * @param {string} topicPathId - The ID of the topic path\n * @param {Object} client - The database client to use for the query\n * @param {number} [limit=100] - Maximum number of turns to return\n * @returns {Promise<Array>} Array of conversation turns\n */"
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpTopicTurns.js",
+    "comment": "/**\n * Gets all turns for a topic path\n * @param {string} topicPathId - The ID of the topic path\n * @param {Object} pool - The database pool to use for the query\n * @param {number} [limit=100] - Maximum number of turns to return\n * @returns {Promise<Array>} Array of topic path turns\n */"
   },
   {
     "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\index.js",
@@ -92,6 +84,86 @@
     "comment": "/**\n * Tests the database connection with schema-aware queries\n * \n * @param {Object} req - Express request object\n * @returns {Object} Test results including schema, connection status, etc.\n */"
   },
   {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploads\\createFileUpload.js",
+    "comment": "/**\n * Create a new file upload record\n * @module db/fileUploads/createFileUpload\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploads\\createFileUpload.js",
+    "comment": "/**\n * File Uploads module - creates file upload records\n * @module db/fileUploads/createFileUpload\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploads\\createFileUpload.js",
+    "comment": "/**\n * Create a new file upload record\n * @param {Object} uploadData - The upload data\n * @param {string} uploadData.filename - The filename\n * @param {string} uploadData.mimeType - The MIME type\n * @param {string} uploadData.filePath - The file path in storage\n * @param {number} [uploadData.fileSize] - The file size in bytes (optional)\n * @param {string} [uploadData.publicUrl] - The public URL of the file (optional)\n * @param {string} [uploadData.description] - Optional description of the file\n * @param {string[]} [uploadData.tags] - Optional tags for categorizing the file\n * @param {Object} pool - The PostgreSQL connection pool\n * @returns {Promise<Object>} - The created upload record\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploads\\deleteFileUpload.js",
+    "comment": "/**\n * Delete a file upload by ID\n * @module db/fileUploads/deleteFileUpload\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploads\\deleteFileUpload.js",
+    "comment": "/**\n * Delete a file upload by ID\n * @param {number} fileUploadId - The ID of the file upload to delete\n * @param {Object} pool - The PostgreSQL connection pool\n * @returns {Promise<Object>} - The deleted file upload record or null if not found\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploads\\getFileUploadById.js",
+    "comment": "/**\n * Get a file upload by ID\n * @module db/fileUploads/getFileUploadById\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploads\\getFileUploadById.js",
+    "comment": "/**\n * File Uploads module - retrieves file upload records by ID\n * @module db/fileUploads/getFileUploadById\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploads\\getFileUploadById.js",
+    "comment": "/**\n * Get a file upload by ID\n * @param {number} fileUploadId - The ID of the file upload\n * @param {Object} pool - The PostgreSQL connection pool\n * @returns {Promise<Object>} - The file upload record or null if not found\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploads\\getFileUploadsBySchema.js",
+    "comment": "/**\n * Get file uploads for a schema\n * @module db/fileUploads/getFileUploadsBySchema\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploads\\getFileUploadsBySchema.js",
+    "comment": "/**\n * Get all file uploads for a schema, with optional pagination\n * @param {Object} options - Query options\n * @param {number} [options.limit=50] - Maximum number of records to return\n * @param {number} [options.offset=0] - Number of records to skip\n * @param {string} [options.search] - Optional search term to filter by filename\n * @param {string[]} [options.tags] - Optional tags to filter by\n * @param {Object} pool - The PostgreSQL connection pool\n * @returns {Promise<Object>} - Object with uploads array and total count\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploads\\index.js",
+    "comment": "/**\n * File Uploads module - exports all file upload related functions\n * @module db/fileUploads\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploads\\searchFileUploads.js",
+    "comment": "/**\n * Search for file uploads\n * @module db/fileUploads/searchFileUploads\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploads\\searchFileUploads.js",
+    "comment": "/**\n * Search for file uploads by text content, filename, or tags\n * @param {Object} options - Search options\n * @param {string} options.query - The search query\n * @param {string[]} [options.mimeTypes] - Optional filter by MIME types\n * @param {string[]} [options.tags] - Optional filter by tags\n * @param {number} [options.limit=20] - Maximum number of results to return\n * @param {Object} pool - The PostgreSQL connection pool\n * @returns {Promise<Array>} - Array of matching file uploads\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploadVectors\\createFileUploadVector.js",
+    "comment": "/**\n * Create a new file upload vector\n * @module db/fileUploadVectors/createFileUploadVector\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploadVectors\\createFileUploadVector.js",
+    "comment": "/**\n * Create a new file upload vector entry for a file chunk\n * @param {Object} vectorData - The vector data\n * @param {number} vectorData.fileUploadId - The ID of the file upload\n * @param {number} vectorData.chunkIndex - The index of the chunk\n * @param {string} vectorData.contentText - The text content of the chunk\n * @param {Array} vectorData.contentVector - The vector representation of the content\n * @param {Object} pool - The PostgreSQL connection pool\n * @returns {Promise<Object>} - The created vector record\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploadVectors\\getFileUploadVectors.js",
+    "comment": "/**\n * Get vectors for a file upload\n * @module db/fileUploadVectors/getFileUploadVectors\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploadVectors\\getFileUploadVectors.js",
+    "comment": "/**\n * Get all vector entries for a file upload\n * @param {number} fileUploadId - The ID of the file upload\n * @param {Object} pool - The PostgreSQL connection pool\n * @returns {Promise<Array>} - Array of vector entries\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploadVectors\\index.js",
+    "comment": "/**\n * File Upload Vectors module - exports all vector-related functions\n * @module db/fileUploadVectors\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploadVectors\\searchSimilarVectors.js",
+    "comment": "/**\n * Search for similar vectors\n * @module db/fileUploadVectors/searchSimilarVectors\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\fileUploadVectors\\searchSimilarVectors.js",
+    "comment": "/**\n * Search for similar vectors using vector similarity\n * @param {Array|string} queryVector - The query vector to compare against\n * @param {Object} options - Search options\n * @param {number} [options.limit=10] - Maximum number of results to return\n * @param {number} [options.threshold=0.7] - Similarity threshold (0-1)\n * @param {number} [options.excludeFileId] - Optional file ID to exclude from results\n * @param {Object} pool - The PostgreSQL connection pool\n * @returns {Promise<Array>} - Array of similar vectors with similarity scores\n */"
+  },
+  {
     "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\groups\\createGroup.js",
     "comment": "/**\n * @file src/db/group/createGroup.js\n * @description Creates a new group record in the database.\n */"
   },
@@ -148,212 +220,32 @@
     "comment": "/**\n * Updates an existing group's properties.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} groupId - The ID of the group to update.\n * @param {Object} updates - The properties to update.\n * @param {string} [updates.name] - The new name for the group.\n * @returns {Promise<{id: number, name: string, created_at: string}|null>} The updated group record, or null if not found.\n */"
   },
   {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatars\\createGrpConAvatar.js",
-    "comment": "/**\n * @file src/db/grpConAvatars/createGrpConAvatar.js\n * @description Adds an avatar to a group conversation.\n */"
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpTopicAvatars\\createGrpTopicAvatar.js",
+    "comment": "/**\n * Inserts a new row into grp_topic_avatars.\n *\n * @param {string} topicPathId - The ID of the topic path\n * @param {number} avatarId - The ID of the avatar\n * @param {string|object} [schemaOrPool=null] - Schema name or custom pool\n * @returns {Promise<Object>} The newly created record\n */"
   },
   {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatars\\createGrpConAvatar.js",
-    "comment": "/**\n * Inserts a new row into grp_con_avatars.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} conversationId\n * @param {number} avatarId\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<{grp_con_id: number, avatar_id: number, added_at: string}>}\n */"
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpTopicAvatars\\deleteGrpTopicAvatar.js",
+    "comment": "/**\n * Deletes an avatar from a topic path\n * \n * @param {string} topicPathId - The ID of the topic path\n * @param {number} avatarId - The ID of the avatar\n * @param {string|object} [schemaOrPool=null] - Schema name or custom pool\n * @returns {Promise<Object>} The deleted record or null if not found\n */"
   },
   {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatars\\deleteGrpConAvatar.js",
-    "comment": "/**\n * @file src/db/grpConAvatars/deleteGrpConAvatar.js\n * @description Removes an avatar from a conversation.\n */"
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpTopicAvatars\\getAvatarsByTopicPath.js",
+    "comment": "/**\n * Get all avatars for a specific topic path\n * \n * @param {string} topicPathId - The ID of the topic path\n * @param {string|object} [schemaOrPool=null] - Schema name or custom pool\n * @returns {Promise<Array>} List of avatars for the topic path\n */"
   },
   {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatars\\deleteGrpConAvatar.js",
-    "comment": "/**\n * Deletes the link between an avatar and a conversation.\n *  @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} conversationId\n * @param {number} avatarId\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<boolean>} true if deleted, false otherwise\n */"
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpTopicAvatars\\getTopicPathsByAvatar.js",
+    "comment": "/**\n * Get all topic paths for a specific avatar\n * \n * @param {number} avatarId - The ID of the avatar\n * @param {string|object} [schemaOrPool=null] - Schema name or custom pool\n * @returns {Promise<Array>} List of topic paths for the avatar\n */"
   },
   {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatars\\getGrpConAvatarsByConversation.js",
-    "comment": "/**\n * @file src/db/grpConAvatars/getGrpConAvatarsByConversation.js\n * @description Lists all avatars in a given conversation.\n */"
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpTopicAvatarTurns\\createGrpTopicAvatarTurn.js",
+    "comment": "/**\n * Creates a new avatar turn in a topic\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {string} topicPathId - The ID of the topic path\n * @param {number} avatarId - The ID of the avatar\n * @param {number|string} turnIndex - The index of the turn (can be decimal for comments)\n * @param {string} contentText - The text content of the turn\n * @param {Array} contentVector - The vector representation of the content\n * @param {number} [turnKindId=TURN_KIND.REGULAR] - The kind of turn (regular or comment)\n * @param {number} [messageTypeId=null] - The type of message (1 for user, 2 for LLM)\n * @param {number} [templateTopicId=null] - The ID of the template topic (if applicable)\n * @param {string|object} clientPool - Either a schema name or a pool object\n * @returns {Promise<Object>} The created turn\n */"
   },
   {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatars\\getGrpConAvatarsByConversation.js",
-    "comment": "/**\n * Fetches avatar entries for one conversation.\n  *  @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} conversationId\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<Array<{avatar_id: number, added_at: string}>>}\n */"
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpTopicAvatarTurns\\createGrpTopicTurn.js",
+    "comment": "/**\n * Creates a new avatar turn in a topic\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {string} topicPathId - The ID of the topic path\n * @param {number} avatarId - The ID of the avatar\n * @param {number|string} turnIndex - The index of the turn (can be decimal for comments)\n * @param {string} contentText - The text content of the turn\n * @param {Array} contentVector - The vector representation of the content\n * @param {number} [turnKindId=TURN_KIND.REGULAR] - The kind of turn (regular or comment)\n * @param {number} [messageTypeId=null] - The type of message (1 for user, 2 for LLM)\n * @param {number} [templateTopicId=null] - The ID of the template topic (if applicable)\n * @param {string|object} clientPool - Either a schema name or a pool object\n * @returns {Promise<Object>} The created turn\n */"
   },
   {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatars\\getGrpConsByAvatar.js",
-    "comment": "/**\n * @file src/db/grpConAvatars/getGrpConsByAvatar.js\n * @description Lists all conversations that include a given avatar.\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatars\\getGrpConsByAvatar.js",
-    "comment": "/**\n * Fetches conversation entries for one avatar.\n *  @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} avatarId\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<Array<{grp_con_id: number, added_at: string}>>}\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurnRelationships\\createGrpConAvatarTurnRelationship.js",
-    "comment": "/**\n * Creates a directed relationship between two avatar turns.\n * @param {number} turnId\n * @param {number} targetTurnId\n * @param {number} [relationshipTypeId=1]\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object>}\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurnRelationships\\deleteGrpConAvatarTurnRelationship.js",
-    "comment": "/**\n * Deletes a relationship by its ID.\n * @param {number} id\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<boolean>}\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurnRelationships\\getGrpConAvatarTurnRelationshipById.js",
-    "comment": "/**\n * Fetches a relationship by its ID.\n * @param {number} id\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>}\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurnRelationships\\getGrpConAvatarTurnRelationshipsByTurn.js",
-    "comment": "/**\n * Lists all relationships originating from a turn.\n * @param {number} turnId\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object[]>}\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurnRelationships\\updateGrpConAvatarTurnRelationship.js",
-    "comment": "/**\n * Updates the relationship type of an existing relationship.\n * @param {number} id\n * @param {number} newTypeId\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>}\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurns\\createGrpConAvatarTurn.js",
-    "comment": "/**\n * Creates a new avatar turn in a group conversation\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} conversationId - The ID of the conversation\n * @param {number} avatarId - The ID of the avatar\n * @param {number|string} turnIndex - The index of the turn (can be decimal for comments)\n * @param {string} contentText - The text content of the turn\n * @param {Array} contentVector - The vector representation of the content\n * @param {number} [turnKindId=TURN_KIND.REGULAR] - The kind of turn (regular or comment)\n * @param {number} [messageTypeId=null] - The type of message (1 for user, 2 for LLM)\n * @param {string|object} schemaOrPool - Either a schema name or a pool object\n * @returns {Promise<Object>} The created turn\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurns\\deleteGrpConAvatarTurn.js",
-    "comment": "/**\n * Delete a group conversation avatar turn by ID\n * @param {number} id - The ID of the turn to delete\n * @param {string|object} schemaOrPool - Either a schema name or a pool object\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<boolean>} True if the turn was deleted, false if not found\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurns\\getGrpConAvatarTurnById.js",
-    "comment": "/**\n * Get a group conversation avatar turn by ID\n * @param {number} id - The ID of the turn to retrieve\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<object|null>} The turn object or null if not found\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurns\\getGrpConAvatarTurnsByConversation.js",
-    "comment": "/**\n * Parse a vector string from the database into an array of numbers\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {string} vectorStr - The vector string from the database (e.g., \"[0.1,0.2,0.3]\")\n * @returns {number[]} The parsed vector as an array of numbers\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurns\\getGrpConAvatarTurnsByConversation.js",
-    "comment": "/**\n * Get all avatar turns for a specific conversation\n * \n * @param {number} conversationId - The ID of the conversation\n * @param {string|object} [schemaOrPool=null] - Schema name or custom pool\n * @returns {Promise<Array>} List of avatar turns for the conversation\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConAvatarTurns\\updateGrpConAvatarTurn.js",
-    "comment": "/**\n * Update a group conversation avatar turn\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} id - The ID of the turn to update\n * @param {string} newText - The new text content\n * @param {Array<number>} newVector - The new vector content\n \n * @returns {Promise<object>} The updated turn\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpCons\\createGrpCon.js",
-    "comment": "/**\n * Creates a new conversation under a group.\n * @param {number} groupId - The ID of the group.\n * @param {string} name - The conversation name.\n * @param {string} description - The conversation description.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} [typeId=1] - The type ID from grp_con_types table (1=conversation, 2=template)\n * @returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}>}\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpCons\\deleteGrpCon.js",
-    "comment": "/**\n * Deletes a conversation by its ID.\n * @param {number} id - The conversation ID.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<boolean>} True if deleted, false otherwise.\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpCons\\getGrpConById.js",
-    "comment": "/**\n * Retrieves a conversation by its ID.\n * @param {number} id - The conversation ID.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}|null>}\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpCons\\getGrpConsByGroup.js",
-    "comment": "/**\n * Retrieves conversations for a given group, ordered by creation date (newest first) and limited to 50.\n * @param {number} groupId - The group ID.\n * @param {Pool} pool - The PostgreSQL connection pool.\n * @returns {Promise<Array<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}>>}\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpCons\\updateGrpCon.js",
-    "comment": "/**\n * Updates a conversation's name, description, and optionally its type.\n * @param {number} id - The conversation ID.\n * @param {string} newName - The new conversation name.\n * @param {string} newDescription - The new conversation description.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number|null} [newTypeId=null] - The new type ID from grp_con_types table (1=conversation, 2=template), or null to keep current type\n * @returns {Promise<{id: number, group_id: number, name: string, description: string, type_id: number, created_at: string}|null>}\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateInstances\\createGrpConTemplateInstance.js",
-    "comment": "/**\n * @file src/db/grpConTemplateInstances/createGrpConTemplateInstance.js\n * @description Creates a new template instance.\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateInstances\\createGrpConTemplateInstance.js",
-    "comment": "/**\n * Creates a new template instance.\n * @param {number} templateId - The ID of the template\n * @param {number} groupId - The ID of the group\n * @param {string} name - The name of the instance (optional, defaults to template name with timestamp)\n * @param {string} description - The description of the instance (optional)\n * @param {Pool} pool - The PostgreSQL connection pool\n * @returns {Promise<{id: number, template_id: number, group_id: number, name: string, description: string, created_at: Date}>}\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateInstances\\getGrpConTemplateInstancesByTemplate.js",
-    "comment": "/**\n * @file src/db/grpConTemplateInstances/getGrpConTemplateInstancesByTemplate.js\n * @description Lists all instances for a given template.\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateInstances\\getGrpConTemplateInstancesByTemplate.js",
-    "comment": "/**\n * Fetches template instances for one template.\n * @param {Pool} pool - The PostgreSQL connection pool.\n * @param {number} templateId - The ID of the template\n * @returns {Promise<Array<{id: number, template_id: number, group_id: number, name: string, description: string, created_at: Date}>>}\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\createGrpConTemplateTopic.js",
-    "comment": "/**\n * @file src/db/grpConTemplateTopics/createGrpConTemplateTopic.js\n * @description Creates a new topic for a template.\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\createGrpConTemplateTopic.js",
-    "comment": "/**\n * Inserts a new row into grp_con_template_topics.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} templateId - The ID of the template\n * @param {string} title - The title of the topic\n * @param {string} content - The content of the topic (can be empty)\n * @param {number} topicIndex - The index of the topic for ordering\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<{id: number, template_id: number, title: string, content: string, topic_index: number}>}\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\deleteGrpConTemplateTopic.js",
-    "comment": "/**\n * @file src/db/grpConTemplateTopics/deleteGrpConTemplateTopic.js\n * @description Deletes a template topic.\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\deleteGrpConTemplateTopic.js",
-    "comment": "/**\n * Deletes a template topic by ID.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} topicId - The ID of the topic to delete\n * @param {object|string} [customPoolOrSchema=null] - Database connection pool or schema name\n * @returns {Promise<{id: number, template_id: number, title: string, content: string, topic_index: number}|null>}\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\getGrpConTemplateTopicById.js",
-    "comment": "/**\n * @file src/db/grpConTemplateTopics/getGrpConTemplateTopicById.js\n * @description Retrieves a single template topic by its ID.\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\getGrpConTemplateTopicById.js",
-    "comment": "/**\n * Fetches a single template topic by ID.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} topicId - The ID of the topic to retrieve\n * @returns {Promise<{id: number, template_id: number, title: string, content: string, topic_index: number}|null>}\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\getGrpConTemplateTopicsByTemplate.js",
-    "comment": "/**\n * @file src/db/grpConTemplateTopics/getGrpConTemplateTopicsByTemplate.js\n * @description Lists all topics for a given template, ordered by topic_index.\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\getGrpConTemplateTopicsByTemplate.js",
-    "comment": "/**\n * Fetches topic entries for one template.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} templateId - The ID of the template\n * @returns {Promise<Array<{id: number, template_id: number, title: string, content: string, topic_index: number}>>}\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\updateGrpConTemplateTopic.js",
-    "comment": "/**\n * @file src/db/grpConTemplateTopics/updateGrpConTemplateTopic.js\n * @description Updates an existing template topic.\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConTemplateTopics\\updateGrpConTemplateTopic.js",
-    "comment": "/**\n * Updates a template topic.\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @param {number} topicId - The ID of the topic to update\n * @param {string} title - The updated title\n * @param {string} content - The updated content\n * @param {number} topicIndex - The updated topic index\n ** @returns {Promise<{id: number, template_id: number, title: string, content: string, topic_index: number}|null>}\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\createGrpConUpload.js",
-    "comment": "/**\n * Create a new group conversation upload record\n * @module db/grpConUploads/createGrpConUpload\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\createGrpConUpload.js",
-    "comment": "/**\n * Create a new group conversation upload record\n * @param {Object} uploadData - The upload data\n * @param {number} uploadData.grpConId - The group conversation ID\n * @param {number} [uploadData.turnId] - The turn ID (optional)\n * @param {string} uploadData.filename - The filename\n * @param {string} uploadData.mimeType - The MIME type\n * @param {string} uploadData.filePath - The file path in Supabase Storage\n * @param {string} [uploadData.publicUrl] - The public URL of the file (optional)\n * @param {string} [uploadData.bucketName] - The Supabase Storage bucket name (optional)\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Object>} - The created upload record\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\deleteGrpConUpload.js",
-    "comment": "/**\n * Delete a group conversation upload record\n * @module db/grpConUploads/deleteGrpConUpload\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\deleteGrpConUpload.js",
-    "comment": "/**\n * Delete a group conversation upload record\n * @param {number} id - The upload ID\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<boolean>} - True if deletion was successful\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\getGrpConUploadById.js",
-    "comment": "/**\n * Get a group conversation upload by ID\n * @module db/grpConUploads/getGrpConUploadById\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\getGrpConUploadById.js",
-    "comment": "/**\n * Get a group conversation upload by ID\n * @param {number} id - The upload ID\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Object|null>} - The upload record or null if not found\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\getGrpConUploadsByConversation.js",
-    "comment": "/**\n * Get all uploads for a specific group conversation\n * @module db/grpConUploads/getGrpConUploadsByConversation\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\getGrpConUploadsByConversation.js",
-    "comment": "/**\n * Get all uploads for a specific group conversation\n * @param {number} grpConId - The group conversation ID\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Array>} - Array of upload records\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploads\\index.js",
-    "comment": "/**\n * Group conversation uploads database operations\n * @module db/grpConUploads\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploadVectors\\createGrpConUploadVector.js",
-    "comment": "/**\n * Create a new group conversation upload vector record\n * @module db/grpConUploadVectors/createGrpConUploadVector\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploadVectors\\createGrpConUploadVector.js",
-    "comment": "/**\n * Create a new group conversation upload vector record\n * @param {Object} vectorData - The vector data\n * @param {number} vectorData.uploadId - The upload ID\n * @param {number} vectorData.chunkIndex - The chunk index\n * @param {string} vectorData.contentText - The text content of the chunk\n * @param {Array<number>} [vectorData.contentVector] - The vector representation of the content (optional)\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Object>} - The created vector record\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploadVectors\\getGrpConUploadVectorsByUpload.js",
-    "comment": "/**\n * Get group conversation upload vectors by upload ID\n * @module db/grpConUploadVectors/getGrpConUploadVectorsByUpload\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploadVectors\\getGrpConUploadVectorsByUpload.js",
-    "comment": "/**\n * Get group conversation upload vectors by upload ID\n * @param {number} uploadId - The upload ID\n * @param { Pool } pool - The PostgreSQL connection pool.\n * @returns {Promise<Array<Object>>} - The vector records\n */"
-  },
-  {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpConUploadVectors\\index.js",
-    "comment": "/**\n * Group conversation upload vectors database operations\n * @module db/grpConUploadVectors\n */"
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\grpTopicAvatarTurns\\updateTurnVector.js",
+    "comment": "/**\n * Updates the vector representation of a turn\n * \n * @param {number} turnId - The ID of the turn to update\n * @param {Array} contentVector - The vector representation of the content\n * @param {Object} client - The database client to use (optional)\n * @returns {Promise<Object>} The updated turn\n */"
   },
   {
     "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\db\\participantAvatars\\createParticipantAvatar.js",
@@ -664,12 +556,32 @@
     "comment": "/**\n * Gets a list of all client schemas\n * This is used for operations that need to be performed across all schemas\n * \n * @returns {Promise<string[]>} - A promise that resolves to an array of schema names\n */"
   },
   {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\conversations.js",
-    "comment": "/**\n * @route   GET /api/conversations/:conversationId/turns\n * @desc    Get all turns for a conversation\n * @access  Private\n */"
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\fileUploads.js",
+    "comment": "/**\n * File Uploads API Routes\n * Handles file upload, retrieval, and search operations.\n */"
   },
   {
-    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\conversations.js",
-    "comment": "/**\n * @route   GET /api/conversations/topic/:topicPathId\n * @desc    Get all turns for a topic path\n * @access  Private\n */"
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\fileUploads.js",
+    "comment": "/**\n * @route POST /api/file-uploads\n * @description Upload a new file\n * @access Public\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\fileUploads.js",
+    "comment": "/**\n * @route GET /api/file-uploads/:id\n * @description Get file upload by ID\n * @access Public\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\fileUploads.js",
+    "comment": "/**\n * @route GET /api/file-uploads\n * @description List file uploads with pagination and filtering\n * @access Public\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\fileUploads.js",
+    "comment": "/**\n * @route DELETE /api/file-uploads/:id\n * @description Delete a file upload\n * @access Public\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\fileUploads.js",
+    "comment": "/**\n * @route POST /api/file-uploads/search\n * @description Search file contents using semantic similarity\n * @access Public\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\fileUploads.js",
+    "comment": "/**\n * @route GET /api/file-uploads/:id/content\n * @description Get the processed content of a file with its vectors\n * @access Public\n */"
   },
   {
     "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\llm.js",
@@ -700,8 +612,88 @@
     "comment": "/**\n * @route   POST /api/search/similar-messages\n * @desc    Find messages similar to the provided text\n * @access  Private\n */"
   },
   {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\topics.js",
+    "comment": "/**\n * @route   GET /api/topics/:topicPathId/turns\n * @desc    Get all turns for a topic path\n * @access  Private\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\routes\\api\\topics.js",
+    "comment": "/**\n * @route   GET /api/topics/path/:topicPathId\n * @desc    Get all turns for a topic path\n * @access  Private\n */"
+  },
+  {
     "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\embeddings.js",
     "comment": "/**\n * Generates an embedding vector for the given text using OpenAI\n * @param {string} text - The text to generate embedding for\n * @returns {Promise<number[]>} The embedding vector\n * @throws {Error} If embedding generation fails\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * File Processing Service\n * \n * Handles file uploads, content extraction, chunking, and vectorization.\n * Works with schema-aware file storage to support multi-tenant applications.\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * Check if a file is currently being processed\n * @param {number} fileId - The ID of the file to check\n * @returns {boolean} - True if the file is being processed\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * Mark a file as being processed\n * @param {number} fileId - The ID of the file to mark\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * Mark a file as no longer being processed\n * @param {number} fileId - The ID of the file to unmark\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * Process a file and store it in the database\n * \n * @param {Object} fileData - The file data object\n * @param {string} fileData.path - Temporary file path on disk\n * @param {string} fileData.originalname - Original file name\n * @param {string} fileData.mimetype - File MIME type\n * @param {number} fileData.size - File size in bytes\n * @param {Object} options - Processing options\n * @param {string} [options.schemaName] - Schema name (defaults to current schema)\n * @param {string} [options.description] - Optional file description\n * @param {string[]} [options.tags] - Optional tags for categorization\n * @param {boolean} [options.skipVectorization] - Skip the vectorization step\n * @param {Object} pool - The PostgreSQL connection pool\n * @returns {Promise<Object>} - The processed file record\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * Upload a file to storage (Supabase)\n * \n * @param {string} filePath - Path to the file on disk\n * @param {string} storagePath - Path in storage where the file should be stored\n * @param {string} bucketName - Storage bucket name (defaults to schema name)\n * @returns {Promise<string>} - Public URL of the uploaded file\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * Extract and vectorize content from a file\n * \n * @param {string} filePath - Path to the file on disk\n * @param {number} fileUploadId - ID of the file upload record\n * @param {string} mimeType - MIME type of the file\n * @param {Object} pool - Database pool to use\n * @param {string} schemaName - Schema name to use for database operations\n * @returns {Promise<void>}\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * Creates a readable stream that extracts text from a file\n * \n * @param {string} filePath - Path to the file\n * @param {string} mimeType - MIME type of the file\n * @returns {Promise<Readable>} A readable stream of text content\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * Creates a transform stream that chunks text into smaller pieces\n * \n * @param {number} maxChunkSize - Maximum size of each chunk\n * @param {number} overlap - Overlap between chunks\n * @returns {Transform} A transform stream that outputs text chunks\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * Creates a transform stream that processes chunks and saves vectors to the database\n * \n * @param {number} fileUploadId - ID of the file upload\n * @param {Object} pool - Database connection pool\n * @returns {Transform} A transform stream that processes chunks\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * Extract text content from a file based on its MIME type\n * \n * @param {string} filePath - Path to the file\n * @param {string} mimeType - MIME type of the file\n * @returns {Promise<string|null>} - Extracted text or null if extraction failed\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * Extract text from a plain text file\n * \n * @param {string} filePath - Path to the file\n * @returns {Promise<string>} - Extracted text\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * Extract text from a PDF file\n * \n * @param {string} filePath - Path to the PDF file\n * @returns {Promise<string>} - Extracted text\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * Extract text from a DOCX file\n * \n * @param {string} filePath - Path to the DOCX file\n * @returns {Promise<string>} - Extracted text\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * Extract text from a CSV file\n * \n * @param {string} filePath - Path to the CSV file\n * @returns {Promise<string>} - Extracted text\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * Extract text from a JSON file\n * \n * @param {string} filePath - Path to the JSON file\n * @returns {Promise<string>} - Extracted text\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * Split text into chunks with overlap\n * \n * @param {string} text - Text to chunk\n * @returns {string[]} - Array of text chunks\n */"
+  },
+  {
+    "file": "C:\\Users\\Ken\\Desktop\\back-stage\\backend\\services\\fileProcessing.js",
+    "comment": "/**\n * Search within file content using semantic similarity\n * \n * @param {string} query - The search query\n * @param {Object} options - Search options\n * @param {string} [options.schemaName] - Schema name to search within\n * @param {number} [options.limit=5] - Maximum number of results to return\n * @param {number} [options.threshold=0.7] - Similarity threshold (0-1)\n * @param {Object} pool - The PostgreSQL connection pool\n * @returns {Promise<Array>} - Search results\n */"
   },
   {
     "file": "C:\\Users\\Ken\\Desktop\\back-stage\\frontend\\src\\App.js",
