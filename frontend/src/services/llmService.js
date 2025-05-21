@@ -191,7 +191,7 @@ export const refreshLLMConfig = async () => {
  * @throws {Error} If required parameters are missing or invalid
  */
 const submitPrompt = async (prompt, options = {}) => {
-  const { topicPathId, avatarId, currentMessageId } = options;
+  const { topicPathId, avatarId, currentMessageId, participantId } = options;
   
   console.log('=== submitPrompt called ===');
   console.log('Prompt:', prompt);
@@ -199,6 +199,7 @@ const submitPrompt = async (prompt, options = {}) => {
   console.log('topicPathId:', topicPathId, 'Type:', typeof topicPathId);
   console.log('avatarId:', avatarId, 'Type:', typeof avatarId);
   console.log('currentMessageId:', currentMessageId, 'Type:', typeof currentMessageId);
+  console.log('participantId:', participantId, 'Type:', typeof participantId);
   
   if (!topicPathId) {
     console.error('topicPathId is missing or empty');
@@ -219,6 +220,11 @@ const submitPrompt = async (prompt, options = {}) => {
       avatarId: Number(avatarId)
     });
     
+    // Use only the explicitly provided participant ID from options
+    // No fallbacks to ensure exact participant ID is used
+    const userParticipantId = participantId;
+    console.log('Using exact participant ID from options:', userParticipantId);
+    
     const response = await fetch('/api/llm/prompt', {
       method: 'POST',
       headers: {
@@ -229,7 +235,8 @@ const submitPrompt = async (prompt, options = {}) => {
         prompt,
         topicPathId: cleanTopicPathId,
         avatarId: Number(avatarId),
-        currentMessageId: currentMessageId || null
+        currentMessageId: currentMessageId || null,
+        participantId: userParticipantId
       })
     });
 

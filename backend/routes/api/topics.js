@@ -1,65 +1,32 @@
 import express from 'express';
-import { getTurnsByTopicPath, getTurnsByTopicId } from '../../db/grpTopicAvatarTurns/index.js';
+import { getTurnsByTopicId } from '../../db/grpTopicAvatarTurns/index.js';
+import { createTopicPath } from '../../db/topic-paths/index.js';
 
 const router = express.Router();
 
 /**
- * @route   GET /api/topics/:topicPathId/turns
- * @desc    Get all turns for a topic path
+ * @route   POST /api/topics
+ * @desc    Create a new topic path
  * @access  Private
  */
-router.get('/:topicPathId/turns', async (req, res) => {
-  let client;
+router.post('/', async (req, res) => {
   try {
-    const { topicPathId } = req.params;
-    const { limit = 100 } = req.query;
+    const { path } = req.body;
     
-    if (!topicPathId) {
-      return res.status(400).json({ error: 'topicPathId is required' });
+    if (!path) {
+      return res.status(400).json({ error: 'Path is required' });
     }
     
-    // Get a client from the pool
-    client = await req.clientPool.connect();
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
     
-    // Execute the query with the client using topic path approach
-    const turns = await getTurnsByTopicPath(topicPathId, client, parseInt(limit));
-    res.json(turns);
+    const newPath = await createTopicPath(path, req.session.userId, req.clientPool);
+    res.status(201).json(newPath);
   } catch (error) {
-    console.error('Error getting topic path turns:', error);
+    console.error('Error creating topic path:', error);
     res.status(500).json({ 
-      error: 'Failed to get topic path history',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  } finally {
-    // Release the client back to the pool
-    if (client) {
-      client.release();
-    }
-  }
-});
-
-/**
- * @route   GET /api/topics/path/:topicPathId
- * @desc    Get all turns for a topic path
- * @access  Private
- */
-router.get('/path/:pathId', async (req, res) => {
-  try {
-    const topicPathId = req.params.pathId;
-    const limit = req.query.limit || 100;
-    
-    if (!topicPathId) {
-      return res.status(400).json({ error: 'topicPathId is required' });
-    }
-    
-    // Use the pool directly - it knows about the schema
-    // Pass req.clientPool to the function which will use the schema properly
-    const turns = await getTurnsByTopicPath(topicPathId, parseInt(limit), req.clientPool);
-    res.json(turns);
-  } catch (error) {
-    console.error('Error getting topic path turns:', error);
-    res.status(500).json({ 
-      error: 'Failed to get topic path history',
+      error: 'Failed to create topic path',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
@@ -70,20 +37,41 @@ router.get('/path/:pathId', async (req, res) => {
  * @desc    Get all turns for a topic using the numeric ID
  * @access  Private
  */
-router.get('/id/:topicId', async (req, res) => {
+router.get('/id/:id', async (req, res) => {
   try {
-    const topicId = req.params.topicId;
-    const limit = req.query.limit || 100;
+    const topicId = req.params.id;
+    console.log('Fetching messages for topic ID:', topicId);
     
     if (!topicId || isNaN(Number(topicId))) {
+      console.log('Error: Valid numeric topicId is required');
       return res.status(400).json({ error: 'Valid numeric topicId is required' });
     }
     
     // Use the numeric topic ID directly
     try {
-      // Get turns directly using the topic ID - pass the pool object correctly
+      // Use the client-specific pool that's set by the middleware
+      // This includes the correct schema search path for the client
       const pool = req.clientPool;
+      const limit = req.query.limit || 100;
+      
+      console.log('Using req.clientPool with schema:', req.clientSchema);
+      
+      // Pass the correct pool to the database function
       const turns = await getTurnsByTopicId(Number(topicId), pool, parseInt(limit));
+      
+      // Log the exact data being returned to the client
+      console.log('DETAILED RESPONSE DATA:');
+      turns.forEach((turn, idx) => {
+        console.log(`Turn ${idx}:`, {
+          id: turn.id,
+          isUser: turn.isUser,
+          participantId: turn.participantId,
+          participantName: turn.participantName,
+          llmId: turn.llmId,
+          llmName: turn.llmName
+        });
+      });
+      
       res.json(turns);
     } catch (dbError) {
       console.error('Database error getting topic turns:', dbError);

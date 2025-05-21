@@ -7,7 +7,7 @@ import SequelizeStore from 'connect-session-sequelize';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import * as db from './db/index.js';
-import { getTopicPaths, createTopicPath, deleteTopicPath, updateTopicPath } from './db/topic-paths/index.js';
+import { getTopicPaths, deleteTopicPath, updateTopicPath } from './db/topic-paths/index.js';
 import llmRoutes from './routes/api/llm.js';
 import topicRoutes from './routes/api/topics.js';
 import fileUploadRoutes from './routes/api/fileUploads.js';
@@ -295,51 +295,8 @@ app.get('/api/groups/:id', authenticate, async (req, res) => {
   }
 });
 
-// Check authentication status with enhanced debugging
-// Topic paths endpoints
-// Delete a topic path
-// Update a topic path
-app.put('/api/topic-paths/:path', authenticate, async (req, res) => {
-  try {
-    const oldPath = decodeURIComponent(req.params.path);
-    const { newPath } = req.body;
-    await updateTopicPath(req.clientPool, oldPath, newPath);
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error updating topic path:', error);
-    res.status(400).json({ error: error.message });
-  }
-});
-
-app.delete('/api/topic-paths/:path', authenticate, async (req, res) => {
-  try {
-    const path = decodeURIComponent(req.params.path);
-    await deleteTopicPath(req.clientPool, path);
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting topic path:', error);
-    res.status(400).json({ error: error.message });
-  }
-});
-
-app.post('/api/topic-paths', authenticate, async (req, res) => {
-  try {
-    const { path } = req.body;
-    if (!path) {
-      return res.status(400).json({ error: 'Path is required' });
-    }
-    
-    const newPath = await createTopicPath(path, req.session.userId, req.clientPool);
-    res.json(newPath);
-  } catch (error) {
-    console.error('Error creating topic path:', error);
-    if (error.code === '23505') { // Unique violation
-      res.status(409).json({ error: 'Path already exists' });
-    } else {
-      res.status(500).json({ error: 'Failed to create topic path' });
-    }
-  }
-});
+// Topic paths endpoints (GET, DELETE, PUT)
+// Note: POST /api/topics is handled by the topics router
 
 // Get topic paths
 app.get('/api/topic-paths', authenticate, async (req, res) => {

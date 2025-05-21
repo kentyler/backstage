@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchTopicPaths, createTopicPath } from '../services/topics/topicsApi';
+import { fetchTopicPaths, createTopicPath } from '../../services/topics/topicsApi';
 import TopicTreeNode from './TopicTreeNode';
 import './TopicsMenu.css';
 

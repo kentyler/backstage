@@ -50,7 +50,9 @@ export async function createGrpTopicAvatarTurn(
   turnKindId = TURN_KIND.REGULAR,
   messageTypeId = null,
   templateTopicId = null,
-  clientPool = null
+  clientPool = null,
+  llmId = null,
+  participantId = null
 ) {
   // Determine which pool to use
   let customPool = clientPool;
@@ -84,9 +86,9 @@ export async function createGrpTopicAvatarTurn(
   // Using the updated schema with topic_id instead of topicpathid
   const query = `
     INSERT INTO grp_topic_avatar_turns
-      (topic_id, turn_kind_id, avatar_id, turn_index, content_text, content_vector, message_type_id, template_topic_id)
-    VALUES ($1, $2, $3, $4, $5, $6::vector, $7, $8)
-    RETURNING id, topic_id, avatar_id, turn_index, content_text, content_vector, created_at, turn_kind_id, message_type_id, template_topic_id
+      (topic_id, turn_kind_id, avatar_id, turn_index, content_text, content_vector, message_type_id, template_topic_id, llm_id, participant_id)
+    VALUES ($1, $2, $3, $4, $5, $6::vector, $7, $8, $9, $10)
+    RETURNING id, topic_id, avatar_id, turn_index, content_text, content_vector, created_at, turn_kind_id, message_type_id, template_topic_id, llm_id, participant_id
   `;
   const { rows } = await customPool.query(query, [
     topicPathId,
@@ -96,7 +98,9 @@ export async function createGrpTopicAvatarTurn(
     contentText,
     vecLit,
     messageTypeId,
-    templateTopicId
+    templateTopicId,
+    llmId,
+    participantId
   ]);
   const row = rows[0];
   row.content_vector = normalized;

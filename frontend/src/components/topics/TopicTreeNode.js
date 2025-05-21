@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { deleteTopicPath, updateTopicPath, setCurrentTopicPreference } from '../services/topics/topicsApi';
+import { deleteTopicPath, updateTopicPath, setCurrentTopicPreference } from '../../services/topics/topicsApi';
 import './TopicsMenu.css';
 
 /**

@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import './MessageArea.css';
-import llmService from '../services/llmService';
-import topicService from '../services/topicService';
+import llmService from '../../services/llmService';
+import topicService from '../../services/topics/topicService';
 import RelatedMessages from './RelatedMessages';
+import { useAuth } from '../../services/auth/authContext';
 
 const MessageArea = ({ selectedTopic }) => {
   const messagesEndRef = useRef(null);
@@ -10,6 +11,9 @@ const MessageArea = ({ selectedTopic }) => {
   const [file, setFile] = useState(null);
   const [topicMessages, setTopicMessages] = useState([]);
   const [relatedMessages, setRelatedMessages] = useState([]);
+  
+  // Get the authenticated user information
+  const { user } = useAuth();
   
   // State to track which messages are expanded
   const [expandedMessages, setExpandedMessages] = useState({});
@@ -87,15 +91,53 @@ const MessageArea = ({ selectedTopic }) => {
       // Log raw messages from API to check their structure
       console.log('Raw messages from API:', messages);
       
+      // Add very detailed logging to trace what's happening with participant names
+      console.log('========= API RESPONSE MESSAGES =========');
+      console.log(JSON.stringify(messages, null, 2));
+      console.log('=======================================');
+      
       // Transform the API response to match the component's message format
-      const formattedMessages = messages.map(msg => ({
-        id: msg.id,
-        content: msg.content,
-        timestamp: msg.createdAt,
-        author: msg.isUser ? 'You' : 'Assistant',
-        // Preserve the turn_index field from the backend
-        turn_index: msg.turn_index
-      }));
+      const formattedMessages = messages.map((msg, idx) => {
+        // Log each individual message in detail
+        console.log(`MESSAGE ${idx} DETAILS:`, {
+          id: msg.id,
+          isUser: msg.isUser,
+          participantId: msg.participantId,
+          participantName: msg.participantName,
+          llmId: msg.llmId,
+          llmName: msg.llmName,
+          contentPreview: msg.content?.substring(0, 30)
+        });
+        
+        // Get display name directly from the database fields
+        // NO FALLBACKS - rely on database values only
+        let displayHeader;
+        
+        if (msg.isUser) {
+          // For user messages, use the exact participant_name from the database
+          displayHeader = msg.participantName;
+          console.log(`User message ${idx} using displayHeader:`, displayHeader);
+        } else {
+          // For assistant messages, use the exact llm_name from the database
+          displayHeader = msg.llmName;
+          console.log(`Assistant message ${idx} using displayHeader:`, displayHeader);
+        }
+        
+        return {
+          id: msg.id,
+          content: msg.content,
+          timestamp: msg.createdAt,
+          author: msg.isUser ? 'You' : 'Assistant', // Keep this as 'You' for styling purposes
+          displayHeader: displayHeader, // Use the participant or LLM name as the display header
+          // Preserve the turn_index field from the backend
+          turn_index: msg.turn_index,
+          // Store the original participant and LLM IDs and names
+          participantId: msg.participantId,
+          participantName: msg.participantName,
+          llmId: msg.llmId,
+          llmName: msg.llmName
+        };
+      });
 
       console.log('Loaded messages:', formattedMessages);
       setTopicMessages(formattedMessages);
@@ -162,13 +204,42 @@ const MessageArea = ({ selectedTopic }) => {
     console.log('Using numeric ID:', numericId, 'Name:', selectedTopic.name);
 
     try {
+      // Get the user's name to display in the message header
+      // Prioritize the name field, then username, then email
+      const userName = user?.name || user?.username || user?.email?.split('@')[0] || 'User';
+      const userEmail = user?.email || null;
+      const userUsername = user?.username || null;
+      
+      // Log the complete user object to see what's available
+      console.log('Complete user object:', JSON.stringify(user, null, 2));
+      
+      // Use the most appropriate name for the participant
+      const participantName = user?.name || user?.username || user?.email?.split('@')[0] || 'User';
+      console.log('Using participant name:', participantName);
+      console.log('User display info:', { 
+        name: user?.name, 
+        username: user?.username, 
+        email: user?.email,
+        derivedName: participantName 
+      });
+      
+      // No need to prepend the identifier to the content anymore
+      const formattedContent = message;
+      
       // Add user message to UI immediately for better UX
+      // Make sure this matches the format of messages loaded from the database
       const userMessage = {
         id: `temp-${Date.now()}`,
-        content: message,
+        content: formattedContent,
         timestamp: new Date().toISOString(),
-        author: 'You'
+        author: 'You', // Keep this as 'You' for styling purposes
+        participantId: user?.id || null,
+        participantName: participantName, // Use exact participantName from above
+        isUser: true // Explicitly mark as user message
       };
+      
+      // Log the message we're about to display
+      console.log('Temporary user message being displayed:', userMessage);
       
       // Clear input field immediately
       setMessage('');
@@ -180,19 +251,43 @@ const MessageArea = ({ selectedTopic }) => {
       scrollToBottom();
       
       // Submit to LLM with the selected topic path
+      // Ensure we pass the explicit user participant ID to the LLM service
       console.log('Calling submitPrompt with:', {
         message,
         topicPathId: numericId,
-        avatarId: 1
+        avatarId: 1,
+        participantId: user?.id // Pass the exact participant ID from user object
       });
       
-      // Show loading state
+      // Get the exact LLM name and ID from the service
+      let llmDisplayName = null;
+      let llmId = null;
+      
+      try {
+        // Only proceed if the service is available
+        if (llmService && typeof llmService.getCurrentLLMConfig === 'function') {
+          const currentLLM = await llmService.getCurrentLLMConfig();
+          // Get the exact values without fallbacks
+          llmDisplayName = currentLLM?.name;
+          llmId = currentLLM?.id;
+          console.log('Using exact LLM values from config:', { llmDisplayName, llmId });
+        } else {
+          console.log('LLM service or getCurrentLLMConfig not available');
+        }
+      } catch (error) {
+        console.warn('Error getting LLM config:', error);
+      }
+      
+      // Create a loading message matching the database fields exactly
       const loadingMessage = {
         id: `loading-${Date.now()}`,
         content: 'Thinking...',
         timestamp: new Date().toISOString(),
-        author: 'Assistant',
-        isLoading: true
+        author: llmDisplayName || 'Assistant',
+        isLoading: true,
+        participantId: null,
+        llmId: llmId,
+        llmName: llmDisplayName // Exact value from LLM config
       };
       
       setTopicMessages(prev => [...prev, loadingMessage]);
@@ -203,10 +298,9 @@ const MessageArea = ({ selectedTopic }) => {
       try {
         // Submit the prompt and get the response
         const response = await llmService.submitPrompt(message, {
-          topicPathId: numericId, // Use numeric ID for database operations
+          topicPathId: numericId,
           avatarId: 1,
-          // We don't have a message ID yet since we're creating a new message
-          // The backend will handle excluding the current message once it's created
+          participantId: user?.id // Explicitly pass the participant ID
         });
         
         // Process relevant messages if they exist in the response
@@ -218,10 +312,11 @@ const MessageArea = ({ selectedTopic }) => {
             id: msg.id,
             content: msg.content,
             timestamp: msg.timestamp || new Date().toISOString(),
-            author: 'Assistant',
+            author: llmDisplayName || 'Assistant',
             topicId: msg.topicId, // Use the numeric ID for topic selection
             topicPath: msg.topicPath || 'Unknown', // Use human-readable path for display
-            score: msg.score // Keep the relevance score
+            score: msg.score, // Keep the relevance score
+            llmName: llmDisplayName // Include LLM name for consistency
           }));
           
           // Update the related messages state
@@ -245,12 +340,14 @@ const MessageArea = ({ selectedTopic }) => {
           // Log the current messages before adding the new one
           console.log('Current messages before adding response:', filteredMessages);
           
-          // Create the assistant message object
+          // Create the assistant message object with the LLM's display name
           const assistantMessage = {
             id: response.id || `resp-${Date.now()}`,
             content: response.content,
             timestamp: response.timestamp || new Date().toISOString(),
-            author: 'Assistant'
+            author: llmDisplayName || 'Assistant',
+            llmId: llmId,
+            llmName: llmDisplayName
           };
           
           console.log('Adding assistant message to UI:', assistantMessage);
@@ -287,6 +384,7 @@ const MessageArea = ({ selectedTopic }) => {
             content: 'Sorry, there was an error processing your request. Please try again.',
             timestamp: new Date().toISOString(),
             author: 'Assistant',
+            displayHeader: 'System',
             isError: true
           }];
         });
@@ -386,6 +484,7 @@ const MessageArea = ({ selectedTopic }) => {
           content: `Error uploading file: ${error.message || 'Unknown error'}`,
           timestamp: new Date().toISOString(),
           author: 'System',
+          displayHeader: 'System',
           isError: true
         }];
       });
@@ -465,10 +564,40 @@ const MessageArea = ({ selectedTopic }) => {
       displayContent = content;
     }
     
+    // Use the stored display header if available, otherwise use the author field
+    const displayAuthor = message.displayHeader || message.author;
+    
+    // Debug logging for message display
+    console.log('Message display info:', {
+      id: message.id,
+      displayHeader: message.displayHeader,
+      author: message.author,
+      displayAuthor,
+      participantName: message.participantName,
+      llmName: message.llmName,
+      isUser: message.isUser,
+      isTemporary: message.id?.toString().startsWith('temp-'),
+      isLoading: message.isLoading
+    });
+    
+    // Use the raw database fields directly without ANY processing
+    // For user messages, use participantName from database
+    // For assistant messages, use llmName from database
+    const headerContent = message.isUser ? message.participantName : message.llmName;
+    
+    // Log what we're displaying to help debug
+    console.log('Raw display data:', {
+      messageId: message.id,
+      isUser: message.isUser,
+      participantName: message.participantName,
+      llmName: message.llmName,
+      headerContent
+    });
+    
     return (
       <div key={message.id} className={`message ${message.author.toLowerCase()}`}>
         <div className="message-header">
-          <span className="message-author">{message.author}</span>
+          <span className="message-author">{headerContent}</span>
           <span className="message-time">
             {new Date(message.timestamp).toLocaleTimeString()}
           </span>

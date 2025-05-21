@@ -25,8 +25,7 @@ export async function getTurnsByTopicId(topicId, pool, limit = 100) {
       throw new Error('Invalid database pool object');
     }
     
-    // Use the view directly and let the pool's schema search path handle it
-    // This is the safest approach with dynamic schemas
+    // Use the grp_topic_avatar_turns_with_names view to get participant and LLM names
     const result = await pool.query(
       `SELECT id, topic_id, avatar_id, content_text, 
               message_type_id, turn_kind_id, created_at, turn_index,
@@ -40,19 +39,6 @@ export async function getTurnsByTopicId(topicId, pool, limit = 100) {
     );
     
     console.log(`Found ${result.rows.length} messages for topic ID ${topicId}`);
-    
-    // Add detailed logging for the row data
-    result.rows.forEach((row, idx) => {
-      console.log(`Message ${idx} DB data:`, {
-        id: row.id,
-        topic_id: row.topic_id,
-        message_type_id: row.message_type_id,
-        participant_id: row.participant_id,
-        participant_name: row.participant_name,
-        llm_id: row.llm_id,
-        llm_name: row.llm_name
-      });
-    });
     
     return result.rows.map(row => ({
       id: row.id,
@@ -71,6 +57,39 @@ export async function getTurnsByTopicId(topicId, pool, limit = 100) {
   } catch (error) {
     console.error('Error getting turns by topic ID:', error);
     // Return empty array instead of throwing an error to avoid 500 responses
+    return [];
+  }
+}
+
+/**
+ * Gets all turns for a topic path
+ * @param {string} topicPath - The path of the topic
+ * @param {Pool} pool - The PostgreSQL connection pool
+ * @param {number} [limit=100] - Maximum number of turns to return
+ * @returns {Promise<Array>} Array of topic turns
+ */
+export async function getTurnsByTopicPath(topicPath, pool, limit = 100) {
+  try {
+    console.log('Getting topic ID for path:', topicPath);
+    
+    // First get the topic ID from the path
+    const topicResult = await pool.query(
+      'SELECT id FROM grp_topics WHERE path = $1',
+      [topicPath]
+    );
+    
+    if (topicResult.rows.length === 0) {
+      console.warn(`No topic found with path: ${topicPath}`);
+      return [];
+    }
+    
+    const topicId = topicResult.rows[0].id;
+    console.log(`Found topic ID ${topicId} for path ${topicPath}`);
+    
+    // Then get the turns using the ID
+    return getTurnsByTopicId(topicId, pool, limit);
+  } catch (error) {
+    console.error('Error getting turns by topic path:', error);
     return [];
   }
 }

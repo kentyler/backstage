@@ -15,7 +15,7 @@ import { createGrpTopicAvatarTurn, updateTurnVector } from '../../db/grpTopicAva
  * @param {boolean} isUser - Whether the message is from the user
  * @returns {Promise<string|null>} The ID of the stored message or null if failed
  */
-async function storeMessage(topicPathId, avatarId, content, isUser = true) {
+async function storeMessage(topicPathId, avatarId, content, isUser = true, llmId = null, participantId = null) {
   if (!topicPathId) throw new Error('topicPathId is required');
   if (!avatarId) throw new Error('avatarId is required');
   if (!content) throw new Error('content is required');
@@ -58,7 +58,9 @@ async function storeMessage(topicPathId, avatarId, content, isUser = true) {
         turnKindId,
         messageTypeId,
         templateTopicId,
-        client // Pass the client to maintain transaction context
+        client, // Pass the client to maintain transaction context
+        llmId, // Pass the llm_id
+        participantId // Pass the participant_id
       );
       
       // Create a result object matching the expected structure
@@ -259,9 +261,13 @@ router.post('/prompt', async (req, res) => {
     
     console.log('Using LLM config:', llmConfig);
     
-    // Store the user's message with the topic path
+    // Get the user's participant ID from the request body or fall back to session
+    const participantId = req.body.participantId || req.session?.userId || null;
+    console.log('Using participant ID:', participantId, 'Source:', req.body.participantId ? 'request body' : 'session');
+    
+    // Store the user's message with the topic path and participant ID
     console.log('Storing user message...');
-    const userMessageId = await storeMessage(topicPathId, avatarId, prompt, true);
+    const userMessageId = await storeMessage(topicPathId, avatarId, prompt, true, null, participantId);
     console.log('User message stored with ID:', userMessageId);
     
     console.log('Retrieved LLM config:', {
@@ -308,9 +314,12 @@ router.post('/prompt', async (req, res) => {
       console.log('Received response from Anthropic');
       response = msg.content[0].text;
       
-      // Store the assistant's response with embedding
+      // Store the assistant's response with embedding and LLM ID
       console.log('Storing assistant response...');
-      const assistantMessageId = await storeMessage(topicPathId, avatarId, response, false);
+      // Use the LLM config ID as the llm_id
+      const llmId = llmConfig.id || null;
+      console.log('Using LLM ID:', llmId);
+      const assistantMessageId = await storeMessage(topicPathId, avatarId, response, false, llmId, null);
       console.log('Assistant response stored with ID:', assistantMessageId);
       
       // Generate and store embedding for the assistant's response
@@ -389,9 +398,12 @@ router.post('/prompt', async (req, res) => {
       
       response = completion.choices[0].message.content;
       
-      // Store the assistant's response for OpenAI with embedding
+      // Store the assistant's response for OpenAI with embedding and LLM ID
       console.log('Storing assistant response (OpenAI)...');
-      const assistantMessageId = await storeMessage(topicPathId, avatarId, response, false);
+      // Use the LLM config ID as the llm_id
+      const llmId = llmConfig.id || null;
+      console.log('Using LLM ID for OpenAI:', llmId);
+      const assistantMessageId = await storeMessage(topicPathId, avatarId, response, false, llmId, null);
       console.log('Assistant response (OpenAI) stored with ID:', assistantMessageId);
       
       // Generate and store embedding for the assistant's response (OpenAI)

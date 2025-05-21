@@ -40,7 +40,8 @@ export const loginUser = async (email, password) => {
     user: { 
       id: data.user.id,
       email: email,
-      username: email
+      username: data.user.username || email,  // Use the name from backend, fallback to email
+      name: data.user.username || email.split('@')[0]  // Add a name field for display
     }
   };
 };

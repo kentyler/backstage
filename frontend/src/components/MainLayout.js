@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AppHeader from './AppHeader';
-import TopicsMenu from './TopicsMenu';
-import MessageArea from './MessageArea';
+import TopicsMenu from './topics/TopicsMenu';
+import MessageArea from './messages/MessageArea';
 import { getCurrentTopicPreference } from '../services/topics/topicsApi';
 import './MainLayout.css';
 
