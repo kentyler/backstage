@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './RelatedMessages.css';
 
 /**
@@ -10,6 +10,16 @@ import './RelatedMessages.css';
  * @param {string} props.selectedMessageId - ID of the currently selected message (if any)
  */
 const RelatedMessages = ({ messages = [], isLoading, onTopicSelect, selectedMessageId }) => {
+  // State to track which messages are expanded
+  const [expandedMessages, setExpandedMessages] = useState({});
+  
+  // Function to toggle message expansion
+  const toggleMessageExpansion = (messageId) => {
+    setExpandedMessages(prev => ({
+      ...prev,
+      [messageId]: !prev[messageId]
+    }));
+  };
   const prevMessagesRef = useRef(messages);
 
   // Only log when messages actually change
@@ -81,12 +91,21 @@ const RelatedMessages = ({ messages = [], isLoading, onTopicSelect, selectedMess
             <div 
               key={msg.id} 
               className={`related-message ${isSelected ? 'selected' : ''}`}
-              onClick={() => onTopicSelect(msg.topicPathId, msg.id)}
             >
               <div className="related-message-header">
-                <span className="related-message-topic">
-                  Conversation: {msg.topicPathId || 'N/A'}
-                </span>
+                <div 
+                  style={{
+                    fontSize: '0.8rem',
+                    color: '#1976d2',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    display: 'inline-block'
+                  }}
+                  onClick={() => onTopicSelect(msg.topicId, msg.id)}
+                  title="Open this topic"
+                >
+                  Topic: {msg.topicPath?.split('.')?.pop() || 'Unknown'}
+                </div>
                 {msg.score && (
                   <span className="related-message-score">
                     {Math.round(msg.score * 100)}% match
@@ -94,13 +113,38 @@ const RelatedMessages = ({ messages = [], isLoading, onTopicSelect, selectedMess
                 )}
               </div>
               <div className="related-message-content">
-                {content.length > 200 ? `${content.substring(0, 200)}...` : content}
+                {content.length > 400 ? (
+                  expandedMessages[msg.id] ? (
+                    <>
+                      {content}
+                      <span 
+                        style={{ color: '#1976d2', cursor: 'pointer', marginLeft: '5px', fontWeight: 'bold' }}
+                        onClick={() => toggleMessageExpansion(msg.id)}
+                      >
+                        Show less
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      {content.substring(0, 400)}
+                      <span style={{ color: '#777' }}>...</span>
+                      <span 
+                        style={{ color: '#1976d2', cursor: 'pointer', marginLeft: '5px', fontWeight: 'bold' }}
+                        onClick={() => toggleMessageExpansion(msg.id)}
+                      >
+                        Show more
+                      </span>
+                    </>
+                  )
+                ) : content}
               </div>
-              {msg.timestamp && (
-                <div className="related-message-timestamp">
-                  {new Date(msg.timestamp).toLocaleString()}
-                </div>
-              )}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '8px' }}>
+                {msg.timestamp && (
+                  <div className="related-message-timestamp">
+                    {new Date(msg.timestamp).toLocaleString()}
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}

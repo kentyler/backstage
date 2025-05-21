@@ -6,9 +6,12 @@
  * Fetch all topic paths sorted by path
  * @returns {Promise<Array>} Sorted array of topic paths
  */
+// Ensure we're targeting the backend server (port 5000) not the frontend server (port 3000)
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 export const fetchTopicPaths = async () => {
   try {
-    const response = await fetch('/api/topic-paths', {
+    const response = await fetch(`${API_BASE_URL}/api/topic-paths`, {
       credentials: 'include', // Important for session cookies
     });
     
@@ -17,7 +20,8 @@ export const fetchTopicPaths = async () => {
     }
 
     const data = await response.json();
-    return data.sort((a, b) => a.path.localeCompare(b.path));
+    // Sort by index instead of alphabetically to maintain the order topics were added
+    return data.sort((a, b) => a.index - b.index);
   } catch (error) {
     console.error('Error fetching topic paths:', error);
     throw error;
@@ -31,7 +35,7 @@ export const fetchTopicPaths = async () => {
  */
 export async function createTopicPath(path) {
   try {
-    const response = await fetch('/api/topic-paths', {
+    const response = await fetch(`${API_BASE_URL}/api/topic-paths`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -59,7 +63,7 @@ export async function createTopicPath(path) {
  */
 export async function deleteTopicPath(path) {
   try {
-    const response = await fetch(`/api/topic-paths/${encodeURIComponent(path)}`, {
+    const response = await fetch(`${API_BASE_URL}/api/topic-paths/${encodeURIComponent(path)}`, {
       method: 'DELETE',
       credentials: 'include',
     });
@@ -84,7 +88,7 @@ export async function deleteTopicPath(path) {
  */
 export async function updateTopicPath(oldPath, newPath) {
   try {
-    const response = await fetch(`/api/topic-paths/${encodeURIComponent(oldPath)}`, {
+    const response = await fetch(`${API_BASE_URL}/api/topic-paths/${encodeURIComponent(oldPath)}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -101,6 +105,57 @@ export async function updateTopicPath(oldPath, newPath) {
     return response.json();
   } catch (error) {
     console.error('Error updating topic path:', error);
+    throw error;
+  }
+}
+
+/**
+ * Set the current topic preference for the logged-in participant
+ * @param {number} topicId - The numeric ID of the selected topic
+ * @returns {Promise<Object>} The created preference
+ */
+export async function setCurrentTopicPreference(topicId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/preferences/topic`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ topicId }),
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to set topic preference');
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Error setting topic preference:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get the current (most recent) topic preference for the logged-in participant
+ * @returns {Promise<Object|null>} The current topic preference or null if none exists
+ */
+export async function getCurrentTopicPreference() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/preferences/current-topic`, {
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to get current topic preference');
+    }
+
+    const data = await response.json();
+    return data.currentTopic || null;
+  } catch (error) {
+    console.error('Error getting current topic preference:', error);
     throw error;
   }
 }

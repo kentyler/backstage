@@ -344,11 +344,76 @@ app.post('/api/topic-paths', authenticate, async (req, res) => {
 // Get topic paths
 app.get('/api/topic-paths', authenticate, async (req, res) => {
   try {
+    // Log the client pool to help with debugging
+    console.log('Fetching topic paths with client pool:', req.clientPool ? 'Present' : 'Missing');
+    
+    // Ensure we have a client pool
+    if (!req.clientPool) {
+      console.error('No client pool available for topic paths request');
+      return res.status(500).json({ error: 'Database connection not available' });
+    }
+    
     const paths = await getTopicPaths(req.clientPool);
+    console.log(`Found ${paths.length} topic paths`);
     res.json(paths);
   } catch (error) {
     console.error('Error fetching topic paths:', error);
     res.status(500).json({ error: 'Failed to fetch topic paths' });
+  }
+});
+
+// Import topic preference functions
+import { createParticipantTopicPreference } from './db/preferences/createParticipantTopicPreference.js';
+import { getCurrentParticipantTopic } from './db/preferences/getCurrentParticipantTopic.js';
+
+// Set current topic preference for participant
+app.post('/api/preferences/topic', authenticate, async (req, res) => {
+  try {
+    const { topicId } = req.body;
+    
+    if (!topicId) {
+      return res.status(400).json({ error: 'Topic ID is required' });
+    }
+    
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const preference = await createParticipantTopicPreference(
+      req.session.userId,
+      topicId,
+      req.clientPool
+    );
+    
+    res.status(200).json({
+      success: true,
+      preference
+    });
+  } catch (error) {
+    console.error('Error setting topic preference:', error);
+    res.status(500).json({ error: 'Failed to set topic preference' });
+  }
+});
+
+// Get current topic preference for participant
+app.get('/api/preferences/current-topic', authenticate, async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const currentTopic = await getCurrentParticipantTopic(
+      req.session.userId,
+      req.clientPool
+    );
+    
+    res.status(200).json({
+      success: true,
+      currentTopic
+    });
+  } catch (error) {
+    console.error('Error getting current topic preference:', error);
+    res.status(500).json({ error: 'Failed to get current topic preference' });
   }
 });
 

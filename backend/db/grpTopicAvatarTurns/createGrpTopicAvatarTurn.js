@@ -81,12 +81,12 @@ export async function createGrpTopicAvatarTurn(
   const normalized = normalizeVector(contentVector);
   const vecLit     = toVectorLiteral(normalized);
 
-  // Using the renamed grp_topic_avatar_turns table
+  // Using the updated schema with topic_id instead of topicpathid
   const query = `
     INSERT INTO grp_topic_avatar_turns
-      (topicpathid, turn_kind_id, avatar_id, turn_index, content_text, content_vector, message_type_id, template_topic_id)
+      (topic_id, turn_kind_id, avatar_id, turn_index, content_text, content_vector, message_type_id, template_topic_id)
     VALUES ($1, $2, $3, $4, $5, $6::vector, $7, $8)
-    RETURNING id, topicpathid, avatar_id, turn_index, content_text, content_vector, created_at, turn_kind_id, message_type_id, template_topic_id
+    RETURNING id, topic_id, avatar_id, turn_index, content_text, content_vector, created_at, turn_kind_id, message_type_id, template_topic_id
   `;
   const { rows } = await customPool.query(query, [
     topicPathId,

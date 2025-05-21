@@ -9,7 +9,7 @@ import { createGrpTopicAvatarTurn, updateTurnVector } from '../../db/grpTopicAva
 
 /**
  * Stores a message with its vector representation
- * @param {string} topicPathId - The ID of the topic path
+ * @param {number} topicPathId - The numeric ID of the topic from the topic_paths table
  * @param {number} avatarId - The ID of the avatar (user/assistant)
  * @param {string} content - The message content
  * @param {boolean} isUser - Whether the message is from the user
@@ -26,7 +26,7 @@ async function storeMessage(topicPathId, avatarId, content, isUser = true) {
   try {
     // Get the next turn index
     const indexResult = await client.query(
-      'SELECT COALESCE(MAX(turn_index), 0) + 1 as next_index FROM grp_topic_avatar_turns WHERE topicpathid = $1',
+      'SELECT COALESCE(MAX(turn_index), 0) + 1 as next_index FROM grp_topic_avatar_turns WHERE topic_id = $1',
       [topicPathId]
     );
     turnIndex = indexResult.rows[0].next_index;
@@ -204,7 +204,16 @@ router.put('/:clientSchemaId/llm-config', async (req, res) => {
 router.post('/prompt', async (req, res) => {
   let client;
   try {
-    let { prompt, topicPathId, avatarId } = req.body;
+    let { prompt, topicPathId, avatarId, currentMessageId } = req.body;
+    
+    // Convert currentMessageId to number if provided
+    if (currentMessageId) {
+      currentMessageId = Number(currentMessageId);
+      if (isNaN(currentMessageId)) {
+        console.warn('Invalid currentMessageId provided:', req.body.currentMessageId);
+        currentMessageId = null;
+      }
+    }
     
     // Validate required fields
     if (!topicPathId) {
@@ -318,12 +327,14 @@ router.post('/prompt', async (req, res) => {
         
         // Now find relevant messages using the embedding we just generated
         console.log('Finding relevant messages for the response...');
-        relevantMessages = await findSimilarMessages(embedding, topicPathId, 5); // Increase limit to 5
+        // Pass the current message ID to exclude it from the results
+        // We want to include messages from the current topic, just not the current message itself
+        relevantMessages = await findSimilarMessages(embedding, topicPathId, 5, assistantMessageId); // Increase limit to 5
         console.log(`Found ${relevantMessages.length} relevant messages`);
         
         if (relevantMessages.length > 0) {
           console.log('First relevant message:', {
-            topicPathId: relevantMessages[0].topicPathId,
+            topicId: relevantMessages[0].topicId,
             score: relevantMessages[0].score,
             snippet: relevantMessages[0].content?.substring(0, 50) + '...'
           });
@@ -332,13 +343,13 @@ router.post('/prompt', async (req, res) => {
             embeddingType: typeof embedding,
             embeddingIsArray: Array.isArray(embedding),
             embeddingLength: embedding?.length,
-            topicPathId: topicPathId
+            topicId: topicPathId
           });
           
           // Try querying with a very small limit just to check if any messages exist
           console.log('Attempting broader search with no threshold limit...');
           const testMessages = await client.query(
-            'SELECT COUNT(*) FROM grp_topic_avatar_turns WHERE content_vector IS NOT NULL AND topicpathid != $1',
+            'SELECT COUNT(*) FROM grp_topic_avatar_turns WHERE content_vector IS NOT NULL AND topic_id != $1',
             [topicPathId]
           );
           console.log('Database has', testMessages.rows[0].count, 'messages with embeddings in other topics');

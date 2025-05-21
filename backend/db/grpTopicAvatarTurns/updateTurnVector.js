@@ -39,7 +39,7 @@ export async function updateTurnVector(turnId, contentVector, client = null) {
       `UPDATE grp_topic_avatar_turns 
        SET content_vector = $1 
        WHERE id = $2
-       RETURNING id, topicpathid, avatar_id, turn_index, content_text, created_at, message_type_id, turn_kind_id`,
+       RETURNING id, topic_id, avatar_id, turn_index, content_text, created_at, message_type_id, turn_kind_id`,
       [vectorValue, turnId]
     );
     

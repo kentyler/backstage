@@ -186,17 +186,19 @@ export const refreshLLMConfig = async () => {
  * @param {Object} options - Additional options
  * @param {number} options.topicPathId - The ID of the topic path (required)
  * @param {number} options.avatarId - The ID of the user's avatar (required)
+ * @param {number} options.currentMessageId - The ID of the current message (optional)
  * @returns {Promise<Object>} The LLM response
  * @throws {Error} If required parameters are missing or invalid
  */
 const submitPrompt = async (prompt, options = {}) => {
-  const { topicPathId, avatarId } = options;
+  const { topicPathId, avatarId, currentMessageId } = options;
   
   console.log('=== submitPrompt called ===');
   console.log('Prompt:', prompt);
   console.log('Options:', options);
   console.log('topicPathId:', topicPathId, 'Type:', typeof topicPathId);
   console.log('avatarId:', avatarId, 'Type:', typeof avatarId);
+  console.log('currentMessageId:', currentMessageId, 'Type:', typeof currentMessageId);
   
   if (!topicPathId) {
     console.error('topicPathId is missing or empty');
@@ -226,7 +228,8 @@ const submitPrompt = async (prompt, options = {}) => {
       body: JSON.stringify({
         prompt,
         topicPathId: cleanTopicPathId,
-        avatarId: Number(avatarId)
+        avatarId: Number(avatarId),
+        currentMessageId: currentMessageId || null
       })
     });
 
@@ -263,7 +266,8 @@ const submitPrompt = async (prompt, options = {}) => {
       console.log(`Found ${responseData.relevantMessages.length} relevant messages:`);
       responseData.relevantMessages.forEach((msg, index) => {
         console.log(`Message ${index + 1}:`, {
-          topicPathId: msg.topicPathId,
+          topicId: msg.topicId,
+          topicPath: msg.topicPath,
           score: msg.score ? `${Math.round(msg.score * 100)}%` : 'N/A',
           contentPreview: msg.content ? msg.content.substring(0, 50) + '...' : 'No content'
         });
@@ -281,37 +285,12 @@ const submitPrompt = async (prompt, options = {}) => {
   }
 };
 
-/**
- * Fetches conversation history for a specific topic path
- * @param {string} topicPathId - The ID of the topic path
- * @returns {Promise<Array>} Array of conversation messages
- */
-export async function getMessagesByTopicPath(topicPathId) {
-  if (!topicPathId) {
-    throw new Error('topicPathId is required');
-  }
 
-  try {
-    // Updated to use the new topics-based API path
-    const response = await fetch(`/api/topics/path/${encodeURIComponent(topicPathId)}`);
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to fetch topic history');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching messages by topic path:', error);
-    throw error;
-  }
-}
 
 export default {
   initializeLLMService,
   getCurrentLLMConfig,
   setCurrentLLMConfig,
   refreshLLMConfig,
-  submitPrompt,
-  getMessagesByTopicPath,
+  submitPrompt
 };

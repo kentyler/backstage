@@ -179,10 +179,29 @@
 }
 
 .message-content {
-  color: #212529;
-  line-height: 1.6;
-  margin: 8px 0;
+  white-space: pre-wrap;
   word-break: break-word;
+  line-height: 1.5;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+/* Styling for the expand/collapse button */
+.expand-button {
+  font-size: 0.8rem;
+  color: #6c757d;
+  background: none;
+  border: none;
+  padding: 2px 8px;
+  margin-top: 4px;
+  margin-left: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  display: inline-block;
+}
+
+.expand-button:hover {
+  color: #0d6efd;
 }
 
 .message-footer {
@@ -283,4 +302,17 @@
   0% { opacity: 1; }
   50% { opacity: 0.5; }
   100% { opacity: 1; }
+}
+
+/* Styling for the expand/collapse text */
+.expand-text {
+  color: #0d6efd;
+  cursor: pointer;
+  margin-left: 5px;
+  font-size: 0.9em;
+  text-decoration: underline;
+}
+
+.expand-text:hover {
+  color: #0a58ca;
 }

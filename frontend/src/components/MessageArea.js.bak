@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import './MessageArea.css';
 import llmService from '../services/llmService';
 import topicService from '../services/topicService';
@@ -76,6 +77,21 @@ const MessageArea = ({ selectedTopic }) => {
     console.log('Selected topic changed, loading messages for:', selectedTopic?.id, selectedTopic?.name);
     loadMessages();
   }, [loadMessages]);
+    if (messagesEndRef.current) {
+      // First attempt - immediate scroll
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      
+      // Second attempt - with a small delay to ensure DOM has updated
+      setTimeout(() => {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+      
+      // Third attempt - with a longer delay for slower rendering
+      setTimeout(() => {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      }, 300);
+    }
+  };
   
   // Function to toggle message expansion
   const toggleMessageExpansion = (messageId) => {
@@ -187,234 +203,261 @@ const MessageArea = ({ selectedTopic }) => {
           setRelatedMessages([]);
         }
         
-        // Replace loading message with actual response
+        // Refresh messages to get the latest from the server
+        await loadMessages();
+        
+        // Update the messages state with the response
+        const responseId = response.id || `response-${Date.now()}`;
+        
+        // Automatically expand the latest response
+        setExpandedMessages(prev => ({
+          ...prev,
+          [responseId]: true // Set the new message to expanded state
+        }));
+        
         setTopicMessages(prev => {
-          // Filter out the loading message
-          const filteredMessages = prev.filter(msg => !msg.isLoading);
+          // Find and remove the loading message
+          const updatedMessages = prev.filter(msg => !msg.isLoading);
           
-          // Add the actual response
-          return [...filteredMessages, {
-            id: response.id || `resp-${Date.now()}`,
-            content: response.content,
-            timestamp: response.timestamp || new Date().toISOString(),
+          // Add the assistant's response
+          return [...updatedMessages, {
+            id: responseId,
+            content: response.response,
+            timestamp: new Date().toISOString(),
             author: 'Assistant'
           }];
         });
         
-        // Auto-expand the latest assistant response
-        if (response.id) {
-          setExpandedMessages(prev => ({
-            ...prev,
-            [response.id]: true
-          }));
-        }
-        
-        // Scroll to bottom after receiving response
+        // Explicitly scroll to bottom after adding the assistant's response
         scrollToBottom();
         
       } catch (error) {
-        console.error('Error submitting prompt:', error);
-        
+        console.error('Error in LLM submission:', error);
         // Remove loading message and show error
-        setTopicMessages(prev => {
-          // Filter out the loading message
-          const filteredMessages = prev.filter(msg => !msg.isLoading);
-          
-          // Add error message
-          return [...filteredMessages, {
+        setTopicMessages(prev => [
+          ...prev.filter(m => m.id !== loadingMessage.id),
+          {
             id: `error-${Date.now()}`,
-            content: 'Sorry, there was an error processing your request. Please try again.',
+            content: `Error: ${error.message || 'Failed to get response'}`,
             timestamp: new Date().toISOString(),
-            author: 'Assistant',
+            author: 'System',
             isError: true
-          }];
-        });
+          }
+        ]);
       }
     } catch (error) {
       console.error('Error in handleSubmit:', error);
+      // Show error message in the UI
+      setTopicMessages(prev => [
+        ...prev,
+        {
+          id: `error-${Date.now()}`,
+          content: `Error: ${error.message || 'Failed to send message'}`,
+          timestamp: new Date().toISOString(),
+          author: 'System',
+          isError: true
+        }
+      ]);
     }
   };
 
   const handleFileChange = (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const selectedFile = e.target.files[0];
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
       setFile(selectedFile);
       uploadFile(selectedFile);
     }
   };
-
+  
   const uploadFile = async (file) => {
-    if (!file) return;
-    
-    if (!selectedTopic || !selectedTopic.id) {
-      console.error('No valid topic selected');
-      alert('Please select a topic before uploading a file');
+    if (!file || !selectedTopic || !selectedTopic.id) {
+      console.error('Cannot upload file: No file selected or no topic selected');
       return;
     }
     
-    // Create a FormData object to send the file
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('topicPathId', selectedTopic.id);
-    
     try {
-      // Show uploading message
+      // Create a FormData object to send the file
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('topicPathId', selectedTopic.id); // Use the numeric ID from the selectedTopic object
+      formData.append('description', 'Uploaded from chat');
+      
+      // Calculate the next turn index based on the number of messages
+      // Since they're already ordered, we can use the count as the next index
+      const nextTurnIndex = topicMessages.length;
+      
+      console.log(`Using turn index ${nextTurnIndex} for file upload (based on message count)`);
+      console.log('Current message count:', topicMessages.length);
+      
+      formData.append('turnIndex', nextTurnIndex.toString());
+      
+      // Add a temporary message showing the upload in progress
       const uploadingMessage = {
-        id: `uploading-${Date.now()}`,
-        content: `Uploading ${file.name}...`,
+        id: `upload-${Date.now()}`,
+        content: `Uploading file: ${file.name}...`,
         timestamp: new Date().toISOString(),
-        author: 'You',
-        isUploading: true
+        author: 'System',
+        isLoading: true
       };
       
       setTopicMessages(prev => [...prev, uploadingMessage]);
       
-      // Scroll to bottom after adding uploading message
-      scrollToBottom();
-      
       // Upload the file
-      const response = await llmService.uploadFile(formData);
-      
-      // Replace uploading message with success message
-      setTopicMessages(prev => {
-        // Filter out the uploading message
-        const filteredMessages = prev.filter(msg => !msg.isUploading);
-        
-        // Add success message
-        return [...filteredMessages, {
-          id: `file-${Date.now()}`,
-          content: `File uploaded: ${file.name}`,
-          timestamp: new Date().toISOString(),
-          author: 'You',
-          isFile: true
-        }];
+      const response = await fetch('/api/file-uploads', {
+        method: 'POST',
+        body: formData,
+        // No need to set Content-Type header - browser will set it with correct boundary
       });
       
-      // Add assistant response if available
-      if (response && response.content) {
-        setTopicMessages(prev => [...prev, {
-          id: response.id || `resp-${Date.now()}`,
-          content: response.content,
-          timestamp: response.timestamp || new Date().toISOString(),
-          author: 'Assistant'
-        }]);
-        
-        // Auto-expand the latest assistant response
-        if (response.id) {
-          setExpandedMessages(prev => ({
-            ...prev,
-            [response.id]: true
-          }));
-        }
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
       }
       
-      // Scroll to bottom after receiving response
-      scrollToBottom();
+      const result = await response.json();
+      console.log('File uploaded successfully:', result);
+      
+      // Replace the uploading message with a success message
+      setTopicMessages(prev => [
+        ...prev.filter(m => m.id !== uploadingMessage.id),
+        {
+          id: `upload-success-${Date.now()}`,
+          content: `File uploaded: ${file.name}`,
+          timestamp: new Date().toISOString(),
+          author: 'System'
+        }
+      ]);
+      
+      // Refresh messages to show the new file upload message from the server
+      await loadMessages();
+      
+      // Clear the file state
+      setFile(null);
       
     } catch (error) {
       console.error('Error uploading file:', error);
       
-      // Replace uploading message with error message
-      setTopicMessages(prev => {
-        // Filter out the uploading message
-        const filteredMessages = prev.filter(msg => !msg.isUploading);
-        
-        // Add error message
-        return [...filteredMessages, {
-          id: `error-${Date.now()}`,
-          content: `Error uploading file: ${error.message || 'Unknown error'}`,
+      // Show error message in the UI
+      // Database IDs are numbers (bigint), only temp UI messages use string IDs with prefixes
+      const tempUploadMsgId = `upload-error-${Date.now()}`;
+      
+      setTopicMessages(prev => [
+        // Keep all messages - the temporary uploading message will be removed during the next loadMessages() call
+        ...prev,
+        {
+          id: tempUploadMsgId, // Use a string ID for UI-generated messages
+          content: `Error uploading file: ${error.message}`,
           timestamp: new Date().toISOString(),
           author: 'System',
           isError: true
-        }];
-      });
+        }
+      ]);
     }
   };
 
   const renderTopicBreadcrumb = () => {
-    if (!selectedTopic || !selectedTopic.id) return null;
-    return <div className="topic-breadcrumb">{selectedTopic.name}</div>;
+    // Since we don't have path information anymore, we can't display breadcrumbs
+    return null;
   };
-  
+
+
   const renderMessage = (message) => {
-    // Check if the message is a loading or error message
-    if (message.isLoading) {
-      return (
-        <div key={message.id} className={`message ${message.author.toLowerCase()}`}>
-          <div className="message-content loading">
-            <div className="loading-indicator">
-              <div className="loading-dot"></div>
-              <div className="loading-dot"></div>
-              <div className="loading-dot"></div>
-            </div>
-            {message.content}
-          </div>
-        </div>
-      );
-    }
-    
-    if (message.isError) {
-      return (
-        <div key={message.id} className="message error">
-          <div className="message-content">
-            <i className="fas fa-exclamation-circle"></i> {message.content}
-          </div>
-        </div>
-      );
-    }
-    
-    // Check if the message is expanded or should be truncated
-    const isExpanded = expandedMessages[message.id];
-    const isAssistant = message.author === 'Assistant';
-    const content = message.content || '';
-    
-    // Only truncate assistant messages that are longer than 500 characters
-    const shouldTruncate = isAssistant && content.length > 500 && !isExpanded;
-    
-    // Get the display content based on truncation with inline Show more/less text
-    let displayContent;
-    if (isAssistant && content.length > 500) {
-      if (isExpanded) {
-        displayContent = (
-          <>
-            {content}
-            <span 
-              style={{ color: '#1976d2', cursor: 'pointer', marginLeft: '5px', fontWeight: 'bold' }}
-              onClick={() => toggleMessageExpansion(message.id)}
-            >
-              Show less
-            </span>
-          </>
-        );
-      } else {
-        displayContent = (
-          <>
-            {content.substring(0, 500)}
-            <span style={{ color: '#777' }}>...</span>
-            <span 
-              style={{ color: '#1976d2', cursor: 'pointer', marginLeft: '5px', fontWeight: 'bold' }}
-              onClick={() => toggleMessageExpansion(message.id)}
-            >
-              Show more
-            </span>
-          </>
-        );
-      }
-    } else {
-      displayContent = content;
-    }
-    
+    const messageClasses = [
+      'message-item',
+      message.isLoading ? 'message-loading' : '',
+      message.isError ? 'message-error' : ''
+    ].filter(Boolean).join(' ');
+
     return (
-      <div key={message.id} className={`message ${message.author.toLowerCase()}`}>
+      <div key={message.id} className={messageClasses}>
         <div className="message-header">
           <span className="message-author">{message.author}</span>
-          <span className="message-time">
-            {new Date(message.timestamp).toLocaleTimeString()}
+          <span className="message-timestamp">
+            {new Date(message.timestamp).toLocaleString()}
           </span>
         </div>
         <div className="message-content">
-          {displayContent}
+          {message.isLoading ? (
+            <div className="loading-dots">
+              <span>.</span>
+              <span>.</span>
+              <span>.</span>
+            </div>
+          ) : (
+            <>
+              {message.content && message.content.length > 400 ? (
+                expandedMessages[message.id] ? (
+                  <>
+                    {message.content}
+                    <span 
+                      style={{ color: '#1976d2', cursor: 'pointer', marginLeft: '5px', fontWeight: 'bold' }}
+                      onClick={() => toggleMessageExpansion(message.id)}
+                    >
+                      Show less
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    {message.content.substring(0, 400)}
+                    <span 
+                      style={{ color: '#1976d2', cursor: 'pointer', marginLeft: '5px', fontWeight: 'bold' }}
+                      onClick={() => toggleMessageExpansion(message.id)}
+                    >
+                      ... Show more
+                    </span>
+                  </>
+                )
+              ) : message.content}
+            </>
+          )}
         </div>
+        {message.topicPath && (
+          <div className="message-footer">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              <span className="message-topic-path">{message.topicPath}</span>
+              {message.score && (
+                <span className="message-relevance-score">
+                  {Math.round(message.score * 100)}% match
+                </span>
+              )}
+            </div>
+            {message.topicId && (
+              <div 
+                style={{
+                  fontSize: '0.75rem',
+                  backgroundColor: '#e3f2fd',
+                  color: '#1976d2',
+                  padding: '2px 8px',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  fontWeight: '500',
+                  marginTop: '4px',
+                  display: 'inline-block'
+                }}
+                onClick={() => {
+                  // Get the topic name from the path
+                  const topicName = message.topicPath.split('.').pop() || 'Topic';
+                  // Create a new selectedTopic object with both id and name
+                  const newSelectedTopic = {
+                    id: message.topicId,
+                    name: topicName
+                  };
+                  // Update the selected topic
+                  if (typeof window.setSelectedTopic === 'function') {
+                    window.setSelectedTopic(newSelectedTopic);
+                  } else {
+                    console.log('Selecting topic:', newSelectedTopic);
+                    // Since we can't directly access the parent component's state,
+                    // we'll need to implement a proper state management solution
+                    // For now, we'll just log the action
+                  }
+                }}
+                title="Open this topic"
+              >
+                {message.topicPath.split('.').pop() || 'Topic'}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   };

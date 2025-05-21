@@ -1,11 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { deleteTopicPath, updateTopicPath } from '../services/topics/topicsApi';
+import { deleteTopicPath, updateTopicPath, setCurrentTopicPreference } from '../services/topics/topicsApi';
 import './TopicsMenu.css';
 
 /**
  * A single node in the topic tree
+ * @param {Object} node - The topic node object
+ * @param {number} level - The indentation level (depth) of this node
+ * @param {Function} onAddChild - Callback when adding a child node
+ * @param {Set} expandedPaths - Set of paths that are currently expanded
+ * @param {Function} onToggleExpand - Callback when toggling node expansion
+ * @param {Function} refreshTopics - Callback to refresh the topic tree
+ * @param {Function} onSelect - Callback when a topic is selected
+ * @param {boolean} isSelected - Whether this topic is currently selected (from restored session) 
  */
-const TopicTreeNode = ({ node, level = 0, onAddChild, expandedPaths, onToggleExpand, refreshTopics, onSelect }) => {
+const TopicTreeNode = ({ node, level = 0, onAddChild, expandedPaths, onToggleExpand, refreshTopics, onSelect, isSelected = false, children }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(node.fullPath || node.name);
   const [lastClickTime, setLastClickTime] = useState(0);
@@ -34,7 +42,7 @@ const TopicTreeNode = ({ node, level = 0, onAddChild, expandedPaths, onToggleExp
     onAddChild(fullPath);
   };
 
-  const handleClick = (e) => {
+  const handleClick = async (e) => {
     e.stopPropagation();
     const currentTime = new Date().getTime();
     const timeDiff = currentTime - lastClickTime;
@@ -42,7 +50,25 @@ const TopicTreeNode = ({ node, level = 0, onAddChild, expandedPaths, onToggleExp
     if (timeDiff < 300) { // Double click threshold
       setIsEditing(true);
     } else {
-      onSelect && onSelect(node.id, node.fullPath || node.name);
+      try {
+        // Call the onSelect callback, passing the numeric ID as the primary identifier
+        // This ensures we're using DB IDs instead of path strings for lookups
+        onSelect && onSelect(node.numericId, node.id, node.fullPath || node.name);
+        
+        // Record the topic selection as a participant preference
+        // Use the numeric ID directly from the node data
+        const topicId = node.numericId;
+        
+        // Only record preference if we have a valid topic ID
+        if (topicId) {
+          // Record this topic as the participant's current preference
+          await setCurrentTopicPreference(topicId);
+          console.log(`Recorded topic preference: ${topicId} - ${node.fullPath || node.name}`);
+        }
+      } catch (error) {
+        console.error('Error recording topic preference:', error);
+        // Don't block the UI if preference recording fails
+      }
     }
 
     setLastClickTime(currentTime);
@@ -97,7 +123,7 @@ const TopicTreeNode = ({ node, level = 0, onAddChild, expandedPaths, onToggleExp
   return (
     <li className="topic-item">
       <div 
-        className="topic-label" 
+        className={`topic-label ${isSelected ? 'topic-selected' : ''}`} 
         style={{ paddingLeft: `${level * 20}px` }}
       >
         <div className="topic-content" onClick={toggleExpand}>
@@ -125,9 +151,23 @@ const TopicTreeNode = ({ node, level = 0, onAddChild, expandedPaths, onToggleExp
         </div>
         <div className="topic-actions">
           <button 
-            className="add-subtopic-btn" 
+            style={{
+              background: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              width: '18px',
+              height: '18px',
+              borderRadius: '9px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '14px',
+              lineHeight: 1
+            }}
             onClick={handleAddClick}
             title={`Add under ${node.name}`}
+            type="button"
           >
             +
           </button>

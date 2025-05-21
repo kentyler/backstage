@@ -26,6 +26,14 @@
   color: #2c3e50;
 }
 
+.topics-header .add-subtopic-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  margin-left: 10px;
+}
+
 .add-topic-btn {
   background: #4CAF50;
   color: white;
@@ -141,7 +149,35 @@
 }
 
 .topic-label:hover {
-  background-color: #e9ecef;
+  background-color: #f0f7ff;
+}
+
+.topic-selected {
+  background-color: #e3f2fd;
+  font-weight: 500;
+  border-left: 3px solid #1976d2;
+}
+
+.topic-selected .topic-name {
+  color: #1565c0;
+}
+
+/* Loading indicators for topic restoration */
+.loading-indicator, .loading-content {
+  padding: 1rem;
+  color: #666;
+  font-style: italic;
+}
+
+/* Current topic indicator */
+.current-topic {
+  font-size: 0.85rem;
+  color: #555;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  display: inline-block;
 }
 
 .topic-actions {

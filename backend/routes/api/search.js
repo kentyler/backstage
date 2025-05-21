@@ -11,21 +11,23 @@ const router = express.Router();
  */
 router.post('/similar-messages', async (req, res) => {
   try {
-    const { text, excludeTopicPath } = req.body;
+    // Extract parameters from the request body
+    const { text, topicId, currentMessageId } = req.body;
     
+    // Validate required parameters
     if (!text) {
-      return res.status(400).json({ error: 'Text is required' });
+      return res.status(400).json({ error: 'text is required' });
     }
     
-    if (!excludeTopicPath) {
-      return res.status(400).json({ error: 'excludeTopicPath is required' });
+    if (!topicId) {
+      return res.status(400).json({ error: 'topicId is required' });
     }
     
     // Generate embedding for the search text
     const embedding = await generateEmbedding(text);
     
     // Find similar messages
-    const similarMessages = await findSimilarMessages(embedding, excludeTopicPath, 10);
+    const similarMessages = await findSimilarMessages(embedding, topicId, 10, currentMessageId);
     
     res.json({
       success: true,
