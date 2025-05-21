@@ -81,8 +81,9 @@ router.get('/id/:topicId', async (req, res) => {
     
     // Use the numeric topic ID directly
     try {
-      // Get turns directly using the topic ID
-      const turns = await getTurnsByTopicId(Number(topicId), parseInt(limit), req.clientPool);
+      // Get turns directly using the topic ID - pass the pool object correctly
+      const pool = req.clientPool;
+      const turns = await getTurnsByTopicId(Number(topicId), pool, parseInt(limit));
       res.json(turns);
     } catch (dbError) {
       console.error('Database error getting topic turns:', dbError);
@@ -100,30 +101,6 @@ router.get('/id/:topicId', async (req, res) => {
   }
 });
 
-/**
- * @route   GET /api/topics/id/:topicId
- * @desc    Get all turns for a topic using the numeric ID
- * @access  Private
- */
-router.get('/id/:topicId', async (req, res) => {
-  try {
-    const topicId = req.params.topicId;
-    const limit = req.query.limit || 100;
-    
-    if (!topicId || isNaN(Number(topicId))) {
-      return res.status(400).json({ error: 'Valid numeric topicId is required' });
-    }
-    
-    // Directly use the numeric ID
-    const turns = await getTurnsByTopicId(Number(topicId), req.clientPool, parseInt(limit));
-    res.json(turns);
-  } catch (error) {
-    console.error('Error getting turns by topic ID:', error);
-    res.status(500).json({ 
-      error: 'Failed to get topic history',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
+
 
 export default router;

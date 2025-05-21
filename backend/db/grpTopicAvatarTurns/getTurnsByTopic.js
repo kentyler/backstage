@@ -13,13 +13,19 @@ const MESSAGE_TYPE = {
 /**
  * Gets all turns for a topic using its numeric ID
  * @param {number} topicId - The numeric ID of the topic
- * @param {number} [limit=100] - Maximum number of turns to return
  * @param {Pool} pool - The PostgreSQL connection pool
+ * @param {number} [limit=100] - Maximum number of turns to return
  * @returns {Promise<Array>} Array of topic turns
  */
-export async function getTurnsByTopicId(topicId, limit = 100, pool) {
+export async function getTurnsByTopicId(topicId, pool, limit = 100) {
   try {
     console.log('Executing getTurnsByTopicId with:', { topicId, limit });
+    
+    // Validate that we have a proper pool object
+    if (!pool || typeof pool.query !== 'function') {
+      console.error('Invalid pool object provided to getTurnsByTopicId:', pool);
+      throw new Error('Invalid database pool object');
+    }
     
     // Use the topic_id directly with the query
     const result = await pool.query(

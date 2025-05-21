@@ -14,21 +14,61 @@ const MessageArea = ({ selectedTopic }) => {
   // State to track which messages are expanded
   const [expandedMessages, setExpandedMessages] = useState({});
 
-  const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      // First attempt - immediate scroll
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+  // Create a container ref for the message container
+  const messageContainerRef = useRef(null);
+
+  // Robust scrolling method with multiple fallbacks
+  const scrollToBottom = (force = false) => {
+    console.log('Attempting to scroll to bottom');
+    
+    // Try multiple methods to ensure scrolling works
+    const scrollMethods = [
+      // Method 1: Use the ref directly
+      () => {
+        if (messageContainerRef.current) {
+          const container = messageContainerRef.current;
+          container.scrollTop = container.scrollHeight;
+          console.log(`Method 1: Direct ref scrolling, height=${container.scrollHeight}`);
+        }
+      },
       
-      // Second attempt - with a small delay to ensure DOM has updated
-      setTimeout(() => {
-        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-      }, 100);
+      // Method 2: Use querySelector
+      () => {
+        const container = document.querySelector('.messages-list');
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+          console.log(`Method 2: querySelector scrolling, height=${container.scrollHeight}`);
+        }
+      },
       
-      // Third attempt - with a longer delay for slower rendering
+      // Method 3: Use scrollIntoView on the end ref
+      () => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
+          console.log('Method 3: scrollIntoView on end ref');
+        }
+      },
+      
+      // Method 4: Scroll the parent container
+      () => {
+        const container = document.querySelector('.messages-column');
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+          console.log(`Method 4: Parent container scrolling, height=${container.scrollHeight}`);
+        }
+      }
+    ];
+    
+    // Try all methods immediately
+    scrollMethods.forEach(method => method());
+    
+    // Then try again with delays to ensure it works after rendering
+    [100, 300, 500, 1000].forEach(delay => {
       setTimeout(() => {
-        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-      }, 300);
-    }
+        console.log(`Retry scrolling after ${delay}ms`);
+        scrollMethods.forEach(method => method());
+      }, delay);
+    });
   };
   
   // Load messages when a topic is selected
@@ -61,21 +101,26 @@ const MessageArea = ({ selectedTopic }) => {
       setTopicMessages(formattedMessages);
       
       // Explicitly scroll to bottom after messages are loaded
-      // Use a small delay to ensure state update has completed
+      // Use immediate scrolling for better reliability
       setTimeout(() => {
-        scrollToBottom();
+        scrollToBottom(true);
       }, 200);
+      
+      // Add a second scroll attempt with a longer delay
+      setTimeout(() => {
+        scrollToBottom(true);
+      }, 500);
     } catch (error) {
       console.error('Failed to load messages:', error);
       // Optionally show an error message to the user
     }
-  }, [selectedTopic?.id, scrollToBottom]);
+  }, [selectedTopic?.id]);
 
   // Load messages when the selected topic changes
   useEffect(() => {
     console.log('Selected topic changed, loading messages for:', selectedTopic?.id, selectedTopic?.name);
     loadMessages();
-  }, [loadMessages]);
+  }, [selectedTopic?.id]);
   
   // Function to toggle message expansion
   const toggleMessageExpansion = (messageId) => {
@@ -85,23 +130,19 @@ const MessageArea = ({ selectedTopic }) => {
     }));
   };
 
-  // Scroll when messages change
+  // Effect for initial component mount and when selected topic changes
   useEffect(() => {
-    scrollToBottom();
-  }, [topicMessages]);
-  
-  // Scroll when component mounts or selected topic changes
-  useEffect(() => {
-    scrollToBottom();
-  }, [selectedTopic]);
-  
-  // Scroll when component first mounts, with no dependencies
-  useEffect(() => {
-    // Use a slightly longer delay for the initial scroll
-    setTimeout(() => {
-      scrollToBottom();
-    }, 500);
-  }, []);
+    console.log('Component mounted or topic changed, scrolling to bottom');
+    // Initial scroll
+    scrollToBottom(true);
+    
+    // Multiple delayed scrolls to ensure it works
+    [100, 300, 500, 1000, 2000].forEach(delay => {
+      setTimeout(() => {
+        scrollToBottom(true);
+      }, delay);
+    });
+  }, [selectedTopic?.id]); // Run when the component mounts or when the selected topic changes
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -156,6 +197,9 @@ const MessageArea = ({ selectedTopic }) => {
       
       setTopicMessages(prev => [...prev, loadingMessage]);
       
+      // Scroll to bottom immediately after adding loading message
+      setTimeout(() => scrollToBottom(true), 50);
+      
       try {
         // Submit the prompt and get the response
         const response = await llmService.submitPrompt(message, {
@@ -187,18 +231,32 @@ const MessageArea = ({ selectedTopic }) => {
           setRelatedMessages([]);
         }
         
+        // Add detailed logging to debug response handling
+        console.log('Response from server:', response);
+        console.log('Response ID:', response.id);
+        console.log('Response content:', response.content);
+        console.log('Response timestamp:', response.timestamp);
+        
         // Replace loading message with actual response
         setTopicMessages(prev => {
           // Filter out the loading message
           const filteredMessages = prev.filter(msg => !msg.isLoading);
           
-          // Add the actual response
-          return [...filteredMessages, {
+          // Log the current messages before adding the new one
+          console.log('Current messages before adding response:', filteredMessages);
+          
+          // Create the assistant message object
+          const assistantMessage = {
             id: response.id || `resp-${Date.now()}`,
             content: response.content,
             timestamp: response.timestamp || new Date().toISOString(),
             author: 'Assistant'
-          }];
+          };
+          
+          console.log('Adding assistant message to UI:', assistantMessage);
+          
+          // Add the actual response
+          return [...filteredMessages, assistantMessage];
         });
         
         // Auto-expand the latest assistant response
@@ -209,8 +267,11 @@ const MessageArea = ({ selectedTopic }) => {
           }));
         }
         
-        // Scroll to bottom after receiving response
-        scrollToBottom();
+        // Scroll to bottom immediately after receiving response
+        scrollToBottom(true);
+        
+        // Also scroll after a short delay to ensure rendering is complete
+        setTimeout(() => scrollToBottom(true), 100);
         
       } catch (error) {
         console.error('Error submitting prompt:', error);
@@ -436,11 +497,9 @@ const MessageArea = ({ selectedTopic }) => {
           <div className="messages-header">
             {selectedTopic && selectedTopic.id ? selectedTopic.name : 'Messages in this topic'}
           </div>
-          <div className="messages-list">
-            <div>
-              {topicMessages.map(renderMessage)}
-              <div ref={messagesEndRef} />
-            </div>
+          <div className="messages-list" ref={messageContainerRef}>
+            {topicMessages.map(renderMessage)}
+            <div ref={messagesEndRef} style={{ height: '1px', clear: 'both' }} />
           </div>
         </div>
 

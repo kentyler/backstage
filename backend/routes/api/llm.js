@@ -366,12 +366,12 @@ router.post('/prompt', async (req, res) => {
         preview: response?.substring(0, 100) + (response?.length > 100 ? '...' : '')
       });
       
-      // Send success response with the assistant's response and relevant messages
+      // Send success response with the assistant's response in the format expected by the frontend
       res.json({ 
-        text: response,
+        id: assistantMessageId,
+        content: response,
         relevantMessages, // Include the relevant messages in the response
         success: true, 
-        message: 'Prompt processed successfully',
         timestamp: new Date().toISOString()
       });
     } else if (llmConfig.provider === 'openai') {
@@ -407,12 +407,13 @@ router.post('/prompt', async (req, res) => {
         // Continue without failing the request
       }
       
-      // Send success response with the assistant's response
+      // Send success response with the assistant's response in the format expected by the frontend
       return res.json({ 
         success: true, 
-        message: 'Prompt processed successfully',
-        response: response,
-        timestamp: new Date().toISOString()
+        id: assistantMessageId,
+        content: response,
+        timestamp: new Date().toISOString(),
+        relevantMessages: relevantMessages
       });
     } else {
       return res.status(400).json({ 
