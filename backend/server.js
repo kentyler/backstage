@@ -94,9 +94,31 @@ app.use(express.static(staticPath, {
 
 // Apply setClientPool middleware to API routes and mount LLM routes
 app.use('/api', setClientPool);
-app.use('/api/llm', llmRoutes);
-app.use('/api/topics', topicRoutes);
-app.use('/api/file-uploads', fileUploadRoutes);
+
+// Mount API routes after ensuring setClientPool is applied
+app.use('/api/llm', (req, res, next) => {
+  if (!req.clientPool) {
+    console.error('No clientPool found in request object');
+    return res.status(500).json({ error: 'Database connection error' });
+  }
+  next();
+}, llmRoutes);
+
+app.use('/api/topics', (req, res, next) => {
+  if (!req.clientPool) {
+    console.error('No clientPool found in request object');
+    return res.status(500).json({ error: 'Database connection error' });
+  }
+  next();
+}, topicRoutes);
+
+app.use('/api/file-uploads', (req, res, next) => {
+  if (!req.clientPool) {
+    console.error('No clientPool found in request object');
+    return res.status(500).json({ error: 'Database connection error' });
+  }
+  next();
+}, fileUploadRoutes);
 
 // Simple authentication middleware
 const authenticate = (req, res, next) => {

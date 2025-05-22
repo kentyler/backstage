@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import './MessageArea.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import llmService from '../../services/llmService';
 import topicService from '../../services/topics/topicService';
 import RelatedMessages from './RelatedMessages';
@@ -712,7 +714,16 @@ const MessageArea = ({ selectedTopic }) => {
                 onChange={handleFileChange}
                 style={{ display: 'none' }}
               />
-              📎
+              <FontAwesomeIcon 
+                icon={faPaperclip} 
+                style={{ 
+                  fontSize: '1.2em',
+                  color: '#666',
+                  cursor: 'pointer',
+                  transform: 'rotate(-45deg)' // Optional: Rotate to match the emoji style
+                }} 
+                title="Attach file"
+              />
             </label>
           </div>
         </form>
