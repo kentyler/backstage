@@ -18,8 +18,25 @@ const MessageArea = ({ selectedTopic }) => {
   // State to track which messages are expanded
   const [expandedMessages, setExpandedMessages] = useState({});
 
-  // Create a container ref for the message container
+  // Create refs
   const messageContainerRef = useRef(null);
+  const textareaRef = useRef(null);
+  
+  // Auto-resize textarea based on content
+  const autoResizeTextarea = useCallback(() => {
+    if (textareaRef.current) {
+      // Reset height to get the correct scrollHeight
+      textareaRef.current.style.height = 'auto';
+      // Set the height to scrollHeight with a max of 400px
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 400)}px`;
+    }
+  }, []);
+  
+  // Handle textarea changes
+  const handleTextareaChange = useCallback((e) => {
+    setMessage(e.target.value);
+    autoResizeTextarea();
+  }, [autoResizeTextarea]);
 
   // Robust scrolling method with multiple fallbacks
   const scrollToBottom = (force = false) => {
@@ -662,10 +679,28 @@ const MessageArea = ({ selectedTopic }) => {
       <div className="message-input-container">
         <form onSubmit={handleSubmit} className="message-input-form">
           <textarea
+            ref={textareaRef}
             className="message-input"
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type your message..."
+            onChange={handleTextareaChange}
+            onKeyDown={(e) => {
+              // Handle Enter to send (but allow Shift+Enter for newlines)
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
+            }}
+            onPaste={autoResizeTextarea}
+            onCut={autoResizeTextarea}
+            placeholder="Type your message... (Press Enter to send, Shift+Enter for newline)"
+            rows="1"
+            style={{
+              minHeight: '40px',
+              maxHeight: '400px',
+              overflowY: 'auto',
+              resize: 'none',
+              transition: 'none' // Prevents animation glitches
+            }}
           />
           <div className="message-actions">
             <button type="submit" className="send-button">
