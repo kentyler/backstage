@@ -198,6 +198,82 @@
 .message-timestamp {
   font-size: 0.75rem;
   color: #adb5bd;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.related-messages-link {
+  color: #6c757d;
+  cursor: pointer;
+  font-size: 0.7rem;
+  margin-left: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+}
+
+.related-messages-link:hover {
+  color: #0d6efd;
+  background-color: #f0f4f8;
+  text-decoration: none;
+}
+
+.related-messages-link.active {
+  color: #0d6efd;
+  font-weight: 500;
+  background-color: #e7f1ff;
+}
+
+/* Selected message styling */
+.message {
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.message.selected-message {
+  background-color: #f8f9fa;
+  box-shadow: 0 0 0 2px #e9ecef;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 4px 0;
+}
+
+/* Make sure the message content is still readable when selected */
+.message.selected-message .message-content {
+  color: inherit;
+}
+
+/* Loading and error states for related messages */
+.related-messages-loading,
+.related-messages-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #6c757d;
+  padding: 16px;
+  margin: 8px;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  text-align: center;
+  min-height: 60px;
+  border: 1px solid #e9ecef;
+}
+
+.related-messages-error {
+  color: #dc3545;
+  background-color: #fff5f5;
+  border-color: #ffd6d6;
+}
+
+.related-messages-loading {
+  color: #6c757d;
+  background-color: #f8f9fa;
 }
 
 .message-content {

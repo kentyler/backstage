@@ -5,7 +5,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { generateEmbedding } from '../../services/embeddings.js';
 import { findSimilarMessages } from '../../db/messageSearch.js';
-import { createGrpTopicAvatarTurn, updateTurnVector } from '../../db/grpTopicAvatarTurns/index.js';
+import { createGrpTopicAvatarTurn, updateTurnVector, getTurnById } from '../../db/grpTopicAvatarTurns/index.js';
 
 /**
  * Stores a message with its vector representation
@@ -454,6 +454,67 @@ router.post('/prompt', async (req, res) => {
     if (client) {
       client.release();
     }
+  }
+});
+
+/**
+ * @route   GET /api/messages/:messageId/related
+ * @desc    Get messages related to a specific message
+ * @access  Private
+ */
+router.get('/messages/:messageId/related', async (req, res) => {
+  const { messageId } = req.params;
+  const { limit = 5 } = req.query;
+  
+  if (!messageId) {
+    return res.status(400).json({ error: 'Message ID is required' });
+  }
+
+  const client = await pool.connect();
+  
+  try {
+    // 1. Get the message and its embedding
+    const message = await getTurnById(Number(messageId), client);
+    
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+    
+    let embedding = message.content_vector;
+
+    // If no embedding exists, generate one
+    if (!embedding) {
+      embedding = await generateEmbedding(message.content_text);
+      await updateTurnVector(Number(messageId), embedding, client);
+    } else if (typeof embedding === 'string') {
+      // If embedding is a string, parse it to an array
+      try {
+        embedding = JSON.parse(embedding);
+      } catch (e) {
+        console.error('Error parsing embedding string:', e);
+        // If parsing fails, generate a new embedding
+        embedding = await generateEmbedding(message.content_text);
+        await updateTurnVector(Number(messageId), embedding, client);
+      }
+    }
+    
+    // 2. Find similar messages
+    const similarMessages = await findSimilarMessages(
+      embedding,
+      message.topic_id,
+      Number(limit),
+      Number(messageId) // Exclude the current message
+    );
+    
+    res.json(similarMessages);
+  } catch (error) {
+    console.error('Error finding related messages:', error);
+    res.status(500).json({ 
+      error: 'Failed to find related messages',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  } finally {
+    client.release();
   }
 });
 

@@ -8,21 +8,29 @@ import RelatedMessages from './RelatedMessages';
 import { useAuth } from '../../services/auth/authContext';
 
 const MessageArea = ({ selectedTopic }) => {
+  // Refs
   const messagesEndRef = useRef(null);
+  const messageContainerRef = useRef(null);
+  const textareaRef = useRef(null);
+  
+  // Authentication
+  const { user } = useAuth();
+  
+  // Message state
   const [message, setMessage] = useState('');
   const [file, setFile] = useState(null);
   const [topicMessages, setTopicMessages] = useState([]);
-  const [relatedMessages, setRelatedMessages] = useState([]);
   
-  // Get the authenticated user information
-  const { user } = useAuth();
-  
-  // State to track which messages are expanded
+  // UI state
   const [expandedMessages, setExpandedMessages] = useState({});
+  
+  // Related messages state
+  const [relatedMessages, setRelatedMessages] = useState([]);
+  const [relatedMessagesError, setRelatedMessagesError] = useState(null);
+  const [isLoadingRelated, setIsLoadingRelated] = useState(false);
+  const [selectedMessageId, setSelectedMessageId] = useState(null);
 
-  // Create refs
-  const messageContainerRef = useRef(null);
-  const textareaRef = useRef(null);
+
   
   // Auto-resize textarea based on content
   const autoResizeTextarea = useCallback(() => {
@@ -515,7 +523,54 @@ const MessageArea = ({ selectedTopic }) => {
     return <div className="topic-breadcrumb">{selectedTopic.name}</div>;
   };
   
+
+
+  const handleShowRelatedMessages = async (messageId) => {
+    // If clicking the same message, toggle the related messages off
+    if (selectedMessageId === messageId) {
+      setSelectedMessageId(null);
+      setRelatedMessages([]);
+      setRelatedMessagesError(null);
+      return;
+    }
+
+    setSelectedMessageId(messageId);
+    setIsLoadingRelated(true);
+    setRelatedMessagesError(null);
+    
+    try {
+      const response = await fetch(`/api/llm/messages/${messageId}/related?limit=5`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, ${errorText}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data || data.length === 0) {
+        setRelatedMessagesError('No related messages found.');
+        setRelatedMessages([]);
+      } else {
+        setRelatedMessages(data);
+      }
+    } catch (error) {
+      console.error('Error fetching related messages:', error);
+      setRelatedMessagesError('Failed to load related messages. Please try again.');
+      setRelatedMessages([]);
+    } finally {
+      setIsLoadingRelated(false);
+    }
+  };
+
   const renderMessage = (message) => {
+    const isSelected = selectedMessageId === message.id;
+    
     // Check if the message is a loading or error message
     if (message.isLoading) {
       return (
@@ -614,11 +669,27 @@ const MessageArea = ({ selectedTopic }) => {
     });
     
     return (
-      <div key={message.id} className={`message ${message.author.toLowerCase()}`}>
+      <div 
+        key={message.id} 
+        className={`message ${message.author.toLowerCase()} ${isSelected ? 'selected-message' : ''}`}
+        onClick={() => isSelected && handleShowRelatedMessages(message.id)}
+      >
         <div className="message-header">
           <span className="message-author">{headerContent}</span>
           <span className="message-time">
             {new Date(message.timestamp).toLocaleTimeString()}
+            {!message.isLoading && !message.isError && (
+              <span 
+                className={`related-messages-link ${isSelected ? 'active' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent the message click handler from firing
+                  handleShowRelatedMessages(message.id);
+                }}
+                title={isSelected ? "Hide related messages" : "Show related messages"}
+              >
+                {isSelected ? ' × Hide related' : ' • See related'}
+              </span>
+            )}
           </span>
         </div>
         <div className="message-content">
@@ -653,27 +724,34 @@ const MessageArea = ({ selectedTopic }) => {
 
         {/* Related messages */}
         <div className="messages-column">
-          <RelatedMessages 
-            messages={relatedMessages} 
-            isLoading={false} 
-            onTopicSelect={(topicId, messageId) => {
-              // Handle topic selection from related messages
-              console.log('Selected topic from related messages:', topicId, 'messageId:', messageId);
-              
-              // Find the topic name from the related messages
-              const selectedMessage = relatedMessages.find(msg => msg.topicId === topicId);
-              const topicName = selectedMessage?.topicPath?.split('.')?.pop() || 'Unknown';
-              
-              // Update the selected topic via the window object
-              if (typeof window.setSelectedTopic === 'function') {
-                window.setSelectedTopic({
-                  id: topicId,
-                  name: topicName
-                });
-              }
-            }} 
-            selectedMessageId={null}
-          />
+          {selectedMessageId && (
+            <RelatedMessages 
+              messages={relatedMessages} 
+              isLoading={isLoadingRelated} 
+              onTopicSelect={(topicId, messageId) => {
+                // Handle topic selection from related messages
+                console.log('Selected topic from related messages:', topicId, 'messageId:', messageId);
+                
+                // Find the topic name from the related messages
+                const selectedMessage = relatedMessages.find(msg => msg.topicId === topicId);
+                const topicName = selectedMessage?.topicPath?.split('.')?.pop() || 'Unknown';
+                
+                // Update the selected topic via the window object
+                if (typeof window.setSelectedTopic === 'function') {
+                  window.setSelectedTopic({
+                    id: topicId,
+                    name: topicName
+                  });
+                }
+              }} 
+              selectedMessageId={selectedMessageId}
+            />
+          )}
+          {relatedMessagesError && (
+            <div className="related-messages-error">
+              {relatedMessagesError}
+            </div>
+          )}
         </div>
       </div>
 

@@ -11,7 +11,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 export const fetchTopicPaths = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/topic-paths`, {
+    const response = await fetch(`${API_BASE_URL}/api/topics`, {
       credentials: 'include', // Important for session cookies
     });
     
@@ -35,7 +35,7 @@ export const fetchTopicPaths = async () => {
  */
 export async function createTopicPath(path) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/topic-paths`, {
+    const response = await fetch(`${API_BASE_URL}/api/topics`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -63,16 +63,29 @@ export async function createTopicPath(path) {
  */
 export async function deleteTopicPath(path) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/topic-paths/${encodeURIComponent(path)}`, {
+    const response = await fetch(`${API_BASE_URL}/api/topics/${encodeURIComponent(path)}`, {
       method: 'DELETE',
       credentials: 'include',
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to delete topic path');
+      // Only try to parse as JSON if there's a response body
+      const errorText = await response.text();
+      let errorData;
+      try {
+        errorData = errorText ? JSON.parse(errorText) : {};
+      } catch (e) {
+        errorData = { error: errorText || 'Unknown error' };
+      }
+      throw new Error(errorData.error || 'Failed to delete topic path');
     }
 
+    // For 204 No Content, return null instead of trying to parse JSON
+    if (response.status === 204) {
+      return null;
+    }
+    
+    // For other success statuses, try to parse JSON
     return response.json();
   } catch (error) {
     console.error('Error deleting topic path:', error);
@@ -88,7 +101,7 @@ export async function deleteTopicPath(path) {
  */
 export async function updateTopicPath(oldPath, newPath) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/topic-paths/${encodeURIComponent(oldPath)}`, {
+    const response = await fetch(`${API_BASE_URL}/api/topics/${encodeURIComponent(oldPath)}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
