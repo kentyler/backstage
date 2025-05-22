@@ -1,0 +1,1017 @@
+
+C:\calculator\Calculator3.accdb                                                     Sunday, December 1, 2024
+
+Table: recipe_all_cannabinoid_potency                                                                Page: 1
+
+
+
+Properties
+
+AlternateBackShade        100                         AlternateBackThem         -1
+AlternateBackTint:        100                         Attributes:               Linked
+BackShade:                100                         BackTint:                 100
+
+Connect:                  ;DATABASE=C:\Calcu          DatasheetForeThem         -1
+                          lator\CalculatorData2.
+DatasheetGridlinesT       -1                          DateCreated:              1/9/2023 2:49:11 PM
+DefaultView:              2                           DisplayViewsOnShar        1
+
+FilterOnLoad:             False                       GUID:                     {guid {FD9BD038-
+                                                                                5781-456B-BD63-
+HideNewField:             False                       LastUpdated:              1/9/2023 2:49:29 PM
+NameMap:                  Long binary data            OrderByOn:                False
+
+OrderByOnLoad:            True                        Orientation:              Left-to-Right
+ReadOnlyWhenDisc          False                       RecordCount:              -1
+SourceTableName:          recipe_all_cannabinoi       ThemeFontIndex:           -1
+                          d_potency
+
+TotalsRow:                False                       Updatable:                False
+
+
+
+Columns
+
+         Name                                                  Type                        Size
+
+         recipe_id                                             Long Integer                             4
+                  AggregateType:             -1
+
+                  AllowZeroLength:           False
+                  AppendOnly:                False
+                  Attributes:                Fixed Size
+                  CollatingOrder:            General
+
+                  ColumnHidden:              False
+                  ColumnOrder:               Default
+                  ColumnWidth:               Default
+
+                  CurrencyLCID:              0
+                  DataUpdatable:             False
+                  DecimalPlaces:             Auto
+
+                  DisplayControl:            Text Box
+                  GUID:                      {guid {A9DD5037-D108-4A01-801D-
+                  OrdinalPosition:           0
+                  Precision:                 1033
+
+                  Required:                  False
+                  ResultType:                0
+                  Scale:                     0
+
+                  SourceField:               recipe_id
+                  SourceTable:               recipe_all_cannabinoid_potency
+                  TextAlign:                 General
+
+
+         cannabinoid                                           Short Text                             255
+                  AggregateType:             -1
+                  AllowZeroLength:           True
+
+                  AppendOnly:                False
+                  Attributes:                Variable Length
+                  CollatingOrder:            General
+
+                  ColumnHidden:              False
+                  ColumnOrder:               Default
+
+
+C:\calculator\Calculator3.accdb                                                     Sunday, December 1, 2024
+
+Table: recipe_all_cannabinoid_potency                                                                Page: 2
+
+                  ColumnWidth:               Default
+                  CurrencyLCID:              0
+                  DataUpdatable:             False
+
+                  DisplayControl:            Text Box
+                  GUID:                      {guid {18EC4654-507D-4B1C-BEB6-
+                  IMEMode:                   0
+                  IMESentenceMode:           3
+
+                  OrdinalPosition:           1
+                  Precision:                 1033
+                  Required:                  False
+
+                  ResultType:                0
+                  Scale:                     0
+                  SourceField:               cannabinoid
+                  SourceTable:               recipe_all_cannabinoid_potency
+
+                  TextAlign:                 General
+                  UnicodeCompression:        True
+
+
+         Potency_per_Gram                                      Double                                   8
+                  AggregateType:             -1
+                  AllowZeroLength:           False
+
+                  AppendOnly:                False
+                  Attributes:                Fixed Size
+                  CollatingOrder:            General
+
+                  ColumnHidden:              False
+                  ColumnOrder:               Default
+                  ColumnWidth:               Default
+                  CurrencyLCID:              0
+
+                  DataUpdatable:             False
+                  DecimalPlaces:             Auto
+                  DisplayControl:            Text Box
+
+                  GUID:                      {guid {7FCCFD3F-798E-49BA-9B8B-
+                  OrdinalPosition:           2
+                  Precision:                 1033
+
+                  Required:                  False
+                  ResultType:                0
+                  Scale:                     0
+                  SourceField:               Potency_per_Gram
+
+                  SourceTable:               recipe_all_cannabinoid_potency
+                  TextAlign:                 General
+
+
+         Combined_Amount                                       Double                                   8
+                  AggregateType:             -1
+                  AllowZeroLength:           False
+
+                  AppendOnly:                False
+                  Attributes:                Fixed Size
+                  CollatingOrder:            General
+                  ColumnHidden:              False
+
+                  ColumnOrder:               Default
+                  ColumnWidth:               Default
+                  CurrencyLCID:              0
+
+                  DataUpdatable:             False
+                  DecimalPlaces:             Auto
+                  DisplayControl:            Text Box
+
+                  GUID:                      {guid {16877FAC-FCFE-4893-9150-
+                  OrdinalPosition:           3
+
+
+C:\calculator\Calculator3.accdb                                                     Sunday, December 1, 2024
+
+Table: recipe_all_cannabinoid_potency                                                                Page: 3
+
+                  Precision:                 1033
+                  Required:                  False
+                  ResultType:                0
+
+                  Scale:                     0
+                  SourceField:               Combined_Amount
+                  SourceTable:               recipe_all_cannabinoid_potency
+                  TextAlign:                 General
+
+
+         Recipe_potency                                        Long Integer                             4
+                  AggregateType:             -1
+
+                  AllowZeroLength:           False
+                  AppendOnly:                False
+                  Attributes:                Variable Length
+
+                  CollatingOrder:            General
+                  ColumnHidden:              False
+                  ColumnOrder:               Default
+                  ColumnWidth:               Default
+
+                  CurrencyLCID:              0
+                  DataUpdatable:             False
+                  DecimalPlaces:             Auto
+
+                  DisplayControl:            Text Box
+                  GUID:                      {guid {418D099E-56E2-4E2D-AAC8-
+                  OrdinalPosition:           4
+
+                  Precision:                 1033
+                  Required:                  False
+                  ResultType:                0
+                  Scale:                     0
+
+                  SourceField:               Recipe_potency
+                  SourceTable:               recipe_all_cannabinoid_potency
+                  TextAlign:                 General
+
+
+         Milliliters_of_Carrier                                Double                                   8
+                  AggregateType:             -1
+
+                  AllowZeroLength:           False
+                  AppendOnly:                False
+                  Attributes:                Fixed Size
+                  CollatingOrder:            General
+
+                  ColumnHidden:              False
+                  ColumnOrder:               Default
+                  ColumnWidth:               Default
+
+                  CurrencyLCID:              0
+                  DataUpdatable:             False
+                  DecimalPlaces:             Auto
+
+                  DisplayControl:            Text Box
+                  GUID:                      {guid {01E7FC8A-9E3D-491C-93E2-
+                  OrdinalPosition:           5
+                  Precision:                 1033
+
+                  Required:                  False
+                  ResultType:                0
+                  Scale:                     0
+
+                  SourceField:               Milliliters_of_Carrier
+                  SourceTable:               recipe_all_cannabinoid_potency
+                  TextAlign:                 General
+
+
+
+Table Indexes
+         Name                                     Number of
+
+C:\calculator\Calculator3.accdb                                                     Sunday, December 1, 2024
+
+Table: recipe_all_cannabinoid_potency                                                                Page: 4
+
+
+                                                  Fields
+
+         cannabinoid                              1
+                  Clustered:                 False
+
+                  DistinctCount:             3
+                  Foreign:                   False
+                  IgnoreNulls:               False
+
+                  Name:                      cannabinoid
+                  Primary:                   False
+                  Required:                  False
+
+                  Unique:                    False
+                  Fields:
+                  cannabinoid                Ascending
+
+         recipe_id                                1
+                  Clustered:                 False
+                  DistinctCount:             7
+
+                  Foreign:                   False
+                  IgnoreNulls:               False
+                  Name:                      recipe_id
+
+                  Primary:                   False
+                  Required:                  False
+                  Unique:                    False
+
+                  Fields:
+                  recipe_id                  Ascending
+
+
+
+
+
+User Permissions
+
+         admin                      Delete, Read Permissions, Set Permissions, Change
+                                    Owner, Read Definition, Write Definition, Read Data, Insert
+
+
+
+
+Group Permissions
+
+         Admins                     Delete, Read Permissions, Set Permissions, Change
+                                    Owner, Read Definition, Write Definition, Read Data, Insert
+
+         Users                      Delete, Read Permissions, Set Permissions, Change
+                                    Owner, Read Definition, Write Definition, Read Data, Insert
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+C:\calculator\Calculator3.accdb                                                     Sunday, December 1, 2024
+
+Table: recipe_ingredient                                                                             Page: 5
+
+
+
+Properties
+
+AlternateBackShade        95                          AlternateBackThem         1
+AlternateBackTint:        100                         Attributes:               Linked
+BackShade:                100                         BackTint:                 100
+
+Connect:                  ;DATABASE=C:\Calcu          DatasheetForeThem         0
+                          lator\CalculatorData2.
+DatasheetGridlinesT       3                           DateCreated:              1/9/2023 2:49:10 PM
+DefaultView:              2                           DisplayViewsOnShar        1
+
+FilterOnLoad:             False                       GUID:                     {guid {A96EF026-
+                                                                                AC67-43C5-A785-
+HideNewField:             False                       LastUpdated:              1/9/2023 2:49:29 PM
+NameMap:                  Long binary data            OrderByOn:                False
+
+OrderByOnLoad:            True                        Orientation:              Left-to-Right
+PublishToWeb:             1                           ReadOnlyWhenDisc          False
+RecordCount:              -1                          SourceTableName:          recipe_ingredient
+
+ThemeFontIndex:           1                           TotalsRow:                False
+Updatable:                False
+
+
+
+
+Columns
+
+         Name                                                  Type                        Size
+         Id                                                    Long Integer                             4
+
+                  AggregateType:             -1
+                  AllowZeroLength:           False
+                  AppendOnly:                False
+                  Attributes:                Fixed Size, Auto-Increment
+
+                  CollatingOrder:            General
+                  ColumnHidden:              False
+                  ColumnOrder:               Default
+
+                  ColumnWidth:               Default
+                  CurrencyLCID:              0
+                  DataUpdatable:             False
+
+                  GUID:                      {guid {DCF6D8EA-CAC0-450A-ACD9-
+                  OrdinalPosition:           0
+                  Precision:                 1033
+                  Required:                  False
+
+                  ResultType:                0
+                  Scale:                     0
+                  SourceField:               Id
+
+                  SourceTable:               recipe_ingredient
+                  TextAlign:                 General
+
+
+         recipe_id                                             Long Integer                             4
+                  AggregateType:             -1
+                  AllowZeroLength:           False
+                  AppendOnly:                False
+
+                  Attributes:                Fixed Size
+                  CollatingOrder:            General
+                  ColumnHidden:              False
+
+                  ColumnOrder:               Default
+                  ColumnWidth:               Default
+                  CurrencyLCID:              0
+
+
+C:\calculator\Calculator3.accdb                                                     Sunday, December 1, 2024
+
+Table: recipe_ingredient                                                                             Page: 6
+
+                  DataUpdatable:             False
+                  DecimalPlaces:             Auto
+                  DisplayControl:            Text Box
+
+                  GUID:                      {guid {7C6BD87E-CBA9-44AA-9CFC-
+                  OrdinalPosition:           1
+                  Precision:                 1033
+                  Required:                  False
+
+                  ResultType:                0
+                  Scale:                     0
+                  SourceField:               recipe_id
+
+                  SourceTable:               recipe_ingredient
+                  TextAlign:                 General
+
+         recipe_ingredient_type                                Short Text                             255
+
+                  AggregateType:             -1
+                  AllowZeroLength:           True
+                  AppendOnly:                False
+
+                  Attributes:                Variable Length
+                  CollatingOrder:            General
+                  ColumnHidden:              False
+
+                  ColumnOrder:               Default
+                  ColumnWidth:               Default
+                  CurrencyLCID:              0
+
+                  DataUpdatable:             False
+                  DisplayControl:            Text Box
+                  GUID:                      {guid {5A130DDA-BE76-4101-9E26-
+                  IMEMode:                   0
+
+                  IMESentenceMode:           3
+                  OrdinalPosition:           2
+                  Precision:                 1033
+
+                  Required:                  False
+                  ResultType:                0
+                  Scale:                     0
+
+                  SourceField:               recipe_ingredient_type
+                  SourceTable:               recipe_ingredient
+                  TextAlign:                 General
+                  UnicodeCompression:        True
+
+
+         Ingredient_Id                                         Long Integer                             4
+                  AggregateType:             -1
+
+                  AllowZeroLength:           False
+                  AppendOnly:                False
+                  Attributes:                Fixed Size
+
+                  CollatingOrder:            General
+                  ColumnHidden:              False
+                  ColumnOrder:               Default
+                  ColumnWidth:               1395
+
+                  CurrencyLCID:              0
+                  DataUpdatable:             False
+                  DecimalPlaces:             Auto
+
+                  DisplayControl:            Text Box
+                  GUID:                      {guid {A0EFE3C0-F621-4956-94CB-
+                  OrdinalPosition:           3
+
+                  Precision:                 1033
+                  Required:                  False
+
+
+C:\calculator\Calculator3.accdb                                                     Sunday, December 1, 2024
+
+Table: recipe_ingredient                                                                             Page: 7
+
+                  ResultType:                0
+                  Scale:                     0
+                  SourceField:               Ingredient_Id
+
+                  SourceTable:               recipe_ingredient
+                  TextAlign:                 General
+
+         Ingredient_name                                       Short Text                             255
+
+                  AggregateType:             -1
+                  AllowZeroLength:           True
+                  AppendOnly:                False
+
+                  Attributes:                Variable Length
+                  CollatingOrder:            General
+                  ColumnHidden:              False
+
+                  ColumnOrder:               Default
+                  ColumnWidth:               Default
+                  CurrencyLCID:              0
+                  DataUpdatable:             False
+
+                  DisplayControl:            Text Box
+                  GUID:                      {guid {2E19BF1D-DDC6-4165-9A60-
+                  IMEMode:                   0
+
+                  IMESentenceMode:           3
+                  OrdinalPosition:           4
+                  Precision:                 1033
+
+                  Required:                  False
+                  ResultType:                0
+                  Scale:                     0
+                  SourceField:               Ingredient_name
+
+                  SourceTable:               recipe_ingredient
+                  TextAlign:                 General
+                  UnicodeCompression:        True
+
+
+         Ingredient_Amount                                     Double                                   8
+                  AggregateType:             -1
+
+                  AllowZeroLength:           False
+                  AppendOnly:                False
+                  Attributes:                Fixed Size
+                  CollatingOrder:            General
+
+                  ColumnHidden:              False
+                  ColumnOrder:               Default
+                  ColumnWidth:               2151
+
+                  CurrencyLCID:              0
+                  DataUpdatable:             False
+                  DecimalPlaces:             Auto
+
+                  DisplayControl:            Text Box
+                  GUID:                      {guid {6BC7E9A3-2C15-40E9-9DD5-
+                  OrdinalPosition:           5
+                  Precision:                 1033
+
+                  Required:                  False
+                  ResultType:                0
+                  Scale:                     0
+
+                  SourceField:               Ingredient_Amount
+                  SourceTable:               recipe_ingredient
+                  TextAlign:                 General
+
+
+         Ingredient_Grams_Available                            Double                                   8
+
+
+C:\calculator\Calculator3.accdb                                                     Sunday, December 1, 2024
+
+Table: recipe_ingredient                                                                             Page: 8
+
+                  AggregateType:             -1
+                  AllowZeroLength:           False
+                  AppendOnly:                False
+
+                  Attributes:                Fixed Size
+                  CollatingOrder:            General
+                  ColumnHidden:              False
+                  ColumnOrder:               Default
+
+                  ColumnWidth:               Default
+                  CurrencyLCID:              0
+                  DataUpdatable:             False
+
+                  DecimalPlaces:             Auto
+                  DisplayControl:            Text Box
+                  GUID:                      {guid {C15A1768-60D0-4D6C-A2B1-
+                  OrdinalPosition:           6
+
+                  Precision:                 1033
+                  Required:                  False
+                  ResultType:                0
+
+                  Scale:                     0
+                  SourceField:               Ingredient_Grams_Available
+                  SourceTable:               recipe_ingredient
+
+                  TextAlign:                 General
+
+         mg_Cannabinoid1_per_gram                              Double                                   8
+
+                  AggregateType:             -1
+                  AllowZeroLength:           False
+                  AppendOnly:                False
+                  Attributes:                Fixed Size
+
+                  CollatingOrder:            General
+                  ColumnHidden:              False
+                  ColumnOrder:               Default
+
+                  ColumnWidth:               Default
+                  CurrencyLCID:              0
+                  DataUpdatable:             False
+
+                  DecimalPlaces:             2
+                  DisplayControl:            Text Box
+                  GUID:                      {guid {7155CE76-0CDD-4710-B1D4-
+                  OrdinalPosition:           7
+
+                  Precision:                 1033
+                  Required:                  False
+                  ResultType:                0
+
+                  Scale:                     0
+                  SourceField:               mg_Cannabinoid1_per_gram
+                  SourceTable:               recipe_ingredient
+
+                  TextAlign:                 General
+
+         mg_Cannabinoid2_per_gram                              Double                                   8
+                  AggregateType:             -1
+
+                  AllowZeroLength:           False
+                  AppendOnly:                False
+                  Attributes:                Fixed Size
+
+                  CollatingOrder:            General
+                  ColumnHidden:              False
+                  ColumnOrder:               Default
+
+                  ColumnWidth:               Default
+                  CurrencyLCID:              0
+
+
+C:\calculator\Calculator3.accdb                                                     Sunday, December 1, 2024
+
+Table: recipe_ingredient                                                                             Page: 9
+
+                  DataUpdatable:             False
+                  DecimalPlaces:             2
+                  DisplayControl:            Text Box
+
+                  GUID:                      {guid {1AB49B4F-C50C-4FD7-88D4-
+                  OrdinalPosition:           8
+                  Precision:                 1033
+                  Required:                  False
+
+                  ResultType:                0
+                  Scale:                     0
+                  SourceField:               mg_Cannabinoid2_per_gram
+
+                  SourceTable:               recipe_ingredient
+                  TextAlign:                 General
+
+
+
+Relationships
+
+
+         reciperecipe_ingredient
+
+                             recipe                         recipe_ingredient
+
+                    Id                         1     ¥  recipe_id
+
+
+                  Attributes:                Enforced, Inherited, Cascade Deletes
+
+                  RelationshipType:          One-To-Many (External)
+
+
+
+Table Indexes
+
+         Name                                     Number of
+
+         PrimaryKey                               1
+                  Clustered:                 False
+                  DistinctCount:             9
+
+                  Foreign:                   False
+                  IgnoreNulls:               False
+                  Name:                      PrimaryKey
+
+                  Primary:                   True
+                  Required:                  True
+                  Unique:                    True
+
+                  Fields:
+                  Id                         Ascending
+
+         recipe_id                                1
+                  Clustered:                 False
+                  DistinctCount:             8
+
+                  Foreign:                   False
+                  IgnoreNulls:               False
+                  Name:                      recipe_id
+
+                  Primary:                   False
+                  Required:                  False
+                  Unique:                    False
+
+                  Fields:
+                  recipe_id                  Ascending
+
+         recipe_ingredient_type_id                1
+                  Clustered:                 False
+                  DistinctCount:             2
+
+
+C:\calculator\Calculator3.accdb                                                     Sunday, December 1, 2024
+
+Table: recipe_ingredient                                                                            Page: 10
+
+                  Foreign:                   False
+                  IgnoreNulls:               False
+                  Name:                      recipe_ingredient_type_id
+
+                  Primary:                   False
+                  Required:                  False
+                  Unique:                    False
+
+                  Fields:
+                  recipe_ingredient_ty       Ascending
+         reciperecipe_ingredient                  1
+
+                  Clustered:                 False
+                  DistinctCount:             8
+                  Foreign:                   True
+
+                  IgnoreNulls:               False
+                  Name:                      reciperecipe_ingredient
+                  Primary:                   False
+
+                  Required:                  False
+                  Unique:                    False
+                  Fields:
+
+                  recipe_id                  Ascending
+         Selected_Id                              1
+
+                  Clustered:                 False
+                  DistinctCount:             4
+                  Foreign:                   False
+
+                  IgnoreNulls:               False
+                  Name:                      Selected_Id
+                  Primary:                   False
+
+                  Required:                  False
+                  Unique:                    False
+                  Fields:
+
+                  Ingredient_Id              Ascending
+
+
+
+
+User Permissions
+
+         admin                      Delete, Read Permissions, Set Permissions, Change
+                                    Owner, Read Definition, Write Definition, Read Data, Insert
+
+
+
+
+
+Group Permissions
+
+         Admins                     Delete, Read Permissions, Set Permissions, Change
+                                    Owner, Read Definition, Write Definition, Read Data, Insert
+         Users                      Delete, Read Permissions, Set Permissions, Change
+                                    Owner, Read Definition, Write Definition, Read Data, Insert
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+C:\calculator\Calculator3.accdb                                                     Sunday, December 1, 2024
+
+Table: recipe_ingredient_type                                                                       Page: 11
+
+
+
+Properties
+
+AlternateBackShade        95                          AlternateBackThem         1
+AlternateBackTint:        100                         BackShade:                100
+BackTint:                 100                         DatasheetForeThem         0
+
+DatasheetGridlinesT       3                           DateCreated:              6/5/2022 9:19:16 AM
+DefaultView:              2                           DisplayViewsOnShar        1
+FilterOnLoad:             False                       GUID:                     {guid {A0A6CF57-
+                                                                                0022-4DDB-932B-
+
+HideNewField:             False                       LastUpdated:              6/5/2022 9:19:16 AM
+NameMap:                  Long binary data            OrderByOn:                False
+OrderByOnLoad:            True                        Orientation:              Left-to-Right
+
+PublishToWeb:             1                           ReadOnlyWhenDisc          False
+RecordCount:              0                           ThemeFontIndex:           1
+TotalsRow:                False                       Updatable:                True
+
+
+
+
+Columns
+
+         Name                                                  Type                        Size
+         recipe_ingredient_type                                Short Text                             255
+
+                  AggregateType:             -1
+                  AllowZeroLength:           True
+                  AppendOnly:                False
+
+                  Attributes:                Variable Length
+                  CollatingOrder:            General
+                  ColumnHidden:              False
+
+                  ColumnOrder:               Default
+                  ColumnWidth:               Default
+                  CurrencyLCID:              0
+
+                  DataUpdatable:             False
+                  DisplayControl:            Text Box
+                  GUID:                      {guid {4014D685-6586-4894-BDFD-
+                  IMEMode:                   0
+
+                  IMESentenceMode:           3
+                  OrdinalPosition:           0
+                  Precision:                 1033
+
+                  Required:                  True
+                  ResultType:                0
+                  Scale:                     0
+
+                  SourceField:               recipe_ingredient_type
+                  SourceTable:               recipe_ingredient_type
+                  TextAlign:                 General
+                  UnicodeCompression:        True
+
+
+
+
+Table Indexes
+         Name                                     Number of
+
+         PrimaryKey                               1
+                  Clustered:                 False
+
+                  DistinctCount:             0
+                  Foreign:                   False
+                  IgnoreNulls:               False
+
+
+C:\calculator\Calculator3.accdb                                                     Sunday, December 1, 2024
+
+Table: recipe_ingredient_type                                                                       Page: 12
+
+                  Name:                      PrimaryKey
+                  Primary:                   True
+                  Required:                  True
+
+                  Unique:                    True
+                  Fields:
+                  recipe_ingredient_ty       Ascending
+
+
+
+
+
+User Permissions
+
+         admin                      Delete, Read Permissions, Set Permissions, Change
+                                    Owner, Read Definition, Write Definition, Read Data, Insert
+
+
+
+
+Group Permissions
+
+         Admins                     Delete, Read Permissions, Set Permissions, Change
+                                    Owner, Read Definition, Write Definition, Read Data, Insert
+
+         Users                      Delete, Read Permissions, Set Permissions, Change
+                                    Owner, Read Definition, Write Definition, Read Data, Insert
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+C:\calculator\Calculator3.accdb                                                     Sunday, December 1, 2024
+
+Table: sample_type                                                                                  Page: 13
+
+
+
+Properties
+
+AlternateBackShade        100                         AlternateBackThem         -1
+AlternateBackTint:        100                         Attributes:               Linked
+BackShade:                100                         BackTint:                 100
+
+Connect:                  ;DATABASE=C:\Calcu          DatasheetForeThem         -1
+                          lator\CalculatorData2.
+DatasheetGridlinesT       -1                          DateCreated:              1/9/2023 2:49:13 PM
+DefaultView:              2                           DisplayViewsOnShar        1
+
+FilterOnLoad:             False                       GUID:                     {guid {EBA9CD5E-
+                                                                                4C77-4B5D-883F-
+HideNewField:             False                       LastUpdated:              1/9/2023 2:49:13 PM
+NameMap:                  Long binary data            OrderByOn:                False
+
+OrderByOnLoad:            True                        Orientation:              Left-to-Right
+ReadOnlyWhenDisc          False                       RecordCount:              -1
+SourceTableName:          sample_type                 ThemeFontIndex:           -1
+
+TotalsRow:                False                       Updatable:                False
+
+
+
+Columns
+
+         Name                                                  Type                        Size
+
+         sample_type                                           Short Text                             255
+                  AggregateType:             -1
+                  AllowZeroLength:           True
+
+                  AppendOnly:                False
+                  Attributes:                Variable Length
+                  CollatingOrder:            General
+
+                  ColumnHidden:              False
+                  ColumnOrder:               Default
+                  ColumnWidth:               Default
+
+                  CurrencyLCID:              0
+                  DataUpdatable:             False
+                  DisplayControl:            Text Box
+                  GUID:                      {guid {2FE37395-BCBC-4C30-9A61-
+
+                  IMEMode:                   0
+                  IMESentenceMode:           3
+                  OrdinalPosition:           0
+
+                  Precision:                 1033
+                  Required:                  False
+                  ResultType:                0
+
+                  Scale:                     0
+                  SourceField:               sample_type
+                  SourceTable:               sample_type
+                  TextAlign:                 General
+
+                  UnicodeCompression:        False
+
+
+
+
+User Permissions
+
+         admin                      Delete, Read Permissions, Set Permissions, Change
+                                    Owner, Read Definition, Write Definition, Read Data, Insert
+
+
+
+
+C:\calculator\Calculator3.accdb                                                     Sunday, December 1, 2024
+
+Table: sample_type                                                                                  Page: 14
+
+
+
+
+
+Group Permissions
+
+         Admins                     Delete, Read Permissions, Set Permissions, Change
+                                    Owner, Read Definition, Write Definition, Read Data, Insert
+         Users                      Delete, Read Permissions, Set Permissions, Change
+                                    Owner, Read Definition, Write Definition, Read Data, Insert

@@ -247,6 +247,51 @@ async function uploadToStorage(filePath, storagePath, bucketName) {
 }
 
 /**
+ * Delete a file from Supabase storage
+ * 
+ * @param {string} storagePath - Path to the file in storage (e.g., 'uploads/filename.txt')
+ * @param {string} [bucketName='uploads'] - Name of the storage bucket
+ * @returns {Promise<boolean>} - True if deletion was successful
+ */
+async function deleteFromStorage(storagePath, bucketName = 'uploads') {
+  try {
+    // Initialize Supabase client
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Supabase configuration missing. Check environment variables.');
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    // Remove leading slash if present
+    const cleanPath = storagePath.startsWith('/') ? storagePath.substring(1) : storagePath;
+    
+    console.log(`Deleting file from storage: ${bucketName}/${cleanPath}`);
+    
+    const { error } = await supabase.storage
+      .from(bucketName)
+      .remove([cleanPath]);
+      
+    if (error) {
+      // If file not found, consider it a success
+      if (error.message.includes('not found')) {
+        console.log(`File ${cleanPath} not found in storage, considering it deleted`);
+        return true;
+      }
+      throw error;
+    }
+    
+    console.log(`Successfully deleted file from storage: ${cleanPath}`);
+    return true;
+  } catch (error) {
+    console.error('Error deleting file from storage:', error);
+    throw error;
+  }
+}
+
+/**
  * Extract and vectorize content from a file
  * 
  * @param {string} filePath - Path to the file on disk

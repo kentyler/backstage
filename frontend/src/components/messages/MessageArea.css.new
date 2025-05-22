@@ -1,0 +1,116 @@
+/* Existing styles */
+.message-area {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* File message styles */
+.file-message {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.file-name {
+  flex: 1;
+  word-break: break-word;
+}
+
+.delete-file-btn {
+  width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  transition: background-color 0.2s;
+  padding: 0;
+  border: none;
+  color: white;
+  background: #dc3545;
+  margin-left: 8px;
+}
+
+.delete-file-btn:hover {
+  background: #c82333;
+}
+
+.delete-file-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: #dc3545;
+}
+
+.file-description {
+  color: #666;
+  font-size: 0.9em;
+  margin-top: 4px;
+}
+
+/* System message styles */
+.system-message {
+  background-color: #f8f9fa;
+  border-left: 4px solid #6c757d;
+  padding: 12px 16px;
+  margin: 8px 0;
+  border-radius: 0 4px 4px 0;
+}
+
+/* Error message styles */
+.error {
+  background-color: #f8d7da;
+  border-left: 4px solid #dc3545;
+}
+
+/* Loading spinner */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+/* Message content area */
+.message-content {
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+/* Message meta info */
+.message-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 0.8em;
+  color: #6c757d;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .file-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .delete-file-btn {
+    margin-left: 0;
+    margin-top: 8px;
+  }
+}

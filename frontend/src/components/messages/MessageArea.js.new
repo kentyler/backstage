@@ -1,0 +1,389 @@
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import './MessageArea.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPaperclip, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
+import llmService from '../../services/llmService';
+import topicService from '../../services/topics/topicService';
+import fileService from '../../services/files';
+import RelatedMessages from './RelatedMessages';
+import { useAuth } from '../../services/auth/authContext';
+
+const MessageArea = ({ selectedTopic }) => {
+  // Refs
+  const messagesEndRef = useRef(null);
+  const messageContainerRef = useRef(null);
+  const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
+  
+  // Authentication
+  const { user } = useAuth();
+  
+  // Message state
+  const [message, setMessage] = useState('');
+  const [file, setFile] = useState(null);
+  const [topicMessages, setTopicMessages] = useState([]);
+  
+  // UI state
+  const [expandedMessages, setExpandedMessages] = useState({});
+  
+  // Related messages state
+  const [relatedMessages, setRelatedMessages] = useState([]);
+  const [relatedMessagesError, setRelatedMessagesError] = useState(null);
+  const [isLoadingRelated, setIsLoadingRelated] = useState(false);
+  const [selectedMessageId, setSelectedMessageId] = useState(null);
+
+  // Auto-resize textarea based on content
+  const autoResizeTextarea = useCallback(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 400)}px`;
+    }
+  }, []);
+
+  // Handle textarea changes
+  const handleTextareaChange = useCallback((e) => {
+    setMessage(e.target.value);
+    autoResizeTextarea();
+  }, [autoResizeTextarea]);
+
+  // Scroll to bottom of messages
+  const scrollToBottom = useCallback((force = false) => {
+    if (messagesEndRef.current && (force || messageContainerRef.current?.scrollTop > messageContainerRef.current?.scrollHeight - 600)) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, []);
+
+  // Handle file upload
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const selectedFile = e.target.files[0];
+      uploadFile(selectedFile);
+    }
+  };
+
+  // Handle file upload
+  const uploadFile = async (file) => {
+    if (!file || !selectedTopic?.id) return;
+
+    // Create FormData and append the file
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // Show uploading message
+    const uploadingMessage = {
+      id: `uploading-${Date.now()}`,
+      content: `Uploading ${file.name}...`,
+      timestamp: new Date().toISOString(),
+      author: 'You',
+      isUploading: true
+    };
+    
+    setTopicMessages(prev => [...prev, uploadingMessage]);
+    scrollToBottom();
+    
+    try {
+      // Upload the file
+      const response = await fileService.uploadFile(formData, {
+        topicPathId: selectedTopic.id
+      });
+      
+      // Replace uploading message with success message
+      setTopicMessages(prev => {
+        const filtered = prev.filter(msg => !msg.isUploading);
+        return [...filtered, {
+          id: `file-${Date.now()}`,
+          content: `File uploaded: ${file.name}`,
+          timestamp: new Date().toISOString(),
+          author: 'You',
+          isFile: true,
+          fileData: {
+            id: response.id,
+            filename: file.name,
+            ...response
+          }
+        }];
+      });
+      
+      // Add assistant response if available
+      if (response?.content) {
+        setTopicMessages(prev => [...prev, {
+          id: response.id || `resp-${Date.now()}`,
+          content: response.content,
+          timestamp: response.timestamp || new Date().toISOString(),
+          author: 'Assistant'
+        }]);
+      }
+      
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      
+      // Show error message
+      setTopicMessages(prev => {
+        const filtered = prev.filter(msg => !msg.isUploading);
+        return [...filtered, {
+          id: `error-${Date.now()}`,
+          content: `Error uploading file: ${error.message || 'Unknown error'}`,
+          timestamp: new Date().toISOString(),
+          author: 'System',
+          isError: true
+        }];
+      });
+    } finally {
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      scrollToBottom();
+    }
+  };
+
+  // Handle file deletion
+  const handleDeleteFile = async (fileId, fileName) => {
+    if (!window.confirm(`Are you sure you want to delete "${fileName}"?`)) {
+      return;
+    }
+
+    try {
+      // Show deleting message
+      const deletingMessage = {
+        id: `deleting-${Date.now()}`,
+        content: `Deleting ${fileName}...`,
+        timestamp: new Date().toISOString(),
+        author: 'System',
+        isDeleting: true
+      };
+      
+      setTopicMessages(prev => [...prev, deletingMessage]);
+      scrollToBottom();
+
+      // Call the delete API
+      await fileService.deleteFile(fileId);
+      
+      // Update the message list to show file deleted
+      setTopicMessages(prev => {
+        const updated = prev.filter(msg => !msg.isDeleting);
+        return [...updated, {
+          id: `deleted-${Date.now()}`,
+          content: `File deleted: ${fileName}`,
+          timestamp: new Date().toISOString(),
+          author: 'System',
+          isFileDeleted: true
+        }];
+      });
+      
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      
+      // Show error message
+      setTopicMessages(prev => {
+        const updated = prev.filter(msg => !msg.isDeleting);
+        return [...updated, {
+          id: `error-${Date.now()}`,
+          content: `Failed to delete file: ${error.message || 'Unknown error'}`,
+          timestamp: new Date().toISOString(),
+          author: 'System',
+          isError: true
+        }];
+      });
+    } finally {
+      scrollToBottom();
+    }
+  };
+
+  // Render message content with file handling
+  const renderMessageContent = (message) => {
+    if (message.isFile) {
+      return (
+        <div className="file-message">
+          <a 
+            href={`/api/file-uploads/${message.fileData?.id}`} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="file-link"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {message.fileData?.filename || message.content}
+          </a>
+          <button 
+            className="delete-file-button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteFile(message.fileData?.id, message.fileData?.filename || 'file');
+            }}
+            title="Delete file"
+          >
+            <FontAwesomeIcon icon={faTimesCircle} className="delete-icon" />
+          </button>
+        </div>
+      );
+    }
+    return message.content;
+  };
+
+  // Render a single message
+  const renderMessage = (message) => {
+    const isSelected = selectedMessageId === message.id;
+    
+    // Handle loading/error states
+    if (message.isLoading) {
+      return (
+        <div key={message.id} className="message loading">
+          <div className="message-content">
+            <div className="loading-dots">
+              <span>.</span>
+              <span>.</span>
+              <span>.</span>
+            </div>
+            {message.content}
+          </div>
+        </div>
+      );
+    }
+    
+    if (message.isError) {
+      return (
+        <div key={message.id} className="message error">
+          <div className="message-content">
+            <i className="fas fa-exclamation-circle"></i> {message.content}
+          </div>
+        </div>
+      );
+    }
+    
+    // Get the display author name
+    const displayAuthor = message.displayHeader || message.author;
+    const headerContent = message.isUser ? message.participantName : message.llmName;
+    
+    return (
+      <div 
+        key={message.id} 
+        className={`message ${message.author.toLowerCase()} ${isSelected ? 'selected-message' : ''}`}
+        onClick={() => isSelected && handleShowRelatedMessages(message.id)}
+      >
+        <div className="message-header">
+          <span className="message-author">{headerContent || displayAuthor}</span>
+          <span className="message-time">
+            {new Date(message.timestamp).toLocaleTimeString()}
+            {!message.isLoading && !message.isError && (
+              <span 
+                className={`related-messages-link ${isSelected ? 'active' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleShowRelatedMessages(message.id);
+                }}
+                title={isSelected ? "Hide related messages" : "Show related messages"}
+              >
+                {isSelected ? ' × Hide related' : ' • See related'}
+              </span>
+            )}
+          </span>
+        </div>
+        <div className="message-content">
+          {renderMessageContent(message)}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="message-area">
+      <div className="topic-header">
+        {!selectedTopic || !selectedTopic.id ? (
+          <div className="no-topic-selected">
+            <i className="fas fa-info-circle"></i> Please select a topic from the sidebar
+          </div>
+        ) : (
+          <div className="topic-title">
+            {selectedTopic.name}
+          </div>
+        )}
+      </div>
+
+      {/* Messages container */}
+      <div className="messages-container">
+        {/* Topic messages */}
+        <div className="messages-column">
+          <div className="messages-header">
+            {selectedTopic && selectedTopic.id ? selectedTopic.name : 'Messages'}
+          </div>
+          <div className="messages-list" ref={messageContainerRef}>
+            {topicMessages.map(renderMessage)}
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
+
+        {/* Related messages */}
+        {selectedMessageId && (
+          <div className="messages-column">
+            <RelatedMessages 
+              messages={relatedMessages} 
+              isLoading={isLoadingRelated} 
+              onTopicSelect={() => {}}
+              selectedMessageId={selectedMessageId}
+            />
+            {relatedMessagesError && (
+              <div className="related-messages-error">
+                {relatedMessagesError}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Message input */}
+      <div className="message-input-container">
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          if (message.trim()) {
+            // Handle message submission
+            setMessage('');
+            if (textareaRef.current) {
+              textareaRef.current.style.height = 'auto';
+            }
+          }
+        }} className="message-input-form">
+          <textarea
+            ref={textareaRef}
+            className="message-input"
+            value={message}
+            onChange={handleTextareaChange}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (message.trim()) {
+                  // Handle message submission
+                  setMessage('');
+                  if (textareaRef.current) {
+                    textareaRef.current.style.height = 'auto';
+                  }
+                }
+              }
+            }}
+            placeholder="Type your message... (Press Enter to send, Shift+Enter for newline)"
+            rows="1"
+          />
+          <div className="message-actions">
+            <button type="submit" className="send-button">
+              Send
+            </button>
+            <label className="upload-button">
+              <input
+                ref={fileInputRef}
+                type="file"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
+              <FontAwesomeIcon 
+                icon={faPaperclip} 
+                className="upload-icon"
+                title="Attach file"
+              />
+            </label>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default MessageArea;

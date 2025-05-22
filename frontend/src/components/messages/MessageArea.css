@@ -276,6 +276,60 @@
   background-color: #f8f9fa;
 }
 
+/* File message styles */
+.file-message {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.file-name {
+  flex: 1;
+  word-break: break-word;
+}
+
+.delete-file-btn {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
+  transition: background-color 0.2s;
+  padding: 0;
+  border: none;
+  color: white;
+  background: #dc3545;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.delete-file-btn:hover {
+  background: #c82333;
+}
+
+.delete-file-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: #dc3545;
+}
+
+.file-description {
+  color: #666;
+  font-size: 0.9em;
+  margin-top: 4px;
+}
+
 .message-content {
   white-space: pre-wrap;
   word-break: break-word;

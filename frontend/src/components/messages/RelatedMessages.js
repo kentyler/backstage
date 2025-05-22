@@ -24,6 +24,15 @@ const RelatedMessages = ({ messages = [], isLoading, onTopicSelect, selectedMess
 
   // Only log when messages actually change
   useEffect(() => {
+    // Always log for debugging this issue
+    console.log('[DEBUG] RelatedMessages component received props.messages:', messages);
+    console.log('[DEBUG] Messages type:', Array.isArray(messages) ? 'Array' : typeof messages);
+    console.log('[DEBUG] Messages length:', messages.length);
+    if (messages.length > 0) {
+      console.log('[DEBUG] First message in RelatedMessages:', messages[0]);
+      console.log('[DEBUG] All message keys:', Object.keys(messages[0]));
+    }
+    
     const messagesChanged = 
       messages.length !== prevMessagesRef.current.length ||
       messages.some((msg, i) => msg.id !== prevMessagesRef.current[i]?.id);

@@ -83,71 +83,128 @@ router.post('/', upload.single('file'), async (req, res) => {
     // Log successful upload
     console.log(`File uploaded successfully: ${fileUpload.filename} (ID: ${fileUpload.id})`);
     
-    // If topicPathId is provided, create a turn record for this file upload
-    const topicPathId = req.body.topicPathId;
-    console.log(`Checking for topicPathId in request: ${topicPathId ? 'Found: ' + topicPathId : 'Not found'}`);
+    // If topicId is provided, create a turn record for this file upload
+    if (!req.body.topicId) {
+      console.log('No topicId provided in request, skipping turn creation');
+      return res.status(201).json(fileUpload);
+    }
     
-    if (topicPathId) {
+    const topicId = req.body.topicId;
+    console.log(`Creating turn record for topic ID: ${topicId}`);
+    
+    // Ensure topicId is a number
+    const topicIdNum = parseInt(topicId, 10);
+    if (isNaN(topicIdNum)) {
+      throw new Error(`Invalid topic ID: ${topicId}`);
+    }
+    console.log(`Parsed topicId as number: ${topicIdNum}`);
+    
+    try {
+      // Get the next turn index for this topic path and ensure it's an integer
+      console.log('Raw turnIndex from request:', req.body.turnIndex, 'Type:', typeof req.body.turnIndex);
+      
+      // Get the next sequential turn index for this topic
+      let turnIndex = 0;
+      
+      // Query to find the highest turn_index for this topic
+      const indexQuery = `
+        SELECT MAX(turn_index) as max_index 
+        FROM grp_topic_avatar_turns 
+        WHERE topic_id = $1
+      `;
+      const indexResult = await pool.query(indexQuery, [topicIdNum]);
+      
+      if (indexResult.rows[0] && indexResult.rows[0].max_index !== null) {
+        const currentMax = parseFloat(indexResult.rows[0].max_index);
+        // Increment by 1 from the current max index
+        turnIndex = currentMax + 1;
+        console.log(`Using next sequential index: ${turnIndex} (current max: ${currentMax})`);
+      } else {
+        // No existing turns, start at index 1
+        turnIndex = 1;
+        console.log(`No existing turns found, starting at index: ${turnIndex}`);
+      }
+      const avatarId = req.body.avatarId || 1;   // Default to system avatar if not provided
+      
+      // Get participant ID from request or session
+      let participantId = req.body.participantId || null;
+      
+      // If participantId is provided in the request, use it
+      if (participantId) {
+        console.log(`Using participant ID from request: ${participantId}`);
+      } 
+      // Otherwise, try to get it from the session
+      else if (req.session && req.session.userId) {
+        participantId = req.session.userId;
+        console.log(`Using participant ID from session: ${participantId}`);
+      } else {
+        console.warn('No participant ID available for turn creation');
+      }
+      
+      console.log('Turn creation parameters after parsing:', { 
+        topicId: topicIdNum,
+        avatarId, 
+        turnIndex, 
+        schemaName: options.schemaName 
+      });
+      
+      // Create message content describing the file upload
+      const contentText = `File uploaded: ${fileUpload.filename} (ID: ${fileUpload.id})`;
+      
+      console.log('About to create turn record with content:', contentText);
+      
+      let turnCreated = false;
+      let turnId = null;
+      
       try {
-        // Get the next turn index for this topic path and ensure it's an integer
-        console.log('Raw turnIndex from request:', req.body.turnIndex, 'Type:', typeof req.body.turnIndex);
+        // Create a turn record with turn_kind = 6 for file uploads
+        const turn = await createGrpTopicAvatarTurn(
+          topicIdNum,
+          avatarId,
+          turnIndex,
+          contentText,
+          null, // No vector for this message
+          6, // TURN_KIND.FILE_UPLOAD
+          MESSAGE_TYPE.USER, // Mark as user message
+          null, // No template topic
+          pool,
+          null, // No LLM ID for file uploads
+          participantId // Pass the participant ID
+        );
         
-        // TEMPORARY FIX: Use a high number for file upload turn index to ensure it appears at the bottom
-        // We'll use 1000 plus any existing value as a quick solution
-        const baseIndex = req.body.turnIndex ? parseInt(req.body.turnIndex, 10) : 0;
-        const turnIndex = 1000 + baseIndex;
-        const avatarId = req.body.avatarId || 1;   // Default to system avatar if not provided
+        console.log(`Created turn with participantId: ${participantId}`);
         
-        console.log('Turn creation parameters after parsing:', { 
-          topicPathId, 
-          avatarId, 
-          turnIndex, 
-          schemaName: options.schemaName 
-        });
-        
-        // Create message content describing the file upload
-        const contentText = `File uploaded: ${fileUpload.filename} (ID: ${fileUpload.id})`;
-        
-        console.log('About to create turn record with content:', contentText);
-        
-        try {
-          // Create a turn record
-          const turn = await createGrpTopicAvatarTurn(
-            topicPathId,
-            avatarId,
-            turnIndex,
-            contentText,
-            null, // No vector for this message
-            TURN_KIND.REGULAR,
-            MESSAGE_TYPE.USER, // Mark as user message
-            null, // No template topic
-            pool
-          );
-          
-          console.log(`Created turn record for file upload: ${turn.id} in topic path ${topicPathId}`);
+        if (turn && turn.id) {
+          console.log(`Created turn record for file upload: ${turn.id} in topic ${topicIdNum}`);
+          turnCreated = true;
+          turnId = turn.id;
           
           // Add turn info to the response
           fileUpload.turn = {
             id: turn.id,
-            topicPathId,
+            topicId: topicIdNum,
             turnIndex
           };
-        } catch (innerError) {
-          console.error('CRITICAL ERROR in createGrpTopicAvatarTurn:', innerError);
-          console.error('Error stack:', innerError.stack);
-          
-          // Continue without the turn record - the file upload succeeded
-          console.log('Continuing without turn record - file upload was successful');
         }
-      } catch (turnError) {
-        console.error('Error in turn creation process:', turnError);
-        console.error('Error stack:', turnError.stack);
-        // Continue even if turn creation fails - the file was still uploaded
+      } catch (innerError) {
+        console.error('CRITICAL ERROR in createGrpTopicAvatarTurn:', innerError);
+        console.error('Error stack:', innerError.stack);
+        // Continue with the file upload even if turn creation fails
       }
-    }
+      
+      // Add turn creation status to the response
+      fileUpload.turnCreated = turnCreated;
+      if (turnId) {
+        fileUpload.turnId = turnId;
+      }
     
-    // Return the file upload record
-    res.status(201).json(fileUpload);
+      // Return the file upload record
+      res.status(201).json(fileUpload);
+    } catch (error) {
+      console.error('Error in file upload processing:', error);
+      console.error('Error stack:', error.stack);
+      res.status(500).json({ error: 'Failed to process file upload', details: error.message });
+    }
   } catch (error) {
     console.error('Error uploading file:', error);
     res.status(500).json({ error: 'Failed to upload file', details: error.message });
@@ -228,16 +285,44 @@ router.delete('/:id', async (req, res) => {
       });
     }
 
-    // Delete file upload
-    const deletedFile = await fileUploads.deleteFileUpload(fileId, req.clientPool);
-    if (!deletedFile) {
+    // Get file details before deletion
+    const fileDetails = await fileUploads.getFileUploadById(fileId, req.clientPool);
+    if (!fileDetails) {
       return res.status(404).json({ error: 'File not found' });
     }
 
-    // Note: In a complete implementation, you would also delete the file from storage
-    // and remove associated vectors
+    // Delete associated vectors first
+    try {
+      await req.clientPool.query(
+        'DELETE FROM file_upload_vectors WHERE file_upload_id = $1',
+        [fileId]
+      );
+      console.log(`Deleted vectors for file ${fileId}`);
+    } catch (vectorError) {
+      console.error(`Error deleting vectors for file ${fileId}:`, vectorError);
+      // Continue with file deletion even if vector deletion fails
+    }
+
+    // Delete the file from storage if storage_path exists
+    if (fileDetails.storage_path) {
+      try {
+        const { deleteFromStorage } = await import('../services/fileProcessing.js');
+        await deleteFromStorage(fileDetails.storage_path, 'uploads');
+        console.log(`Deleted file from storage: ${fileDetails.storage_path}`);
+      } catch (storageError) {
+        console.error(`Error deleting file from storage for file ${fileId}:`, storageError);
+        // Continue with database cleanup even if storage deletion fails
+      }
+    }
+
+    // Finally, delete the file upload record
+    const deletedFile = await fileUploads.deleteFileUpload(fileId, req.clientPool);
     
-    res.json({ message: 'File deleted successfully', file: deletedFile });
+    res.json({ 
+      success: true,
+      message: 'File and associated data deleted successfully',
+      file: deletedFile 
+    });
   } catch (error) {
     console.error('Error deleting file:', error);
     res.status(500).json({ error: 'Failed to delete file', details: error.message });
