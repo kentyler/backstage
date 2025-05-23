@@ -346,14 +346,25 @@
 }
 
 /* Add pale background to user messages for visual separation */
-.message.you {
+.message.you, .message.user-message {
   background-color: #f8f9fa;
   border-left: 3px solid #dee2e6;
 }
 
 /* Assistant messages remain with white background */
-.message.assistant {
+.message.assistant, .message.ai-message {
   background-color: white;
+}
+
+/* Comment messages with light yellow background */
+.message.comment-message,
+div.message.comment-message,
+.messages-container .message.comment-message,
+.messages-list .message.comment-message,
+.messages-column .message.comment-message {
+  background-color: #fffde7 !important; /* Light pastel yellow */
+  border-left: 3px solid #fff59d !important; /* Slightly darker yellow for the border */
+  color: #333 !important;
 }
 
 /* Styling for the expand/collapse button */

@@ -18,7 +18,26 @@ const MessageItem = ({
   // Determine message type and author
   const isUser = message.isUser || message.author === 'You' || message.role === 'user' || (message.message_type_id === 1);
   const isSystem = message.isSystem || message.author === 'System';
-  const messageClass = isSystem ? 'system-message' : isUser ? 'user-message' : 'ai-message';
+  const isComment = message.turn_kind_id === 3; // Using snake_case as returned by the backend
+  
+  console.log('Message turn kind check:', { 
+    id: message.id, 
+    turn_kind_id: message.turn_kind_id, 
+    isComment 
+  });
+  
+  // Set message class based on type - comments override user message type
+  let messageClass;
+  if (isComment) {
+    messageClass = 'comment-message'; // Only use comment-message class for comments
+  } else if (isSystem) {
+    messageClass = 'system-message';
+  } else if (isUser) {
+    messageClass = 'user-message';
+  } else {
+    messageClass = 'ai-message';
+  }
+  
   const isError = message.isError;
   
   // Check if this is a file message that can be deleted
@@ -28,8 +47,9 @@ const MessageItem = ({
   let authorName = 'Unknown';
   if (isSystem) {
     authorName = 'System';
-  } else if (isUser) {
-    // Try multiple possible author field names
+  } else if (isUser || isComment) {
+    // Use the same author name format for both regular user messages and comments
+    // (comments will be distinguished by their yellow background)
     authorName = message.participantName || message.author || 'You';
   } else {
     // For AI messages
@@ -49,6 +69,38 @@ const MessageItem = ({
     setIsExpanded(!isExpanded);
   };
   
+  // Create inline style for comments with very bright colors for debugging
+  const commentStyle = isComment ? {
+    backgroundColor: 'yellow',
+    borderLeft: '3px solid orange',
+    border: '2px solid orange'
+  } : {};
+  // Add debug information
+  console.log('Message type info:', {
+    id: message.id,
+    turnKindId: message.turn_kind_id,
+    isComment: isComment,
+    content: message.content?.substring(0, 30)
+  });
+  
+  // For debugging
+  console.log('Rendering message:', {
+    id: message.id,
+    turnKindId: message.turn_kind_id,
+    isComment,
+    messageClass
+  });
+  
+  // Direct styling object for comments
+  const directCommentStyle = isComment ? {
+    backgroundColor: '#fffff0 !important',
+    background: '#fffff0 !important',
+    borderLeft: '4px solid #ffd700 !important',
+    borderRadius: '4px !important',
+    padding: '10px !important'
+  } : {};
+  
+  // Regular message rendering
   return (
     <div 
       key={message.id || index} 
@@ -58,6 +110,7 @@ const MessageItem = ({
           setSelectedMessageId(selectedMessageId === message.id ? null : message.id);
         }
       }}
+      style={directCommentStyle}
     >
       <div className="message-header">
         <span className="message-author">{authorName}</span>

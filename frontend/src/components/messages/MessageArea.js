@@ -194,8 +194,15 @@ const MessageArea = ({ selectedTopic }) => {
             
             // If the server returns the saved message, replace the temporary one
             if (result?.id) {
+              // Update the message with author information
+              const updatedMessage = {
+                ...result,
+                author: user?.username || 'You' // Ensure username is set correctly
+              };
+              
+              // Replace the temporary message with the updated one
               setTopicMessages(prev => 
-                prev.map(msg => msg.id === tempMessage.id ? result : msg)
+                prev.map(msg => msg.id === tempMessage.id ? updatedMessage : msg)
               );
               
               // If there are relevant messages in the response, update the related messages state

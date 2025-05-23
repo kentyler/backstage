@@ -60,7 +60,7 @@ export async function getTurnsByTopicId(topicId, pool, limit = 100) {
       avatarId: row.avatar_id,
       content: row.content_text,
       isUser: row.message_type_id === MESSAGE_TYPE.USER,
-      turnKindId: row.turn_kind_id,
+      turn_kind_id: row.turn_kind_id, // Keep in snake_case for frontend compatibility
       createdAt: row.created_at,
       turnIndex: row.turn_index,
       llmId: row.llm_id,

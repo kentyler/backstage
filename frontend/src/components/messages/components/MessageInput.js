@@ -26,7 +26,16 @@ const MessageInput = ({
             // Handle Enter to send (but allow Shift+Enter for newlines)
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
-              handleSubmit(e);
+              
+              // If the message is exactly 'Comment' or 'comment', don't submit yet
+              const trimmedMessage = message.trim();
+              if (trimmedMessage === 'Comment' || trimmedMessage === 'comment') {
+                // Insert a newline instead
+                setMessage(message + '\n');
+              } else {
+                // Otherwise, submit the message as usual
+                handleSubmit(e);
+              }
             }
           }}
           onPaste={autoResizeTextarea}
