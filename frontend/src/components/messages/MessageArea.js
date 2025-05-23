@@ -48,15 +48,34 @@ const MessageArea = ({ selectedTopic }) => {
   useEffect(() => {
     const loadMessages = async () => {
       if (!selectedTopic?.id) {
+        console.log('DEBUG - No topic selected, clearing messages');
         setTopicMessages([]);
         return;
       }
       
+      console.log('DEBUG - Loading messages for topic ID:', selectedTopic.id);
       setIsLoading(true);
       setError(null);
       
       try {
+        console.log('DEBUG - Calling grpTopicAvatarTurnService.getTurnsByTopicId with:', selectedTopic.id);
         const messages = await grpTopicAvatarTurnService.getTurnsByTopicId(selectedTopic.id);
+        
+        console.log(`DEBUG - Received ${messages?.length || 0} messages from API`);
+        if (messages && messages.length > 0) {
+          messages.forEach((msg, idx) => {
+            console.log(`DEBUG - Message ${idx}:`, {
+              id: msg.id,
+              content: msg.content?.substring(0, 30) + (msg.content?.length > 30 ? '...' : ''),
+              isUser: msg.isUser,
+              turn_kind_id: msg.turn_kind_id,
+              isComment: msg.turn_kind_id === 3
+            });
+          });
+        } else {
+          console.log('DEBUG - No messages received or empty array');
+        }
+        
         setTopicMessages(messages);
       } catch (err) {
         console.error('Error loading messages:', err);
@@ -191,6 +210,15 @@ const MessageArea = ({ selectedTopic }) => {
             });
             
             console.log('Message sent successfully:', result);
+            console.log('DEBUG - Response details:', {
+              id: result?.id,
+              content: result?.content?.substring(0, 30),
+              turn_kind_id: result?.turn_kind_id,
+              isComment: result?.isComment || result?.turn_kind_id === 3,
+              isUserMessage: result?.isUser || false,
+              llmResponseIncluded: !!result?.llmResponse,
+              llmResponseId: result?.llmResponseId
+            });
             
             // If the server returns the saved message, replace the temporary one
             if (result?.id) {
@@ -199,6 +227,13 @@ const MessageArea = ({ selectedTopic }) => {
                 ...result,
                 author: user?.username || 'You' // Ensure username is set correctly
               };
+              
+              console.log('DEBUG - Replacing temp message with:', {
+                id: updatedMessage.id,
+                tempId: tempMessage.id,
+                content: updatedMessage.content?.substring(0, 30),
+                turn_kind_id: updatedMessage.turn_kind_id
+              });
               
               // Replace the temporary message with the updated one
               setTopicMessages(prev => 

@@ -12,12 +12,11 @@ const MESSAGE_TYPE = {
  * Gets all turns for a topic using its numeric ID
  * @param {number} topicId - The numeric ID of the topic
  * @param {Pool} pool - The PostgreSQL connection pool
- * @param {number} [limit=100] - Maximum number of turns to return
  * @returns {Promise<Array>} Array of topic turns
  */
-export async function getTurnsByTopicId(topicId, pool, limit = 100) {
+export async function getTurnsByTopicId(topicId, pool) {
   try {
-    console.log('Executing getTurnsByTopicId with:', { topicId, limit });
+    console.log('Executing getTurnsByTopicId with:', { topicId });
     
     // Validate that we have a proper pool object
     if (!pool || typeof pool.query !== 'function') {
@@ -34,9 +33,8 @@ export async function getTurnsByTopicId(topicId, pool, limit = 100) {
               llm_name
        FROM grp_topic_avatar_turns_with_names
        WHERE topic_id = $1
-       ORDER BY turn_index ASC
-       LIMIT $2`,
-      [topicId, limit]
+       ORDER BY turn_index ASC`,
+      [topicId]
     );
     
     console.log(`Found ${result.rows.length} messages for topic ID ${topicId}`);

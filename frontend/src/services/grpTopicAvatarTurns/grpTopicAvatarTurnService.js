@@ -71,17 +71,40 @@ async function getTurnsByTopicId(topicId) {
     throw new Error('topicId is required');
   }
 
+  console.log('DEBUG getTurnsByTopicId - Called with topicId:', topicId);
+
   try {
-    const response = await fetch(`${API_BASE_URL}/api/topics/id/${encodeURIComponent(topicId)}`, {
+    const url = `${API_BASE_URL}/api/topics/id/${encodeURIComponent(topicId)}`;
+    console.log('DEBUG getTurnsByTopicId - Fetching from URL:', url);
+    
+    const response = await fetch(url, {
       credentials: 'include' // Important for session cookies
     });
     
+    console.log('DEBUG getTurnsByTopicId - Response status:', response.status);
+    
     if (!response.ok) {
       const error = await response.json();
+      console.error('DEBUG getTurnsByTopicId - Error response:', error);
       throw new Error(error.error || 'Failed to fetch topic turns');
     }
 
-    return await response.json();
+    const data = await response.json();
+    console.log(`DEBUG getTurnsByTopicId - Received ${data?.length || 0} messages from API`);
+    
+    // Log details of each message to debug turn_kind_id and filtering issues
+    if (data && data.length > 0) {
+      data.forEach((msg, idx) => {
+        console.log(`DEBUG getTurnsByTopicId - Message ${idx}:`, {
+          id: msg.id,
+          content: msg.content?.substring(0, 30) + (msg.content?.length > 30 ? '...' : ''),
+          isUser: msg.isUser,
+          turn_kind_id: msg.turn_kind_id
+        });
+      });
+    }
+    
+    return data;
   } catch (error) {
     console.error('Error fetching turns by topic ID:', error);
     throw error;
