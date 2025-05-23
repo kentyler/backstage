@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faTimes } from '@fortawesome/free-solid-svg-icons';
+
+// Get character limit from environment variable, or use 500 as fallback
+const CHARACTER_LIMIT = process.env.REACT_APP_MESSAGE_CHARACTER_LIMIT ? 
+  parseInt(process.env.REACT_APP_MESSAGE_CHARACTER_LIMIT, 10) : 500;
 
 const MessageItem = ({ 
   message, 
@@ -35,6 +39,15 @@ const MessageItem = ({
   // Format timestamp for display
   const timestamp = message.timestamp || message.created_at;
   const formattedTime = timestamp ? new Date(timestamp).toLocaleTimeString() : '';
+  
+  // State to track if message is expanded
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Toggle message expansion
+  const toggleExpansion = (e) => {
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
+  };
   
   return (
     <div 
@@ -88,7 +101,27 @@ const MessageItem = ({
             )}
           </div>
         ) : (
-          message.content
+          <>
+            {message.content && message.content.length > CHARACTER_LIMIT ? (
+              <>
+                {isExpanded ? message.content : `${message.content.substring(0, CHARACTER_LIMIT)}...`}
+                <span 
+                  className="toggle-expand"
+                  onClick={toggleExpansion}
+                  style={{
+                    color: '#1976d2',
+                    cursor: 'pointer',
+                    marginLeft: '5px',
+                    fontWeight: 'bold',
+                    display: 'block',
+                    marginTop: '5px'
+                  }}
+                >
+                  {isExpanded ? 'Show less' : 'Show more'}
+                </span>
+              </>
+            ) : message.content}
+          </>
         )}
       </div>
     </div>

@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './RelatedMessages.css';
 
+// Get character limit from environment variable, or use 500 as fallback
+const CHARACTER_LIMIT = process.env.REACT_APP_MESSAGE_CHARACTER_LIMIT ? 
+  parseInt(process.env.REACT_APP_MESSAGE_CHARACTER_LIMIT, 10) : 500;
+
 /**
  * Displays a list of related messages with clickable topic paths
  * @param {Object} props
@@ -122,7 +126,7 @@ const RelatedMessages = ({ messages = [], isLoading, onTopicSelect, selectedMess
                 )}
               </div>
               <div className="related-message-content">
-                {content.length > 400 ? (
+                {content.length > CHARACTER_LIMIT ? (
                   expandedMessages[msg.id] ? (
                     <>
                       {content}
@@ -135,7 +139,7 @@ const RelatedMessages = ({ messages = [], isLoading, onTopicSelect, selectedMess
                     </>
                   ) : (
                     <>
-                      {content.substring(0, 400)}
+                      {content.substring(0, CHARACTER_LIMIT)}
                       <span style={{ color: '#777' }}>...</span>
                       <span 
                         style={{ color: '#1976d2', cursor: 'pointer', marginLeft: '5px', fontWeight: 'bold' }}
