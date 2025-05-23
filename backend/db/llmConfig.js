@@ -4,6 +4,7 @@
  */
 
 import { Pool } from 'pg';
+import { parseAdditionalConfig } from './llm/utils/parsing.js';
 
 /**
  * Gets the LLM configuration for a client schema using the llm_config_view
@@ -121,15 +122,8 @@ export const getClientSchemaLLMConfig = async (clientSchemaId, pool) => {
     
     const config = { ...result.rows[0] };
     
-    // Parse additional_config if it's a string
-    if (config.additional_config && typeof config.additional_config === 'string') {
-      try {
-        config.additional_config = JSON.parse(config.additional_config);
-      } catch (e) {
-        console.error('Error parsing additional_config:', e);
-        config.additional_config = {};
-      }
-    }
+    // Parse additional_config using our utility function
+    config.additional_config = parseAdditionalConfig(config.additional_config);
     
     return config;
   } catch (error) {
@@ -226,15 +220,8 @@ export const updateClientSchemaLLMConfig = async (clientSchemaId, llmId, pool) =
     // Get the updated LLM config
     const updatedConfig = await getClientSchemaLLMConfig(clientSchemaId, pool);
     
-    // Parse additional_config if it's a string
-    if (updatedConfig.additional_config && typeof updatedConfig.additional_config === 'string') {
-      try {
-        updatedConfig.additional_config = JSON.parse(updatedConfig.additional_config);
-      } catch (e) {
-        console.error('Error parsing additional_config:', e);
-        updatedConfig.additional_config = {};
-      }
-    }
+    // Parse additional_config using our utility function
+    updatedConfig.additional_config = parseAdditionalConfig(updatedConfig.additional_config);
     
     return updatedConfig;
   } catch (error) {

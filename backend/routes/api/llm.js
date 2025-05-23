@@ -1,5 +1,5 @@
 import express from 'express';
-import { getClientSchemaLLMConfig, updateClientSchemaLLMConfig } from '../../db/llmConfig.js';
+import { getClientSchemaLLMConfig, updateClientSchemaLLMConfig } from '../../db/llm/index.js';
 import { pool } from '../../db/connection.js';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';

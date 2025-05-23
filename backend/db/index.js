@@ -29,6 +29,9 @@ import * as fileUploads from './fileUploads/index.js';
 // File upload vector functions
 import * as fileUploadVectors from './fileUploadVectors/index.js';
 
+// LLM functions
+import * as llm from './llm/index.js';
+
 // Export everything in a structured format
 export {
   // Connection
@@ -48,5 +51,6 @@ export {
   grpTopicAvatars,
   grpTopicAvatarTurns,
   fileUploads,
-  fileUploadVectors
+  fileUploadVectors,
+  llm
 };

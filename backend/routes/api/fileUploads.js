@@ -15,6 +15,7 @@ import { MESSAGE_TYPE, TURN_KIND } from '../../db/grpTopicAvatarTurns/createGrpT
 import { processFile, searchFileContent } from '../../services/fileProcessing.js';
 import { getSchemaFromRequest, DEFAULT_SCHEMA } from '../../db/core/schema.js';
 import { createPool } from '../../db/connection.js';
+import { getNextTurnIndex } from '../../services/fileUploads/getNextTurnIndex.js';
 
 // Initialize router
 const router = express.Router();
@@ -103,27 +104,8 @@ router.post('/', upload.single('file'), async (req, res) => {
       // Get the next turn index for this topic path and ensure it's an integer
       console.log('Raw turnIndex from request:', req.body.turnIndex, 'Type:', typeof req.body.turnIndex);
       
-      // Get the next sequential turn index for this topic
-      let turnIndex = 0;
-      
-      // Query to find the highest turn_index for this topic
-      const indexQuery = `
-        SELECT MAX(turn_index) as max_index 
-        FROM grp_topic_avatar_turns 
-        WHERE topic_id = $1
-      `;
-      const indexResult = await pool.query(indexQuery, [topicIdNum]);
-      
-      if (indexResult.rows[0] && indexResult.rows[0].max_index !== null) {
-        const currentMax = parseFloat(indexResult.rows[0].max_index);
-        // Increment by 1 from the current max index
-        turnIndex = currentMax + 1;
-        console.log(`Using next sequential index: ${turnIndex} (current max: ${currentMax})`);
-      } else {
-        // No existing turns, start at index 1
-        turnIndex = 1;
-        console.log(`No existing turns found, starting at index: ${turnIndex}`);
-      }
+      // Get the next sequential turn index for this topic using our utility function
+      const turnIndex = await getNextTurnIndex(topicIdNum, pool);
       const avatarId = req.body.avatarId || 1;   // Default to system avatar if not provided
       
       // Get participant ID from request or session
