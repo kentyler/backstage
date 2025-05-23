@@ -157,13 +157,14 @@ const TopicTreeNode = ({ node, level = 0, onAddChild, expandedPaths, onToggleExp
               border: 'none',
               width: '18px',
               height: '18px',
-              borderRadius: '9px',
+              borderRadius: '50%',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '14px',
-              lineHeight: 1
+              lineHeight: 1,
+              padding: 0
             }}
             onClick={handleAddClick}
             title={`Add under ${node.name}`}

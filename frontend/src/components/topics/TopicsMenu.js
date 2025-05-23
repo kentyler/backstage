@@ -208,13 +208,14 @@ const TopicsMenu = ({ onTopicSelect, initialSelectedTopic, selectedTopicId: prop
                 border: 'none',
                 width: '24px',
                 height: '24px',
-                borderRadius: '12px',
+                borderRadius: '50%',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '16px',
-                lineHeight: 1
+                lineHeight: 1,
+                padding: 0
               }}
               onClick={() => {
                 setIsAdding(true);
