@@ -10,12 +10,13 @@ import {
   fileUploads,
   fileUploadVectors
 } from '../../db/index.js';
-import { createGrpTopicAvatarTurn } from '../../db/grpTopicAvatarTurns/index.js';
 import { MESSAGE_TYPE, TURN_KIND } from '../../db/grpTopicAvatarTurns/createGrpTopicAvatarTurn.js';
 import { processFile, searchFileContent } from '../../services/fileProcessing.js';
 import { getSchemaFromRequest, DEFAULT_SCHEMA } from '../../db/core/schema.js';
 import { createPool } from '../../db/connection.js';
 import { getNextTurnIndex } from '../../services/fileUploads/getNextTurnIndex.js';
+import { getParticipantId } from '../../services/fileUploads/getParticipantId.js';
+import { createFileTurn } from '../../services/fileUploads/createFileTurn.js';
 
 // Initialize router
 const router = express.Router();
@@ -108,18 +109,10 @@ router.post('/', upload.single('file'), async (req, res) => {
       const turnIndex = await getNextTurnIndex(topicIdNum, pool);
       const avatarId = req.body.avatarId || 1;   // Default to system avatar if not provided
       
-      // Get participant ID from request or session
-      let participantId = req.body.participantId || null;
+      // Get participant ID using our utility function
+      const participantId = getParticipantId(req);
       
-      // If participantId is provided in the request, use it
-      if (participantId) {
-        console.log(`Using participant ID from request: ${participantId}`);
-      } 
-      // Otherwise, try to get it from the session
-      else if (req.session && req.session.userId) {
-        participantId = req.session.userId;
-        console.log(`Using participant ID from session: ${participantId}`);
-      } else {
+      if (!participantId) {
         console.warn('No participant ID available for turn creation');
       }
       
@@ -130,54 +123,25 @@ router.post('/', upload.single('file'), async (req, res) => {
         schemaName: options.schemaName 
       });
       
-      // Create message content describing the file upload
-      const contentText = `File uploaded: ${fileUpload.filename} (ID: ${fileUpload.id})`;
+      // Create a turn record for this file upload using our utility function
+      const turnResult = await createFileTurn(
+        topicIdNum,
+        avatarId,
+        turnIndex,
+        fileUpload,
+        participantId,
+        pool
+      );
       
-      console.log('About to create turn record with content:', contentText);
-      
-      let turnCreated = false;
-      let turnId = null;
-      
-      try {
-        // Create a turn record with turn_kind = 6 for file uploads
-        const turn = await createGrpTopicAvatarTurn(
-          topicIdNum,
-          avatarId,
-          turnIndex,
-          contentText,
-          null, // No vector for this message
-          6, // TURN_KIND.FILE_UPLOAD
-          MESSAGE_TYPE.USER, // Mark as user message
-          null, // No template topic
-          pool,
-          null, // No LLM ID for file uploads
-          participantId // Pass the participant ID
-        );
-        
-        console.log(`Created turn with participantId: ${participantId}`);
-        
-        if (turn && turn.id) {
-          console.log(`Created turn record for file upload: ${turn.id} in topic ${topicIdNum}`);
-          turnCreated = true;
-          turnId = turn.id;
-          
-          // Add turn info to the response
-          fileUpload.turn = {
-            id: turn.id,
-            topicId: topicIdNum,
-            turnIndex
-          };
-        }
-      } catch (innerError) {
-        console.error('CRITICAL ERROR in createGrpTopicAvatarTurn:', innerError);
-        console.error('Error stack:', innerError.stack);
-        // Continue with the file upload even if turn creation fails
+      // Add turn info to the response
+      if (turnResult.turnData) {
+        fileUpload.turn = turnResult.turnData;
       }
       
       // Add turn creation status to the response
-      fileUpload.turnCreated = turnCreated;
-      if (turnId) {
-        fileUpload.turnId = turnId;
+      fileUpload.turnCreated = turnResult.turnCreated;
+      if (turnResult.turnId) {
+        fileUpload.turnId = turnResult.turnId;
       }
     
       // Return the file upload record
