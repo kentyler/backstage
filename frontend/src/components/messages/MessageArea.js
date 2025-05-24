@@ -35,6 +35,7 @@ const MessageArea = ({ selectedTopic }) => {
   // UI state
   const [expandedMessages, setExpandedMessages] = useState({});
   const [deletingFileId, setDeletingFileId] = useState(null);
+  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false); // Track when waiting for LLM response
   
   // Related messages state
   const [relatedMessages, setRelatedMessages] = useState([]);
@@ -145,6 +146,25 @@ const MessageArea = ({ selectedTopic }) => {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, []);
+  
+  // Auto-scroll when LLM responses or comments are added
+  useEffect(() => {
+    if (topicMessages.length === 0) return;
+    
+    const lastMessage = topicMessages[topicMessages.length - 1];
+    
+    // Only auto-scroll for:
+    // 1. Comment messages (turn_kind_id === 3)
+    // 2. LLM responses (!isUser && !isComment)
+    // This avoids auto-scrolling when the user sends a regular prompt
+    if (
+      (lastMessage.turn_kind_id === 3) || // Comment
+      (!lastMessage.isUser && !lastMessage.isComment && !lastMessage.isFile) // LLM response
+    ) {
+      // Use a small delay to ensure rendering is complete
+      setTimeout(() => scrollToBottom(true), 100);
+    }
+  }, [topicMessages, scrollToBottom]);
 
   // Handle file upload
   const handleFileUpload = useCallback(async () => {
@@ -195,6 +215,12 @@ const MessageArea = ({ selectedTopic }) => {
         
         // Add the message to the UI
         setTopicMessages(prev => [...prev, tempMessage]);
+        
+        // Set waiting state for regular messages (not comments)
+        const isCommentMessage = message.trim().startsWith('comment') || message.trim().startsWith('Comment');
+        if (!isCommentMessage) {
+          setIsWaitingForResponse(true);
+        }
         
         // Send the message to the server
         try {
@@ -259,6 +285,9 @@ const MessageArea = ({ selectedTopic }) => {
                 // Set the selected message ID to show the related messages panel
                 setSelectedMessageId(result.id);
               }
+              
+              // Reset waiting state once response is received
+              setIsWaitingForResponse(false);
             }
           } else {
             console.error('Cannot send message: No topic selected');
@@ -278,6 +307,9 @@ const MessageArea = ({ selectedTopic }) => {
         
         // Clear the input field
         setMessage('');
+      } else {
+        // Reset waiting state if no message was sent
+        setIsWaitingForResponse(false);
       }
       
       // Handle file upload if present
@@ -295,6 +327,8 @@ const MessageArea = ({ selectedTopic }) => {
       
     } catch (error) {
       console.error('Error:', error);
+      // Reset waiting state on error
+      setIsWaitingForResponse(false);
     }
   }, [message, file, user, handleFileUpload, scrollToBottom]);
 
@@ -584,6 +618,7 @@ const MessageArea = ({ selectedTopic }) => {
         textareaRef={textareaRef}
         fileInputRef={fileInputRef}
         autoResizeTextarea={autoResizeTextarea}
+        isWaitingForResponse={isWaitingForResponse}
       />
     </div>
   );

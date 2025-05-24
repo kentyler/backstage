@@ -14,7 +14,7 @@ import { MESSAGE_TYPE, TURN_KIND } from '../../db/grpTopicAvatarTurns/createGrpT
 import { processFile, searchFileContent } from '../../services/fileProcessing.js';
 import { getSchemaFromRequest, DEFAULT_SCHEMA } from '../../db/core/schema.js';
 import { createPool } from '../../db/connection.js';
-import { getNextTurnIndex } from '../../services/fileUploads/getNextTurnIndex.js';
+import { getNextTurnIndex } from '../../services/common/getNextTurnIndex.js';
 import { getParticipantId } from '../../services/fileUploads/getParticipantId.js';
 import { createFileTurn } from '../../services/fileUploads/createFileTurn.js';
 

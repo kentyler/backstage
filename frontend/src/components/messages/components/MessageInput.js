@@ -1,6 +1,6 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
+import { faPaperclip, faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 const MessageInput = ({ 
   message, 
@@ -9,19 +9,27 @@ const MessageInput = ({
   handleFileChange,
   textareaRef,
   fileInputRef,
-  autoResizeTextarea
+  autoResizeTextarea,
+  isWaitingForResponse = false
 }) => {
   return (
     <div className="message-input-container">
       <form onSubmit={handleSubmit} className="message-input-form">
+        {isWaitingForResponse && (
+          <div className="waiting-indicator">
+            <FontAwesomeIcon icon={faSpinner} spin />
+            <span>Processing your message...</span>
+          </div>
+        )}
         <textarea
           ref={textareaRef}
-          className="message-input"
+          className={`message-input ${isWaitingForResponse ? 'disabled' : ''}`}
           value={message}
           onChange={(e) => {
             setMessage(e.target.value);
             autoResizeTextarea();
           }}
+          disabled={isWaitingForResponse}
           onKeyDown={(e) => {
             // Handle Enter to send (but allow Shift+Enter for newlines)
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -51,8 +59,12 @@ const MessageInput = ({
           }}
         />
         <div className="message-actions">
-          <button type="submit" className="send-button">
-            Send
+          <button 
+            type="submit" 
+            className={`send-button ${isWaitingForResponse ? 'disabled' : ''}`}
+            disabled={isWaitingForResponse}
+          >
+            {isWaitingForResponse ? 'Waiting...' : 'Send'}
           </button>
           <label className="upload-button">
             <input

@@ -6,91 +6,11 @@ import OpenAI from 'openai';
 import { generateEmbedding } from '../../services/embeddings.js';
 import { findSimilarMessages } from '../../db/messageSearch.js';
 import { createGrpTopicAvatarTurn, updateTurnVector, getTurnById } from '../../db/grpTopicAvatarTurns/index.js';
+import { getNextTurnIndex } from '../../services/common/getNextTurnIndex.js';
+import { storeMessage } from '../../services/common/storeMessage.js';
+import { processComment } from '../../services/comments/index.js';
 
-/**
- * Gets the next turn index for a topic
- * @param {number} topicPathId - The ID of the topic
- * @param {object} client - Database client
- * @returns {Promise<number>} The next turn index
- */
-async function getNextTurnIndex(topicPathId, client) {
-  const indexResult = await client.query(
-    'SELECT COALESCE(MAX(turn_index), 0) + 1 as next_index FROM grp_topic_avatar_turns WHERE topic_id = $1',
-    [topicPathId]
-  );
-  return indexResult.rows[0].next_index;
-}
-
-/**
- * Stores a message with its vector representation
- * @param {number} topicPathId - The numeric ID of the topic from the topic_paths table
- * @param {number} avatarId - The ID of the avatar (user/assistant)
- * @param {string} content - The message content
- * @param {boolean} isUser - Whether the message is from the user
- * @returns {Promise<string|null>} The ID of the stored message or null if failed
- */
-async function storeMessage(topicPathId, avatarId, content, isUser = true, llmId = null, participantId = null) {
-  if (!topicPathId) throw new Error('topicPathId is required');
-  if (!avatarId) throw new Error('avatarId is required');
-  if (!content) throw new Error('content is required');
-  
-  const client = await pool.connect();
-  let turnIndex;
-  
-  try {
-    // Get the next turn index
-    const indexResult = await client.query(
-      'SELECT COALESCE(MAX(turn_index), 0) + 1 as next_index FROM grp_topic_avatar_turns WHERE topic_id = $1',
-      [topicPathId]
-    );
-    turnIndex = indexResult.rows[0].next_index;
-
-    // Only generate embedding for user messages
-    let contentVector = null;
-    if (isUser) {
-      try {
-        contentVector = await generateEmbedding(content);
-      } catch (error) {
-        console.error('Could not generate embedding, storing message without vector:', error.message);
-        // Continue without the vector
-      }
-    }
-
-    // Insert the message using our central function
-    let result;
-    try {
-      const messageTypeId = isUser ? 1 : 2;
-      const turnKindId = isUser ? 1 : 2;
-      const templateTopicId = null; // This can be updated if needed in the future
-      
-      const insertResult = await createGrpTopicAvatarTurn(
-        topicPathId,
-        avatarId,
-        turnIndex,
-        content,
-        contentVector || null, // Handle the case where contentVector is undefined
-        turnKindId,
-        messageTypeId,
-        templateTopicId,
-        client, // Pass the client to maintain transaction context
-        llmId, // Pass the llm_id
-        participantId // Pass the participant_id
-      );
-      
-      // Create a result object matching the expected structure
-      result = { rows: [{ id: insertResult.id }] };
-    } catch (error) {
-      console.error('Error inserting message:', error);
-      throw error;
-    }
-    return result.rows[0].id;
-  } catch (error) {
-    console.error('Error storing message:', error);
-    throw error;
-  } finally {
-    client.release();
-  }
-}
+// Both getNextTurnIndex and storeMessage are now imported from common services
     
 
 
@@ -279,45 +199,18 @@ router.post('/prompt', async (req, res) => {
     const participantId = req.body.participantId || req.session?.userId || null;
     console.log('Using participant ID:', participantId, 'Source:', req.body.participantId ? 'request body' : 'session');
     
-    // Check if this is a comment (starts with 'comment' or 'Comment' on the first line)
-    const firstLine = prompt.split('\n')[0].trim();
-    const isComment = firstLine === 'comment' || firstLine === 'Comment';
+    // Process the message to check if it's a comment
+    const commentResult = await processComment(prompt, topicPathId, avatarId, participantId, pool);
     
-    // If it's a comment, store it but don't send to LLM
-    if (isComment) {
-      console.log('Detected comment message, storing without LLM response...');
-      // Remove the 'comment' marker from the first line
-      const commentContent = prompt.replace(/^(comment|Comment)\s*\n?/, '').trim();
-      
-      // Store the comment with a special turn kind ID (3 for comments)
-      const turnKindId = 3; // Comment
-      const messageTypeId = 1; // User message
-      
-      // Use client for this operation
-      const commentResult = await client.query(
-        'INSERT INTO grp_topic_avatar_turns (topic_id, avatar_id, turn_index, content_text, message_type_id, turn_kind_id, participant_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-        [topicPathId, avatarId, await getNextTurnIndex(topicPathId, client), commentContent, messageTypeId, turnKindId, participantId]
-      );
-      
-      const commentId = commentResult.rows[0].id;
-      console.log('Comment stored with ID:', commentId);
-      
-      // Return success without LLM response, add special fields for styling
-      return res.json({
-        id: commentId,
-        content: commentContent,
-        isComment: true,
-        comment_type: 'user_comment', // Special field for identifying comments
-        turn_kind_id: 3, // Make sure this is explicitly set
-        style: 'comment', // Special field for styling
-        success: true,
-        timestamp: new Date().toISOString()
-      });
+    // If it's a comment, return the result and don't continue with LLM processing
+    if (commentResult) {
+      console.log('Processed comment message with ID:', commentResult.id);
+      return res.json(commentResult);
     }
     
     // For normal messages, continue with regular flow
     console.log('Storing user message...');
-    const userMessageId = await storeMessage(topicPathId, avatarId, prompt, true, null, participantId);
+    const userMessageId = await storeMessage(topicPathId, avatarId, prompt, true, null, participantId, pool);
     console.log('User message stored with ID:', userMessageId);
     
     console.log('Retrieved LLM config:', {
@@ -369,7 +262,7 @@ router.post('/prompt', async (req, res) => {
       // Use the LLM config ID as the llm_id
       const llmId = llmConfig.id || null;
       console.log('Using LLM ID:', llmId);
-      const assistantMessageId = await storeMessage(topicPathId, avatarId, response, false, llmId, null);
+      const assistantMessageId = await storeMessage(topicPathId, avatarId, response, false, llmId, null, pool);
       console.log('Assistant response stored with ID:', assistantMessageId);
       
       // Generate and store embedding for the assistant's response
