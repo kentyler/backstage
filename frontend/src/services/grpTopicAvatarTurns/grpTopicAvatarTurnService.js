@@ -169,7 +169,7 @@ async function getRelatedMessages(messageId) {
     console.log(`Fetching related messages for message ID: ${messageId}`);
     
     // Use the dedicated endpoint for fetching related messages
-    const url = `${API_BASE_URL}/api/llm/messages/${messageId}/related`;
+    const url = `${API_BASE_URL}/api/messages/${messageId}/related`;
     console.log(`Making request to: ${url}`);
     
     const response = await fetch(url, {

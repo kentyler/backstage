@@ -261,10 +261,31 @@ const MessageArea = ({ selectedTopic }) => {
                 turn_kind_id: updatedMessage.turn_kind_id
               });
               
-              // Replace the temporary message with the updated one
-              setTopicMessages(prev => 
-                prev.map(msg => msg.id === tempMessage.id ? updatedMessage : msg)
-              );
+              // With comments, we want to replace the temporary message
+              // With LLM responses, we want to keep both user message and LLM response
+              if (result.turn_kind_id === 3) { // Comment message - replace temp message
+                console.log('DEBUG - This is a comment message, replacing temp message');
+                setTopicMessages(prev => 
+                  prev.map(msg => msg.id === tempMessage.id ? updatedMessage : msg)
+                );
+              } else { 
+                // This is a regular message + LLM response flow
+                console.log('DEBUG - This is a regular message + LLM response');
+                
+                // Simply add the AI response as a new message rather than replacing anything
+                setTopicMessages(prev => [
+                  ...prev,  // Keep all existing messages, including the temp user message
+                  {
+                    id: result.id,
+                    content: result.content,
+                    timestamp: result.timestamp || new Date().toISOString(),
+                    author: 'Assistant',
+                    isUser: false,
+                    turn_kind_id: result.turn_kind_id,
+                    relevantMessages: result.relevantMessages
+                  }
+                ]);
+              }
               
               // If there are relevant messages in the response, update the related messages state
               if (result.relevantMessages && result.relevantMessages.length > 0) {

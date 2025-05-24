@@ -6,8 +6,12 @@ import {
   updateTopicPath as dbUpdateTopicPath,
   getTopicPaths
 } from '../../db/topic-paths/index.js';
+import auth from '../../middleware/auth.js';
 
 const router = express.Router();
+
+// Apply authentication middleware to all routes
+router.use(auth);
 
 /**
  * @route   POST /api/topics
@@ -22,11 +26,6 @@ router.post('/', async (req, res) => {
     if (!path) {
       console.log('Error: Path is required');
       return res.status(400).json({ error: 'Path is required' });
-    }
-    
-    if (!req.session.userId) {
-      console.log('Error: Not authenticated');
-      return res.status(401).json({ error: 'Not authenticated' });
     }
     
     try {
@@ -116,9 +115,7 @@ router.get('/id/:id', async (req, res) => {
  */
 router.get('/', async (req, res) => {
   try {
-    if (!req.session.userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
+    // Authentication is handled by the auth middleware
     
     const topics = await getTopicPaths(req.clientPool);
     res.json(topics);
@@ -145,9 +142,7 @@ router.put('/:oldPath', async (req, res) => {
       return res.status(400).json({ error: 'New path is required' });
     }
     
-    if (!req.session.userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
+    // Authentication is handled by the auth middleware
     
     const updatedPath = await dbUpdateTopicPath(oldPath, newPath, req.session.userId, req.clientPool);
     res.json(updatedPath);
@@ -175,10 +170,7 @@ router.delete('/:path(*)', async (req, res) => {
       return res.status(400).json({ error: 'Path is required' });
     }
     
-    if (!req.session.userId) {
-      console.log('Error: Not authenticated');
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
+    // Authentication is handled by the auth middleware
     
     // Decode the path in case it contains encoded characters
     const decodedPath = decodeURIComponent(path);

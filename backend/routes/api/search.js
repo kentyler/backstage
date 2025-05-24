@@ -1,8 +1,12 @@
 import express from 'express';
 import { findSimilarMessages } from '../../db/messageSearch.js';
 import { generateEmbedding } from '../../services/embeddings.js';
+import auth from '../../middleware/auth.js';
 
 const router = express.Router();
+
+// Apply authentication middleware to all routes
+router.use(auth);
 
 /**
  * @route   POST /api/search/similar-messages

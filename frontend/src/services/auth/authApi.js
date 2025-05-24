@@ -17,7 +17,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 export const loginUser = async (email, password) => {
   console.log('Attempting login with:', { email });
   
-  const response = await fetch(`${API_BASE_URL}/api/login`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -51,7 +51,7 @@ export const loginUser = async (email, password) => {
  * @returns {Promise<void>}
  */
 export const logoutUser = async () => {
-  const response = await fetch(`${API_BASE_URL}/api/logout`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
     method: 'POST',
     headers: {
       'Accept': 'application/json'
@@ -74,7 +74,7 @@ export const logoutUser = async () => {
 export const checkAuthStatus = async () => {
   try {
     console.log('Checking auth status...');
-    const response = await fetch(`${API_BASE_URL}/api/auth-status`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/status`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json'
