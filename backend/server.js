@@ -14,6 +14,7 @@ import fileUploadRoutes from './routes/api/fileUploads.js';
 import messagesRoutes from './routes/api/messages.js';
 import llmConfigRoutes from './routes/api/llmConfig.js';
 import authRoutes from './routes/api/auth.js';
+import errorLoggingRoutes from './routes/api/errorLogging.js';
 // Removed conversation routes import as part of migration to topic-based architecture
 import dotenv from 'dotenv';
 import config from './config.js';
@@ -130,6 +131,10 @@ app.use('/api/topic-paths', requireClientPool, topicPathsRoutes);
 
 // Mount the preferences router
 app.use('/api/preferences', requireClientPool, preferencesRoutes);
+
+// Mount the error logging routes - available to frontend without authentication
+// to ensure errors can always be reported
+app.use('/api/log', requireClientPool, errorLoggingRoutes);
 
 // Authentication status and diagnostic routes have been moved to routes/api/auth.js
 

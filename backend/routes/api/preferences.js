@@ -7,9 +7,10 @@
  */
 
 import express from 'express';
+import auth from '../../middleware/auth.js';
 import { createParticipantTopicPreference } from '../../db/preferences/createParticipantTopicPreference.js';
 import { getCurrentParticipantTopic } from '../../db/preferences/getCurrentParticipantTopic.js';
-import auth from '../../middleware/auth.js';
+import { logError, ERROR_SEVERITY, ERROR_SOURCE } from '../../services/errorLogger.js';
 
 const router = express.Router();
 
@@ -27,11 +28,50 @@ router.post('/topic', auth, async (req, res) => {
     const { topicId } = req.body;
     
     if (!topicId) {
-      return res.status(400).json({ error: 'Topic ID is required' });
+      const error = new Error('Topic ID is required');
+      await logError(
+        error,
+        {
+          context: 'POST /api/preferences/topic',
+          severity: ERROR_SEVERITY.WARNING,
+          source: ERROR_SOURCE.BACKEND,
+          metadata: { receivedBody: req.body }
+        },
+        req,
+        req.clientPool
+      );
+      return res.status(400).json({ error: error.message });
     }
     
-    if (!req.session.userId) {
-      return res.status(401).json({ error: 'Authentication required' });
+    if (!req.session?.userId) {
+      const error = new Error('Authentication required');
+      await logError(
+        error,
+        {
+          context: 'POST /api/preferences/topic',
+          severity: ERROR_SEVERITY.WARNING,
+          source: ERROR_SOURCE.BACKEND,
+          metadata: { authStatus: !!req.session }
+        },
+        req,
+        req.clientPool
+      );
+      return res.status(401).json({ error: error.message });
+    }
+    
+    if (!req.clientPool) {
+      const error = new Error('Database connection unavailable');
+      await logError(
+        error,
+        {
+          context: 'POST /api/preferences/topic',
+          severity: ERROR_SEVERITY.CRITICAL,
+          source: ERROR_SOURCE.BACKEND
+        },
+        req,
+        null // Can't use clientPool here as it's not available
+      );
+      return res.status(500).json({ error: error.message });
     }
     
     const preference = await createParticipantTopicPreference(
@@ -45,7 +85,21 @@ router.post('/topic', auth, async (req, res) => {
       preference
     });
   } catch (error) {
-    console.error('Error setting topic preference:', error);
+    await logError(
+      error,
+      {
+        context: 'POST /api/preferences/topic',
+        severity: ERROR_SEVERITY.ERROR,
+        source: ERROR_SOURCE.BACKEND,
+        metadata: { 
+          topicId: req.body?.topicId,
+          userId: req.session?.userId
+        }
+      },
+      req,
+      req.clientPool
+    );
+    
     res.status(500).json({ error: 'Failed to set topic preference' });
   }
 });
