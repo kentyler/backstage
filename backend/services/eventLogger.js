@@ -37,11 +37,11 @@ export const EVENT_TYPE = {
   FILE_UPLOAD_FAILURE: 12,   // File upload unsuccessful
   
   // Error events
-  INFO: 201,
-  WARNING: 202,
-  ERROR: 203,
-  CRITICAL_ERROR: 204,
-  FRONTEND_ERROR: 205,
+  INFO: 13,
+  WARNING: 14,
+  ERROR: 15,
+  CRITICAL_ERROR: 16,
+  FRONTEND_ERROR: 17,
   
   // Security events
   AUTHENTICATION_SUCCESS: 301,

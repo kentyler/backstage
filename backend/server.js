@@ -170,6 +170,17 @@ app.use('/api/preferences', requireClientPool, preferencesRoutes);
 // to ensure errors can always be reported
 app.use('/api/log', requireClientPool, errorLoggingRoutes);
 
+// Add a 404 handler for API routes that don't exist
+app.use('/api/*', (req, res, next) => {
+  const error = new Error(`API endpoint not found: ${req.originalUrl}`);
+  error.statusCode = 404;
+  next(error);
+});
+
+// Import and use the centralized error handler middleware
+import { errorHandler, ApiError } from './middleware/errorHandler.js';
+app.use(errorHandler); // This must come after all API routes and the 404 handler
+
 // Authentication status and diagnostic routes have been moved to routes/api/auth.js
 
 // Add endpoint to get current schema info - needed for frontend UI

@@ -1,6 +1,7 @@
 import express from 'express';
 import { deleteTopicPath as dbDeleteTopicPath } from '../../../db/topic-paths/index.js';
 import auth from '../../../middleware/auth.js';
+import { ApiError } from '../../../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -60,14 +61,14 @@ router.post('/delete', async (req, res) => {
  * @desc    Delete a topic path
  * @access  Private
  */
-router.delete('/:path(*)', async (req, res) => {
+router.delete('/:path(*)', async (req, res, next) => {
   try {
     console.log('Received delete request for path:', req.params.path);
     const path = req.params.path;
     
     if (!path) {
       console.log('Error: Path is required');
-      return res.status(400).json({ error: 'Path is required' });
+      return next(new ApiError('Path is required', 400));
     }
     
     // Authentication is handled by the auth middleware
@@ -89,7 +90,8 @@ router.delete('/:path(*)', async (req, res) => {
         path: decodedPath,
         userId: req.session.userId
       });
-      throw dbError; // Re-throw to be caught by outer catch
+      // Convert database error to ApiError and pass to next()
+      return next(new ApiError(`Failed to delete topic '${decodedPath}'`, 500, { cause: dbError }));
     }
   } catch (error) {
     console.error('Error in delete topic endpoint:', {
@@ -99,11 +101,13 @@ router.delete('/:path(*)', async (req, res) => {
       userId: req.session?.userId
     });
     
-    res.status(500).json({ 
-      error: 'Failed to delete topic path',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
-      ...(process.env.NODE_ENV === 'development' ? { stack: error.stack } : {})
-    });
+    // If it's already an ApiError, pass it along
+    if (error instanceof ApiError) {
+      return next(error);
+    }
+    
+    // Otherwise, convert it to an ApiError
+    return next(new ApiError('Failed to delete topic path', 500, { originalError: error.message }));
   }
 });
 

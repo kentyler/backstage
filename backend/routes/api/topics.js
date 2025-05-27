@@ -7,6 +7,7 @@ import {
   getTopicPaths
 } from '../../db/topic-paths/index.js';
 import auth from '../../middleware/auth.js';
+import { ApiError } from '../../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -18,14 +19,14 @@ router.use(auth);
  * @desc    Create a new topic path
  * @access  Private
  */
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   try {
     console.log('Received create topic request with body:', req.body);
     const { path } = req.body;
     
     if (!path) {
       console.log('Error: Path is required');
-      return res.status(400).json({ error: 'Path is required' });
+      throw new ApiError('Path is required', 400);
     }
     
     try {
@@ -36,16 +37,19 @@ router.post('/', async (req, res) => {
       return res.status(201).json(newPath);
     } catch (dbError) {
       console.error('Database error creating topic path:', dbError);
-      throw dbError; // This will be caught by the outer catch
+      // Convert database error to API error with appropriate status code
+      throw new ApiError(`Failed to create topic '${path}'`, 500, { cause: dbError });
     }
   } catch (error) {
     console.error('Error in create topic endpoint:', error);
-    // Ensure we always return a valid JSON response
-    res.status(500).json({ 
-      error: 'Failed to create topic path',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    
+    // If it's already an ApiError, pass it along
+    if (error instanceof ApiError) {
+      return next(error);
+    }
+    
+    // Otherwise, convert it to an ApiError
+    next(new ApiError('Failed to create topic path', 500, { originalError: error.message }));
   }
 });
 
@@ -160,14 +164,14 @@ router.put('/:oldPath', async (req, res) => {
  * @desc    Delete a topic path
  * @access  Private
  */
-router.delete('/:path(*)', async (req, res) => {
+router.delete('/:path(*)', async (req, res, next) => {
   try {
     console.log('Received delete request for path:', req.params.path);
     const path = req.params.path;
     
     if (!path) {
       console.log('Error: Path is required');
-      return res.status(400).json({ error: 'Path is required' });
+      return next(new ApiError('Path is required', 400));
     }
     
     // Authentication is handled by the auth middleware
@@ -189,9 +193,11 @@ router.delete('/:path(*)', async (req, res) => {
         path: decodedPath,
         userId: req.session.userId
       });
-      throw dbError; // Re-throw to be caught by outer catch
+      // Convert database error to ApiError and pass directly to next()
+      return next(new ApiError(`Failed to delete topic '${decodedPath}'`, 500, { cause: dbError }));
     }
   } catch (error) {
+    // Log the error for debugging
     console.error('Error in delete topic endpoint:', {
       error: error.message,
       stack: error.stack,
@@ -199,11 +205,13 @@ router.delete('/:path(*)', async (req, res) => {
       userId: req.session?.userId
     });
     
-    res.status(500).json({ 
-      error: 'Failed to delete topic path',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
-      ...(process.env.NODE_ENV === 'development' ? { stack: error.stack } : {})
-    });
+    // If it's already an ApiError, pass it along
+    if (error instanceof ApiError) {
+      return next(error);
+    }
+    
+    // Otherwise, convert it to an ApiError
+    return next(new ApiError('Failed to delete topic path', 500, { originalError: error.message }));
   }
 });
 
