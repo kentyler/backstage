@@ -17,6 +17,7 @@ import { createPool } from '../../db/connection.js';
 import { getNextTurnIndex } from '../../services/common/getNextTurnIndex.js';
 import { getParticipantId } from '../../services/fileUploads/getParticipantId.js';
 import { createFileTurn } from '../../services/fileUploads/createFileTurn.js';
+import { logEvent, EVENT_CATEGORY, EVENT_TYPE } from '../../services/eventLogger.js';
 
 // Initialize router
 const router = express.Router();
@@ -146,9 +147,8 @@ router.post('/', upload.single('file'), async (req, res) => {
     
       // Log the successful file upload event
       try {
-        const { logEvent, EVENT_CATEGORY, EVENT_TYPE } = require('../../services/eventLogger');
         await logEvent({
-          schemaName: options.schemaName,
+          schemaName: req.clientSchema || 'public',
           participantId: participantId,
           eventType: EVENT_TYPE.FILE_UPLOAD_SUCCESS,
           eventCategory: EVENT_CATEGORY.PARTICIPANT,
@@ -162,7 +162,7 @@ router.post('/', upload.single('file'), async (req, res) => {
           },
           ipAddress: req.ip,
           userAgent: req.headers['user-agent']
-        }, pool);
+        }, req.clientPool);
         
         console.log('File upload success event logged successfully');
       } catch (logError) {
@@ -177,9 +177,8 @@ router.post('/', upload.single('file'), async (req, res) => {
       
       // Log the failed file upload event
       try {
-        const { logEvent, EVENT_CATEGORY, EVENT_TYPE } = require('../../services/eventLogger');
         await logEvent({
-          schemaName: options.schemaName,
+          schemaName: req.clientSchema || 'public',
           participantId: getParticipantId(req),
           eventType: EVENT_TYPE.FILE_UPLOAD_FAILURE,
           eventCategory: EVENT_CATEGORY.PARTICIPANT,
@@ -192,7 +191,7 @@ router.post('/', upload.single('file'), async (req, res) => {
           },
           ipAddress: req.ip,
           userAgent: req.headers['user-agent']
-        }, pool);
+        }, req.clientPool);
         
         console.log('File upload failure event logged successfully');
       } catch (logError) {
@@ -205,9 +204,8 @@ router.post('/', upload.single('file'), async (req, res) => {
     
     // Log the failed file upload at the outer level
     try {
-      const { logEvent, EVENT_CATEGORY, EVENT_TYPE } = require('../../services/eventLogger');
       await logEvent({
-        schemaName: getSchemaFromRequest(req) || DEFAULT_SCHEMA,
+        schemaName: req.clientSchema || 'public',
         participantId: req.session?.userId || null,
         eventType: EVENT_TYPE.FILE_UPLOAD_FAILURE,
         eventCategory: EVENT_CATEGORY.PARTICIPANT,
@@ -219,7 +217,7 @@ router.post('/', upload.single('file'), async (req, res) => {
         },
         ipAddress: req.ip,
         userAgent: req.headers['user-agent']
-      }, req.pool);
+      }, req.clientPool);
       
       console.log('File upload failure event logged at outer level');
     } catch (logError) {

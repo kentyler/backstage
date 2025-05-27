@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: bartbot
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: PINECONE_ASSISTANT_URL
+        value: https://api.pinecone.io/assistants
+      - key: PINECONE_ASSISTANT_NAME
+        sync: false
+      - key: PINECONE_API_KEY
+        sync: false
+      - key: PINECONE_ASSISTANT_ID
+        sync: false
+      - key: SHOW_ASSISTANT_FILES
+        value: "true"
+      - key: SHOW_CITATIONS
+        value: "true"
+      - key: CIRCLE_API_TOKEN
+        sync: false
+      - key: CIRCLE_COMMUNITY_URL
+        value: https://biblical-studies-academy.circle.so
+      - key: NODE_VERSION
+        value: 20
