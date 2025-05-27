@@ -104,6 +104,34 @@
     </div>
 
     <div class="card">
+        <h2>Login Event Tests</h2>
+        
+        <div>
+            <h3>Login Successful (ID: 1)</h3>
+            <input type="text" id="successEmail" placeholder="Email" value="test@example.com">
+            <input type="password" id="successPassword" placeholder="Password" value="password123">
+            <button onclick="testRealLogin('success')">Test Login Success</button>
+            <div id="loginSuccessResponse" class="response"></div>
+        </div>
+
+        <div>
+            <h3>Login Unsuccessful (ID: 2)</h3>
+            <input type="text" id="failureEmail" placeholder="Email" value="test@example.com">
+            <input type="password" id="failurePassword" placeholder="Password" value="wrongpassword">
+            <button onclick="testRealLogin('failure')">Test Login Failure</button>
+            <div id="loginFailureResponse" class="response"></div>
+        </div>
+
+        <div>
+            <h3>Login Not Found (ID: 3)</h3>
+            <input type="text" id="notfoundEmail" placeholder="Email" value="nonexistent@example.com">
+            <input type="password" id="notfoundPassword" placeholder="Password" value="doesntmatter">
+            <button onclick="testRealLogin('notfound')">Test Login Not Found</button>
+            <div id="loginNotFoundResponse" class="response"></div>
+        </div>
+    </div>
+
+    <div class="card">
         <h2>Log Viewer</h2>
         <button onclick="viewLogs()">View Recent Logs</button>
         <pre id="logOutput">No logs fetched yet.</pre>

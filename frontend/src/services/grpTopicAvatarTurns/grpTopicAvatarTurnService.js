@@ -16,7 +16,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
  * @returns {Promise<Object>} The response with created turn
  */
 async function submitPrompt(prompt, options = {}) {
-  const { topicPathId, avatarId, currentMessageId, participantId } = options;
+  const { topicPathId, avatarId, currentMessageId, participantId, turn_index, referenceMessageIndex } = options;
   
   console.log('=== submitPrompt called ===');
   console.log('Prompt:', prompt);
@@ -32,6 +32,18 @@ async function submitPrompt(prompt, options = {}) {
   if (!avatarId) throw new Error('avatarId is required');
   if (isNaN(Number(avatarId))) throw new Error('avatarId must be a number');
 
+  // Check if this is a comment (starts with 'comment:' or 'Comment:')
+  const isComment = prompt.trim().startsWith('comment:') || prompt.trim().startsWith('Comment:');
+  console.log('Is this a comment?', isComment);
+  
+  // For comments, remove the 'comment:' prefix from the content
+  let cleanPrompt = prompt;
+  if (isComment) {
+    // Remove the 'comment:' prefix and any leading/trailing whitespace
+    cleanPrompt = prompt.replace(/^(comment:|Comment:)\s*/i, '').trim();
+    console.log('Processing as comment. Clean content:', cleanPrompt);
+  }
+
   try {
     // Use the existing /api/llm/prompt endpoint as that's what's set up in the backend
     const response = await fetch(`${API_BASE_URL}/api/llm/prompt`, {
@@ -41,11 +53,15 @@ async function submitPrompt(prompt, options = {}) {
       },
       credentials: 'include', // Important for sending cookies with the request
       body: JSON.stringify({
-        prompt,
+        prompt: cleanPrompt, // Use the cleaned prompt without the prefix
         topicPathId: cleanTopicPathId,
         avatarId: Number(avatarId),
         currentMessageId: currentMessageId || null,
-        participantId: participantId
+        participantId: participantId,
+        isComment: isComment, // Flag to indicate this is a comment (don't send to LLM)
+        turn_kind_id: isComment ? 3 : 1, // Use turn_kind_id 3 for comments, 1 for regular messages
+        turn_index: isComment && turn_index ? turn_index : null, // Only send turn_index for comments
+        referenceMessageIndex: isComment && referenceMessageIndex !== undefined ? referenceMessageIndex : null // Only send for comments
       })
     });
 
@@ -194,8 +210,62 @@ async function getRelatedMessages(messageId) {
   }
 }
 
+/**
+ * Submits a comment without triggering an LLM response
+ * @param {string} commentText - The comment text without 'comment:' prefix
+ * @param {Object} options - Additional options
+ * @param {number} options.topicPathId - The ID of the topic path (required)
+ * @param {number} options.avatarId - The ID of the user's avatar (required)
+ * @param {number} options.participantId - The ID of the participant (optional)
+ * @param {number} options.turn_index - The fractional index for positioning the comment (optional)
+ * @param {number} options.referenceMessageId - The ID of the message being commented on (optional)
+ * @returns {Promise<Object>} The response with created comment
+ */
+async function submitComment(commentText, options = {}) {
+  const { topicPathId, avatarId, participantId, turn_index, referenceMessageId } = options;
+  
+  console.log('=== submitComment called ===');
+  console.log('Comment text:', commentText);
+  console.log('Options:', options);
+  
+  if (!topicPathId) throw new Error('topicPathId is required');
+  if (!avatarId) throw new Error('avatarId is required');
+  if (!commentText) throw new Error('commentText is required');
+  
+  try {
+    // Use the dedicated comments endpoint
+    const response = await fetch(`${API_BASE_URL}/api/comments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // Important for sending cookies with the request
+      body: JSON.stringify({
+        content: commentText, // Send the clean comment text without 'comment:' prefix
+        topicPathId: String(topicPathId).trim(),
+        avatarId: Number(avatarId),
+        participantId: participantId,
+        turn_index: turn_index, // Include the fractional turn index for proper positioning
+        referenceMessageId: referenceMessageId, // Include the reference message ID
+        turn_kind_id: 3 // Explicitly set turn_kind_id to 3 for comments
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to submit comment');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error submitting comment:', error);
+    throw error;
+  }
+}
+
 export default {
   submitPrompt,
+  submitComment,
   getTurnsByTopicId,
   getRelatedMessages
 };

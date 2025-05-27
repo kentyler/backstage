@@ -7,7 +7,8 @@
  * @returns {Promise<Array>} Sorted array of topic paths
  */
 // Ensure we're targeting the backend server (port 5000) not the frontend server (port 3000)
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+import { API_BASE_URL } from '../../config';
+import { logUserEvent } from '../events/eventApi';
 
 export const fetchTopicPaths = async () => {
   try {
@@ -35,6 +36,8 @@ export const fetchTopicPaths = async () => {
  */
 export async function createTopicPath(path) {
   try {
+    console.log(`Creating topic path: ${path}`);
+    
     const response = await fetch(`${API_BASE_URL}/api/topics`, {
       method: 'POST',
       headers: {
@@ -49,7 +52,23 @@ export async function createTopicPath(path) {
       throw new Error(error.error || 'Failed to create topic path');
     }
 
-    return response.json();
+    const result = await response.json();
+    
+    // Log the successful topic creation event (don't await)
+    // This ensures we don't block topic creation if event logging fails
+    logUserEvent({
+      eventType: 5, // TOPIC_ADDED event type
+      description: `Added topic: ${path}`,
+      details: {
+        topicPath: path,
+        timestamp: new Date().toISOString()
+      }
+    }).catch(logError => {
+      // Just log the error, don't disrupt the normal flow
+      console.error('Error logging topic creation event:', logError);
+    });
+    
+    return result;
   } catch (error) {
     console.error('Error creating topic path:', error);
     throw error;
@@ -63,8 +82,15 @@ export async function createTopicPath(path) {
  */
 export async function deleteTopicPath(path) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/topics/${encodeURIComponent(path)}`, {
-      method: 'DELETE',
+    console.log(`Deleting topic path: ${path}`);
+
+    // Use POST with path in request body to avoid URL encoding issues with dots
+    const response = await fetch(`${API_BASE_URL}/api/topics/delete`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ path }),
       credentials: 'include',
     });
 
@@ -79,6 +105,20 @@ export async function deleteTopicPath(path) {
       }
       throw new Error(errorData.error || 'Failed to delete topic path');
     }
+
+    // Log the successful topic deletion event (don't await)
+    // This ensures we don't block topic deletion if event logging fails
+    logUserEvent({
+      eventType: 6, // TOPIC_DELETED event type
+      description: `Deleted topic: ${path}`,
+      details: {
+        topicPath: path,
+        timestamp: new Date().toISOString()
+      }
+    }).catch(logError => {
+      // Just log the error, don't disrupt the normal flow
+      console.error('Error logging topic deletion event:', logError);
+    });
 
     // For 204 No Content, return null instead of trying to parse JSON
     if (response.status === 204) {

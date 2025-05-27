@@ -51,20 +51,34 @@ export const loginUser = async (email, password) => {
  * @returns {Promise<void>}
  */
 export const logoutUser = async () => {
-  const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json'
-    },
-    credentials: 'include'
-  });
+  console.log('Attempting to log out user');
+  try {
+    console.log('Making logout request to:', `${API_BASE_URL}/api/auth/logout`);
+    const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    });
 
-  if (!response.ok) {
-    throw new Error('Logout failed');
+    console.log('Logout response status:', response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Logout failed with status:', response.status, errorText);
+      throw new Error(`Logout failed: ${response.status} ${errorText}`);
+    }
+
+    console.log('Logout successful, clearing local storage token');
+    // Clear fallback token
+    localStorage.removeItem('auth_token');
+    return { success: true };
+  } catch (error) {
+    console.error('Logout request error:', error);
+    throw error;
   }
-
-  // Clear fallback token
-  localStorage.removeItem('auth_token');
 };
 
 /**

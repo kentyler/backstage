@@ -102,6 +102,28 @@
   background: #e9ecef;
 }
 
+/* Style for topic name with truncation */
+.topic-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* For very small screens or deeply nested items, show buttons below */
+@media (max-width: 480px) {
+  .topic-label {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .topic-actions {
+    margin-left: 0;
+    margin-top: 4px;
+    align-self: flex-end;
+  }
+}
+
 .add-topic-error {
   color: #dc3545;
   font-size: 0.875rem;
@@ -134,18 +156,23 @@
 .topic-label {
   display: flex;
   align-items: center;
-  padding: 0.5rem;
+  padding: 0.35rem 0.4rem; /* Reduced padding to save horizontal space */
   transition: background-color 0.2s;
   border-radius: 4px;
   user-select: none;
   justify-content: space-between;
+  overflow: hidden;
+  min-width: 0; /* Allow flex item to shrink below content size */
+  flex-wrap: wrap; /* Allow wrapping for very long items */
 }
 
 .topic-content {
   display: flex;
   align-items: center;
   flex: 1;
+  min-width: 0; /* Allow flex child to shrink */
   cursor: pointer;
+  overflow: hidden; /* Hide overflow text */
 }
 
 .topic-label:hover {
@@ -183,8 +210,9 @@
 .topic-actions {
   visibility: hidden;
   display: flex;
-  gap: 4px;
-  margin-left: 8px;
+  gap: 3px; /* Reduced gap between buttons */
+  margin-left: 5px; /* Reduced margin */
+  flex-shrink: 0; /* Prevent buttons from shrinking */
 }
 
 .topic-label:hover .topic-actions {
@@ -193,9 +221,9 @@
 
 .add-subtopic-btn,
 .delete-topic-btn {
-  width: 18px;
-  height: 18px;
-  border-radius: 9px;
+  width: 16px; /* Slightly smaller buttons */
+  height: 16px;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;

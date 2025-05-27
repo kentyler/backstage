@@ -8,6 +8,54 @@ const router = express.Router();
 router.use(auth);
 
 /**
+ * @route   POST /api/topics/delete
+ * @desc    Delete a topic path using POST with path in request body
+ * @access  Private
+ */
+router.post('/delete', async (req, res) => {
+  try {
+    console.log('Received delete request with body:', req.body);
+    const { path } = req.body;
+    
+    if (!path) {
+      console.log('Error: Path is required in request body');
+      return res.status(400).json({ error: 'Path is required in request body' });
+    }
+    
+    // Authentication is handled by the auth middleware
+    
+    console.log('Attempting to delete topic path:', path);
+    
+    try {
+      const result = await dbDeleteTopicPath(req.clientPool, path);
+      console.log('Successfully deleted topic path:', result);
+      return res.status(204).send();
+    } catch (dbError) {
+      console.error('Database error deleting topic path:', {
+        error: dbError.message,
+        stack: dbError.stack,
+        path: path,
+        userId: req.session.userId
+      });
+      throw dbError; // Re-throw to be caught by outer catch
+    }
+  } catch (error) {
+    console.error('Error in delete topic endpoint:', {
+      error: error.message,
+      stack: error.stack,
+      path: req.body.path,
+      userId: req.session?.userId
+    });
+    
+    res.status(500).json({ 
+      error: 'Failed to delete topic path',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      ...(process.env.NODE_ENV === 'development' ? { stack: error.stack } : {})
+    });
+  }
+});
+
+/**
  * @route   DELETE /api/topics/:path(*)
  * @desc    Delete a topic path
  * @access  Private

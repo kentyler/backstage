@@ -15,6 +15,8 @@ import messagesRoutes from './routes/api/messages.js';
 import llmConfigRoutes from './routes/api/llmConfig.js';
 import authRoutes from './routes/api/auth.js';
 import errorLoggingRoutes from './routes/api/errorLogging.js';
+import eventsRoutes from './routes/api/events.js';
+import commentsRoutes from './routes/api/comments.js';
 // Removed conversation routes import as part of migration to topic-based architecture
 import dotenv from 'dotenv';
 import config from './config.js';
@@ -48,10 +50,12 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Create an in-memory store for now - simplest solution for testing
-// Will be replaced with the database store once the basic authentication flow is working
+// Use the basic memory store to ensure server stability
 const MemoryStore = session.MemoryStore;
 const sessionStore = new MemoryStore();
+
+console.log('Using standard in-memory session store');
+
 
 // Configure session middleware with simplified settings for more reliable behavior
 app.use(session({
@@ -98,6 +102,31 @@ app.use(express.static(staticPath, {
   }
 }));
 
+// Add comprehensive request logging middleware to track all API requests
+app.use((req, res, next) => {
+  console.log(`======== REQUEST START ========`);
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  
+  if (req.url.includes('logout')) {
+    console.log('LOGOUT REQUEST DETECTED!');
+    console.log('Session:', req.session);
+    console.log('Body:', req.body);
+    console.log('Method:', req.method);
+    console.log('URL:', req.url);
+    
+    // Add response logging for logout requests
+    const originalSend = res.send;
+    res.send = function(body) {
+      console.log('LOGOUT RESPONSE:', body);
+      return originalSend.call(this, body);
+    };
+  }
+  
+  console.log(`======== REQUEST END ========`);
+  next();
+});
+
 // Apply setClientPool middleware to API routes and mount LLM routes
 app.use('/api', setClientPool);
 
@@ -111,6 +140,11 @@ app.use('/api/file-uploads', requireClientPool, fileUploadRoutes);
 app.use('/api/messages', requireClientPool, messagesRoutes);
 
 app.use('/api/client-schemas', requireClientPool, llmConfigRoutes);
+
+app.use('/api/events', requireClientPool, eventsRoutes);
+
+// Comments routes for handling message comments
+app.use('/api/comments', requireClientPool, commentsRoutes);
 
 // Auth routes for login, logout, and authentication status
 app.use('/api/auth', requireClientPool, authRoutes);
@@ -188,17 +222,58 @@ app.get('*', (req, res, next) => {
   }
 });
 
+// Import the session monitor
+import SessionMonitor from './services/sessionMonitor.js';
+
+// Initialize the session monitor once we have database pools available
+let sessionMonitor = null;
+
+// Function to initialize the session monitor when pools are available
+const initializeSessionMonitor = () => {
+  if (sessionMonitor) return; // Already initialized
+  
+  // Check if we have any pools
+  const pools = Object.values(db.pools || {});
+  if (pools.length === 0) {
+    console.log('No database pools available yet, will try to initialize session monitor later');
+    return;
+  }
+  
+  // Get the first available pool
+  const defaultPool = pools[0];
+  
+  // Create and start the session monitor
+  sessionMonitor = new SessionMonitor(sessionStore, defaultPool, {
+    checkInterval: 5 * 60 * 1000, // Check every 5 minutes
+    inactivityThreshold: 30 * 60 * 1000 // Consider inactive after 30 minutes
+  });
+  
+  sessionMonitor.start();
+  console.log('Session monitor initialized and started');
+};
+
+// Try to initialize after a short delay to allow pools to be created
+setTimeout(initializeSessionMonitor, 10000);
+
 // Start server
 const server = app.listen(PORT, () => {
-console.log(`Server running on port ${PORT}`);
-console.log('Serving React frontend and API from the same server');
-console.log('\nAPI endpoints:');
-console.log('- POST /api/auth/login - Login with any username/password');
-console.log('- POST /api/auth/logout - Logout');
-console.log('- GET /api/auth/status - Check authentication status');
-console.log('- GET /api/auth/test - Diagnostic info for deployment testing');
-console.log('- GET /api/groups - Get real groups from database (requires authentication)');
-console.log('- GET /api/schema-info - Get current schema information');
+  console.log(`Server running on port ${PORT}`);
+  console.log('Serving React frontend and API from the same server');
+  console.log('\nAPI endpoints:');
+  console.log('- POST /api/auth/login - Login with any username/password');
+  console.log('- POST /api/auth/logout - Logout');
+  console.log('- GET /api/auth/status - Check authentication status');
+  console.log('- GET /api/auth/test - Diagnostic info for deployment testing');
+  console.log('- GET /api/groups - Get real groups from database (requires authentication)');
+  console.log('- GET /api/schema-info - Get current schema information');
+});
+
+// Also try to initialize session monitor when a new connection is made
+app.use((req, res, next) => {
+  if (!sessionMonitor && req.clientPool) {
+    initializeSessionMonitor();
+  }
+  next();
 });
 
 // Export the Express app and server for testing

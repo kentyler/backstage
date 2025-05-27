@@ -144,15 +144,88 @@ router.post('/', upload.single('file'), async (req, res) => {
         fileUpload.turnId = turnResult.turnId;
       }
     
+      // Log the successful file upload event
+      try {
+        const { logEvent, EVENT_CATEGORY, EVENT_TYPE } = require('../../services/eventLogger');
+        await logEvent({
+          schemaName: options.schemaName,
+          participantId: participantId,
+          eventType: EVENT_TYPE.FILE_UPLOAD_SUCCESS,
+          eventCategory: EVENT_CATEGORY.PARTICIPANT,
+          description: 'File upload successful',
+          details: {
+            fileId: fileUpload.id,
+            fileName: fileUpload.originalName,
+            fileSize: fileUpload.size,
+            fileMimeType: fileUpload.mimeType,
+            topicId: topicIdNum || null
+          },
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent']
+        }, pool);
+        
+        console.log('File upload success event logged successfully');
+      } catch (logError) {
+        console.error('Failed to log file upload success event:', logError);
+      }
+      
       // Return the file upload record
       res.status(201).json(fileUpload);
     } catch (error) {
       console.error('Error in file upload processing:', error);
       console.error('Error stack:', error.stack);
+      
+      // Log the failed file upload event
+      try {
+        const { logEvent, EVENT_CATEGORY, EVENT_TYPE } = require('../../services/eventLogger');
+        await logEvent({
+          schemaName: options.schemaName,
+          participantId: getParticipantId(req),
+          eventType: EVENT_TYPE.FILE_UPLOAD_FAILURE,
+          eventCategory: EVENT_CATEGORY.PARTICIPANT,
+          description: 'File upload unsuccessful',
+          details: {
+            error: error.message,
+            fileName: req.file ? req.file.originalname : 'unknown',
+            fileSize: req.file ? req.file.size : 0,
+            topicId: req.body.topicId || null
+          },
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent']
+        }, pool);
+        
+        console.log('File upload failure event logged successfully');
+      } catch (logError) {
+        console.error('Failed to log file upload failure event:', logError);
+      }
       res.status(500).json({ error: 'Failed to process file upload', details: error.message });
     }
   } catch (error) {
     console.error('Error uploading file:', error);
+    
+    // Log the failed file upload at the outer level
+    try {
+      const { logEvent, EVENT_CATEGORY, EVENT_TYPE } = require('../../services/eventLogger');
+      await logEvent({
+        schemaName: getSchemaFromRequest(req) || DEFAULT_SCHEMA,
+        participantId: req.session?.userId || null,
+        eventType: EVENT_TYPE.FILE_UPLOAD_FAILURE,
+        eventCategory: EVENT_CATEGORY.PARTICIPANT,
+        description: 'File upload unsuccessful (outer handler)',
+        details: {
+          error: error.message,
+          fileName: req.file ? req.file.originalname : 'unknown',
+          fileSize: req.file ? req.file.size : 0
+        },
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent']
+      }, req.pool);
+      
+      console.log('File upload failure event logged at outer level');
+    } catch (logError) {
+      console.error('Failed to log file upload failure event at outer level:', logError);
+    }
+    
     res.status(500).json({ error: 'Failed to upload file', details: error.message });
   }
 });

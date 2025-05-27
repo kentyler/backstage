@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faSpinner, faTimes, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 
 // Get character limit from environment variable, or use 500 as fallback
 const CHARACTER_LIMIT = process.env.REACT_APP_MESSAGE_CHARACTER_LIMIT ? 
@@ -13,7 +13,11 @@ const MessageItem = ({
   setSelectedMessageId,
   expandedMessages,
   deletingFileId,
-  handleDeleteFile
+  handleDeleteFile,
+  onAddComment,
+  activeCommentIndex,
+  setActiveCommentIndex,
+  handleSubmitComment
 }) => {
   // Determine message type and author
   const isUser = message.isUser || message.author === 'You' || message.role === 'user' || (message.message_type_id === 1);
@@ -117,16 +121,37 @@ const MessageItem = ({
         <span className="message-timestamp">
           {formattedTime}
           {!isSystem && !isError && (
-            <span 
-              className={`related-messages-link ${selectedMessageId === message.id ? 'active' : ''}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedMessageId(selectedMessageId === message.id ? null : message.id);
-              }}
-              title={selectedMessageId === message.id ? "Hide related messages" : "Show related messages"}
-            >
-              {selectedMessageId === message.id ? ' × Hide related' : ' • See related'}
-            </span>
+            <>
+              <span 
+                className={`related-messages-link ${selectedMessageId === message.id ? 'active' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedMessageId(selectedMessageId === message.id ? null : message.id);
+                }}
+                title={selectedMessageId === message.id ? "Hide related messages" : "Show related messages"}
+              >
+                {selectedMessageId === message.id ? ' × Hide related' : ' • See related'}
+              </span>
+              <span 
+                className="related-messages-link"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Toggle the comment input for this message
+                  if (setActiveCommentIndex) {
+                    // Check if this message is already the active comment target
+                    const isActive = activeCommentIndex && 
+                      typeof activeCommentIndex === 'object' && 
+                      activeCommentIndex.index === index;
+                    
+                    // Toggle the comment input
+                    setActiveCommentIndex(isActive ? null : index);
+                  }
+                }}
+                title="Add a comment about this message"
+              >
+                • Add comment
+              </span>
+            </>
           )}
         </span>
       </div>
@@ -177,6 +202,61 @@ const MessageItem = ({
           </>
         )}
       </div>
+      
+      {/* Comment input area - shown only when this message is the active comment target */}
+      {(activeCommentIndex === index || 
+        (typeof activeCommentIndex === 'object' && activeCommentIndex?.index === index)) && (
+        <CommentInput 
+          messageId={message.id} 
+          index={index} 
+          onSubmit={handleSubmitComment} 
+          onCancel={() => setActiveCommentIndex(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+// Comment input component that appears below a message
+const CommentInput = ({ messageId, index, onSubmit, onCancel }) => {
+  const [comment, setComment] = useState('');
+  const commentInputRef = useRef(null);
+  
+  // Focus the input when it appears
+  useEffect(() => {
+    if (commentInputRef.current) {
+      commentInputRef.current.focus();
+    }
+  }, []);
+  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (comment.trim()) {
+      onSubmit(comment, index);
+      setComment('');
+    }
+  };
+  
+  return (
+    <div className="comment-input-container" onClick={(e) => e.stopPropagation()}>
+      <form onSubmit={handleSubmit} className="comment-form">
+        <textarea
+          ref={commentInputRef}
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Add your comment here..."
+          className="comment-textarea"
+          rows={2}
+        />
+        <div className="comment-actions">
+          <button type="button" onClick={onCancel} className="cancel-comment-btn">
+            Cancel
+          </button>
+          <button type="submit" className="submit-comment-btn" disabled={!comment.trim()}>
+            <FontAwesomeIcon icon={faPaperPlane} /> Send
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

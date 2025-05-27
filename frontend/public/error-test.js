@@ -156,6 +156,73 @@ function triggerBackendError(severity) {
   });
 }
 
+// Test real login endpoint
+function testRealLogin(scenario) {
+  let responseElementId, email, password;
+  
+  switch(scenario) {
+    case 'success':
+      responseElementId = 'loginSuccessResponse';
+      email = document.getElementById('successEmail').value;
+      password = document.getElementById('successPassword').value;
+      break;
+    case 'failure':
+      responseElementId = 'loginFailureResponse';
+      email = document.getElementById('failureEmail').value;
+      password = document.getElementById('failurePassword').value;
+      break;
+    case 'notfound':
+      responseElementId = 'loginNotFoundResponse';
+      email = document.getElementById('notfoundEmail').value;
+      password = document.getElementById('notfoundPassword').value;
+      break;
+    default:
+      console.error('Unknown scenario:', scenario);
+      return;
+  }
+
+  const responseElement = document.getElementById(responseElementId);
+  responseElement.style.display = 'block';
+  responseElement.innerHTML = 'Testing real login...';
+
+  // Call the actual login endpoint
+  fetch('/api/auth/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    credentials: 'include',
+    body: JSON.stringify({
+      email,
+      password
+    })
+  })
+  .then(response => {
+    return response.json().then(data => {
+      return {
+        status: response.status,
+        ok: response.ok,
+        data
+      };
+    });
+  })
+  .then(result => {
+    responseElement.innerHTML = `
+      <strong>Login test result (${scenario}):</strong><br>
+      <pre>${JSON.stringify(result, null, 2)}</pre>
+    `;
+    
+    // Auto-refresh logs
+    setTimeout(() => viewLogs(), 500);
+  })
+  .catch(e => {
+    responseElement.innerHTML = `
+      <strong>Error testing login:</strong><br>
+      <pre>${e.message}</pre>
+    `;
+  });
+}
+
 // View recent error logs
 function viewLogs() {
   const logOutput = document.getElementById('logOutput');
@@ -170,7 +237,30 @@ function viewLogs() {
   })
   .then(response => response.json())
   .then(data => {
-    logOutput.textContent = JSON.stringify(data, null, 2);
+    // Format logs in a more readable way
+    if (data.logs && data.logs.length > 0) {
+      // Map the event type IDs to readable names
+      const eventTypeNames = {
+        1: 'login successful',
+        2: 'login unsuccessful',
+        3: 'login not found'
+      };
+      
+      // Format logs more nicely
+      const formattedLogs = data.logs.map(log => ({
+        id: log.id,
+        timestamp: new Date(log.created_at).toLocaleString(),
+        eventType: `${log.event_type_id} (${eventTypeNames[log.event_type_id] || 'unknown'})`,
+        participantId: log.participant_id,
+        description: log.description,
+        details: log.details,
+        ip: log.ip_address
+      }));
+      
+      logOutput.textContent = JSON.stringify(formattedLogs, null, 2);
+    } else {
+      logOutput.textContent = 'No logs found.';
+    }
   })
   .catch(e => {
     logOutput.textContent = `Error fetching logs: ${e.message}`;

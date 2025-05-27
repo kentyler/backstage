@@ -8,7 +8,8 @@ import {
 import llmService from '../../services/llmService';
 import topicService from '../../services/topics/topicService';
 import fileService from '../../services/files';
-import grpTopicAvatarTurnService from '../../services/grpTopicAvatarTurns/grpTopicAvatarTurnService';
+import grpTopicAvatarTurnService, { getTurnsByTopicId, deleteTurnById } from '../../services/grpTopicAvatarTurns/grpTopicAvatarTurnService';
+import { logPromptSubmission, logResponseReceived, logRelatedTopicsClick } from '../../services/events/eventApi';
 import RelatedMessages from './RelatedMessages';
 import { useAuth } from '../../services/auth/authContext';
 
@@ -42,8 +43,154 @@ const MessageArea = ({ selectedTopic }) => {
   const [relatedMessagesError, setRelatedMessagesError] = useState(null);
   const [isLoadingRelated, setIsLoadingRelated] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [loadMessagesError, setLoadMessagesError] = useState(null);
+  
+  // Comment state
+  const [activeCommentIndex, setActiveCommentIndex] = useState(null);
+  const commentInputRef = useRef(null);
+  const [commentAfterIndex, setCommentAfterIndex] = useState(null);
+  
+  // Handler for adding a comment after a specific message
+  const handleAddComment = (index) => {
+    // Set the comment position index
+    setCommentAfterIndex(index);
+    
+    // Set the input field to start with 'comment: '
+    setMessage('comment: ');
+    
+    // Focus the input field
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  };
+  
+  // Define a flag to control when auto-scrolling happens
+  const [preventAutoScroll, setPreventAutoScroll] = useState(false);
+  
+  // Handler for submitting a comment from the inline comment form
+  const handleSubmitComment = async (commentText, index) => {
+    console.log('Submitting comment for message at index:', index);
+    
+    if (!commentText.trim()) return;
+    
+    try {
+      // Set the flag to prevent auto-scrolling during comment submission
+      setPreventAutoScroll(true);
+      
+      // Get the current message that we're commenting on
+      const currentMessage = topicMessages[index];
+      if (!currentMessage) {
+        console.error('Cannot find message at index:', index);
+        return;
+      }
+      
+      // Get the message's turn_index (this must exist since we're displaying it)
+      const currentTurnIndex = currentMessage.turn_index !== undefined ? currentMessage.turn_index : index;
+      
+      // Find the next message by sorting all messages by turn_index
+      const sortedMessages = [...topicMessages]
+        .filter(msg => msg.turn_index !== undefined)
+        .sort((a, b) => a.turn_index - b.turn_index);
+      
+      // Find the next message that comes after the current one
+      let nextMessage = null;
+      let nextTurnIndex = null;
+      
+      for (let i = 0; i < sortedMessages.length; i++) {
+        if (sortedMessages[i].turn_index > currentTurnIndex) {
+          nextMessage = sortedMessages[i];
+          nextTurnIndex = nextMessage.turn_index;
+          break;
+        }
+      }
+      
+      // Calculate the comment's turn_index
+      let commentTurnIndex;
+      if (nextMessage) {
+        // Place comment halfway between current message and next message
+        commentTurnIndex = currentTurnIndex + (nextMessage.turn_index - currentTurnIndex) / 2;
+      } else {
+        // If no next message, add a small increment
+        commentTurnIndex = currentTurnIndex + 0.1;
+      }
+      
+      console.log('Comment positioning calculation:', {
+        currentMessage: currentMessage.id,
+        currentTurnIndex,
+        nextMessage: nextMessage?.id,
+        nextTurnIndex: nextMessage?.turn_index,
+        commentTurnIndex
+      });
+      
+      console.log('Comment positioning details:', {
+        currentMessage: currentMessage.id,
+        currentIndex: index,
+        currentTurnIndex,
+        nextMessage: nextMessage?.id,
+        nextTurnIndex,
+        commentTurnIndex,
+        allMessages: sortedMessages.map(m => ({ id: m.id, turn_index: m.turn_index }))
+      });
+      
+      // Create a temporary comment message to display immediately
+      const tempComment = {
+        id: `temp-comment-${Date.now()}`,
+        content: commentText,
+        timestamp: new Date().toISOString(),
+        author: user?.username || 'You',
+        isUser: true,
+        turn_kind_id: 3, // Comment type
+        turn_index: commentTurnIndex // Add turn_index for proper positioning
+      };
+      
+      // Calculate the current scroll position to maintain it after adding the comment
+      const messageContainer = messageContainerRef.current;
+      const scrollPositionBefore = messageContainer ? messageContainer.scrollTop : 0;
+      
+      // SIMPLIFIED APPROACH: Just insert the comment right after the message at index
+      setTopicMessages(prev => {
+        const newMessages = [...prev];
+        
+        // Insert the comment right after the message at the specified index
+        newMessages.splice(index + 1, 0, tempComment);
+        
+        console.log('Inserted comment at position', index + 1);
+        
+        return newMessages;
+      });
+      
+      // Close the comment input
+      setActiveCommentIndex(null);
+      
+      // Only proceed with API call if we have a topic
+      if (selectedTopic?.id) {
+        // Use the dedicated comment API - this won't trigger an LLM response
+        const result = await grpTopicAvatarTurnService.submitComment(commentText, {
+          topicPathId: selectedTopic.id,
+          avatarId: 1, // Default avatar ID 
+          participantId: user?.id,
+          turn_index: commentTurnIndex, // Include the calculated fractional turn index
+          referenceMessageId: currentMessage.id || null // Include the ID of the message being commented on
+        });
+        
+        console.log('Comment submitted successfully:', result);
+      }
+      
+      // Restore scroll position after a short delay to ensure DOM has updated
+      setTimeout(() => {
+        if (messageContainer) {
+          messageContainer.scrollTop = scrollPositionBefore;
+        }
+        // Reset the prevention flag after the comment is fully processed
+        setPreventAutoScroll(false);
+      }, 150);
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      setPreventAutoScroll(false); // Reset the flag on error
+      // Could show an error message to the user here
+    }
+  };
   
   // Load messages when topic changes
   useEffect(() => {
@@ -55,8 +202,8 @@ const MessageArea = ({ selectedTopic }) => {
       }
       
       console.log('DEBUG - Loading messages for topic ID:', selectedTopic.id);
-      setIsLoading(true);
-      setError(null);
+      setIsLoadingMessages(true);
+      setLoadMessagesError(null);
       
       try {
         console.log('DEBUG - Calling grpTopicAvatarTurnService.getTurnsByTopicId with:', selectedTopic.id);
@@ -80,10 +227,10 @@ const MessageArea = ({ selectedTopic }) => {
         setTopicMessages(messages);
       } catch (err) {
         console.error('Error loading messages:', err);
-        setError('Failed to load messages');
+        setLoadMessagesError('Failed to load messages');
         setTopicMessages([]);
       } finally {
-        setIsLoading(false);
+        setIsLoadingMessages(false);
       }
     };
     
@@ -110,6 +257,20 @@ const MessageArea = ({ selectedTopic }) => {
         console.log('[DEBUG] Related messages length:', result ? result.length : 0);
         if (result && result.length > 0) {
           console.log('[DEBUG] First related message:', result[0]);
+          
+          // Log the related topics click event
+          if (selectedTopic?.id) {
+            logRelatedTopicsClick(selectedTopic.id, result)
+              .then(logResult => {
+                if (!logResult?.success) {
+                  console.log('Note: Related topics click event logging completed silently');
+                }
+              })
+              .catch(error => {
+                // Just log the error, don't disrupt the UI
+                console.error('Failed to log related topics click:', error);
+              });
+          }
         }
         setRelatedMessages(result || []);
         console.log('[DEBUG] State updated with related messages');
@@ -147,24 +308,33 @@ const MessageArea = ({ selectedTopic }) => {
     }
   }, []);
   
-  // Auto-scroll when LLM responses or comments are added
+  // Auto-scroll only when a new topic is selected
+  useEffect(() => {
+    if (selectedTopic?.id) {
+      // Use a small delay to ensure messages are loaded and rendered
+      setTimeout(() => scrollToBottom(true), 300);
+    }
+  }, [selectedTopic?.id, scrollToBottom]);
+  
+  // Track when a normal prompt (not a comment) is submitted to trigger scrolling
+  const [normalPromptSubmitted, setNormalPromptSubmitted] = useState(false);
+  
+  // Auto-scroll when LLM responses arrive after a normal prompt submission
   useEffect(() => {
     if (topicMessages.length === 0) return;
     
     const lastMessage = topicMessages[topicMessages.length - 1];
     
-    // Only auto-scroll for:
-    // 1. Comment messages (turn_kind_id === 3)
-    // 2. LLM responses (!isUser && !isComment)
-    // This avoids auto-scrolling when the user sends a regular prompt
-    if (
-      (lastMessage.turn_kind_id === 3) || // Comment
-      (!lastMessage.isUser && !lastMessage.isComment && !lastMessage.isFile) // LLM response
-    ) {
+    // Only auto-scroll for LLM responses (!isUser) after a normal prompt was submitted
+    if (normalPromptSubmitted && !lastMessage.isUser && !lastMessage.isFile) {
       // Use a small delay to ensure rendering is complete
-      setTimeout(() => scrollToBottom(true), 100);
+      setTimeout(() => {
+        scrollToBottom(true);
+        // Reset the flag after scrolling
+        setNormalPromptSubmitted(false);
+      }, 100);
     }
-  }, [topicMessages, scrollToBottom]);
+  }, [topicMessages, normalPromptSubmitted, scrollToBottom]);
 
   // Handle file upload
   const handleFileUpload = useCallback(async () => {
@@ -204,27 +374,60 @@ const MessageArea = ({ selectedTopic }) => {
     try {
       // Handle text message
       if (message.trim()) {
+        // Check if this is a comment message
+        const isCommentMessage = message.trim().startsWith('comment') || message.trim().startsWith('Comment');
+        
         // Create a temporary message to display immediately
         const tempMessage = {
           id: `temp-${Date.now()}`,
           content: message,
           timestamp: new Date().toISOString(),
           author: user?.username || 'You',
-          isUser: true
+          isUser: true,
+          // If it's a comment, set the turn_kind_id to 3
+          turn_kind_id: isCommentMessage ? 3 : 1
         };
         
-        // Add the message to the UI
-        setTopicMessages(prev => [...prev, tempMessage]);
+        // Add the message to the UI at the correct position
+        if (isCommentMessage && commentAfterIndex !== null) {
+          // For comments, insert after the specified message index
+          setTopicMessages(prev => {
+            const newMessages = [...prev];
+            // Insert the comment after the specified index
+            newMessages.splice(commentAfterIndex + 1, 0, tempMessage);
+            return newMessages;
+          });
+          // Reset the comment index after inserting
+          setCommentAfterIndex(null);
+        } else {
+          // For regular messages, add to the end
+          setTopicMessages(prev => [...prev, tempMessage]);
+        }
         
         // Set waiting state for regular messages (not comments)
-        const isCommentMessage = message.trim().startsWith('comment') || message.trim().startsWith('Comment');
         if (!isCommentMessage) {
           setIsWaitingForResponse(true);
+          // Set flag to indicate a normal prompt was submitted (for auto-scrolling)
+          setNormalPromptSubmitted(true);
         }
         
         // Send the message to the server
         try {
           console.log('Sending message to server for topic:', selectedTopic?.id);
+          
+          // Log the prompt submission event
+          if (selectedTopic?.id && !isCommentMessage) {
+            logPromptSubmission(message, selectedTopic.id)
+              .then(result => {
+                if (!result?.success) {
+                  console.log('Note: Prompt submission event logging completed silently');
+                }
+              })
+              .catch(error => {
+                // Just log the error, don't disrupt the UI
+                console.error('Failed to log prompt submission:', error);
+              });
+          }
           
           // Make an API call to save the message
           if (selectedTopic?.id) {
@@ -285,6 +488,20 @@ const MessageArea = ({ selectedTopic }) => {
                     relevantMessages: result.relevantMessages
                   }
                 ]);
+                
+                // Log the response received event
+                if (result.content && selectedTopic?.id) {
+                  logResponseReceived(result.content, selectedTopic.id)
+                    .then(logResult => {
+                      if (!logResult?.success) {
+                        console.log('Note: Response received event logging completed silently');
+                      }
+                    })
+                    .catch(error => {
+                      // Just log the error, don't disrupt the UI
+                      console.error('Failed to log response received:', error);
+                    });
+                }
               }
               
               // If there are relevant messages in the response, update the related messages state
@@ -343,8 +560,8 @@ const MessageArea = ({ selectedTopic }) => {
         textareaRef.current.style.height = 'auto';
       }
       
-      // Scroll to bottom after a short delay to ensure DOM is updated
-      setTimeout(() => scrollToBottom(true), 100);
+      // We're no longer auto-scrolling here - it's now handled by the useEffect hooks
+      // that specifically watch for new topic selection and normal prompt submission
       
     } catch (error) {
       console.error('Error:', error);
@@ -595,6 +812,10 @@ const MessageArea = ({ selectedTopic }) => {
           expandedMessages={expandedMessages}
           deletingFileId={deletingFileId}
           handleDeleteFile={handleDeleteFile}
+          onAddComment={handleAddComment}
+          activeCommentIndex={activeCommentIndex}
+          setActiveCommentIndex={setActiveCommentIndex}
+          handleSubmitComment={handleSubmitComment}
         />
 
         {/* Related messages */}

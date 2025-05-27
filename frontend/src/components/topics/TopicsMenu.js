@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchTopicPaths, createTopicPath } from '../../services/topics/topicsApi';
+import { logTopicSelection } from '../../services/events/eventApi';
 import TopicTreeNode from './TopicTreeNode';
 import './TopicsMenu.css';
 
@@ -10,6 +11,7 @@ const buildTopicTree = (paths) => {
   const root = { children: [], name: 'root' };
   
   paths.forEach(path => {
+    // Use dots as separators for ltree compatibility
     const parts = path.path.split('.');
     let current = root;
     
@@ -95,9 +97,17 @@ const TopicsMenu = ({ onTopicSelect, initialSelectedTopic, selectedTopicId: prop
    * @returns {string} The sanitized path
    */
   const sanitizeTopicPath = (path) => {
-    // Replace spaces with underscores and remove any invalid characters
-    // ltree only allows letters, digits, and underscores in node labels
-    return path.trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_.]/g, '');
+    // First step: Replace spaces with underscores
+    let sanitized = path.trim().replace(/\s+/g, '_');
+    
+    // Preserve dots as separators for ltree compatibility
+    // But convert any user-entered dots to underscores to avoid path confusion
+    
+    // Second step: Remove any invalid characters (ltree only allows letters, digits, underscores, and dots)
+    sanitized = sanitized.replace(/[^a-zA-Z0-9_\.]/g, '');
+    
+    console.log(`Sanitized path: "${path}" -> "${sanitized}"`);
+    return sanitized;
   };
 
   const handleAddPath = async (e) => {
@@ -110,7 +120,8 @@ const TopicsMenu = ({ onTopicSelect, initialSelectedTopic, selectedTopicId: prop
       await createTopicPath(sanitizedPath);
       
       // Auto-expand all parent paths of the new path
-      const pathParts = sanitizedPath.split('.');
+      // Handle the new forward slash separator
+      const pathParts = sanitizedPath.split('/');
       const newExpandedPaths = new Set(expandedPaths);
       let currentPath = '';
       
@@ -152,24 +163,44 @@ const TopicsMenu = ({ onTopicSelect, initialSelectedTopic, selectedTopicId: prop
     setExpandedPaths(newExpandedPaths);
   };
 
+  // Handle topic selection and log the event
+
   // Handle topic selection
   const handleTopicSelect = (numericId, pathId, topicPath) => {
     // Update the internal selected topic state
     setInternalSelectedTopicId(numericId);
     
     // Extract the topic name from the path (last part of the path)
+    // Use dots as separators for ltree compatibility
     const parts = topicPath.split('.');
     const topicName = parts[parts.length - 1];
     
     // Call the parent component's onTopicSelect callback with both ID and name
     // This simplifies data flow and ensures proper display
     onTopicSelect && onTopicSelect(numericId, topicName);
+    
+    // Log the topic selection event
+    try {
+      console.log(`Logging topic selection: ${numericId} - ${topicName} (Full path: ${topicPath})`);
+      logTopicSelection(numericId, topicName, topicPath)
+        .then(result => {
+          if (!result?.success) {
+            console.log('Note: Topic selection event logging completed silently');
+          }
+        })
+        .catch(error => {
+          // Just log the error, don't disrupt the UI
+          console.error('Failed to log topic selection:', error);
+        });
+    } catch (error) {
+      console.error('Error in topic selection event logging:', error);
+    }
   };
 
   // Process a tree node and add necessary props
   const renderTopicTree = (nodes) => {
     return nodes.map(node => {
-      // For nested nodes, calculate the full path
+      // For nested nodes, calculate the full path using dots as separators for ltree compatibility
       const fullPath = node.parent ? `${node.parent}.${node.name}` : node.name;
       
       // For comparison with selectedTopicId, we now use the numericId directly

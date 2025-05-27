@@ -116,11 +116,11 @@ router.get('/recent', async (req, res) => {
       await client.query('SET search_path TO $1, public', [schemaName]);
       
       // Query recent logs from the participant_event_logs table
+      // Show all event types, including login events
       const result = await client.query(`
         SELECT * FROM participant_event_logs
-        WHERE event_category = 'error'
         ORDER BY created_at DESC
-        LIMIT 10
+        LIMIT 20
       `);
       
       res.json({

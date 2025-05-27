@@ -35,9 +35,11 @@ export function isComment(content) {
  * @param {string} content - The comment content (without the 'comment' marker)
  * @param {number|null} participantId - The participant ID
  * @param {Object} pool - Database connection pool
+ * @param {number|null} customTurnIndex - Optional custom turn_index for precise placement
+ * @param {number} turnKindId - Optional turn_kind_id, defaults to 3 (Comment)
  * @returns {Promise<Object>} The created comment with its ID
  */
-export async function storeComment(topicId, avatarId, content, participantId, pool) {
+export async function storeComment(topicId, avatarId, content, participantId, pool, customTurnIndex = null, turnKindId = 3) {
   if (!topicId) throw new Error('topicId is required');
   if (!avatarId) throw new Error('avatarId is required');
   if (!content) throw new Error('content is required');
@@ -49,11 +51,20 @@ export async function storeComment(topicId, avatarId, content, participantId, po
   }
   
   try {
-    // Get the next turn index
-    const turnIndex = await getNextTurnIndex(numericTopicId, pool);
+    // Use the custom turn index if provided, otherwise get the next one
+    let turnIndex;
+    if (customTurnIndex !== null && customTurnIndex !== undefined) {
+      // Use the provided custom index (for precise comment placement)
+      turnIndex = customTurnIndex;
+      console.log('Using custom turn index for comment:', turnIndex);
+    } else {
+      // Get the next sequential turn index
+      turnIndex = await getNextTurnIndex(numericTopicId, pool);
+      console.log('Using next sequential turn index for comment:', turnIndex);
+    }
     
     // Constants for comment records
-    const turnKindId = 3; // Comment
+    // turnKindId is now passed as a parameter (defaults to 3 for comments)
     const messageTypeId = 1; // User message
     
     // Insert the comment
@@ -72,6 +83,7 @@ export async function storeComment(topicId, avatarId, content, participantId, po
       isComment: true,
       comment_type: 'user_comment', // Special field for identifying comments
       turn_kind_id: turnKindId, // Make sure this is explicitly set
+      turn_index: turnIndex, // Include the turn_index for proper ordering
       style: 'comment', // Special field for styling
       success: true,
       timestamp: new Date().toISOString()
@@ -89,10 +101,11 @@ export async function storeComment(topicId, avatarId, content, participantId, po
  * @param {number} avatarId - The avatar ID
  * @param {number|null} participantId - The participant ID
  * @param {Object} pool - Database connection pool
+ * @param {number|null} turn_index - Optional fractional index for comment placement
  * @returns {Promise<Object|null>} The created comment or null if not a comment
  */
-export async function processComment(message, topicId, avatarId, participantId, pool) {
-  // First check if the message is a comment
+export async function processComment(message, topicId, avatarId, participantId, pool, turn_index = null) {
+  // Check if the message is a comment
   const { isComment: isCommentMessage, cleanContent } = isComment(message);
   
   // If it's not a comment, return null to indicate normal message processing
@@ -100,6 +113,6 @@ export async function processComment(message, topicId, avatarId, participantId, 
     return null;
   }
   
-  // Store the comment and return its data
-  return await storeComment(topicId, avatarId, cleanContent, participantId, pool);
+  // Store the comment and return its data, passing the turn_index if provided
+  return await storeComment(topicId, avatarId, cleanContent, participantId, pool, turn_index);
 }

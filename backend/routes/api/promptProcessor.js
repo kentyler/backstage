@@ -15,7 +15,7 @@ const router = express.Router();
 router.post('', async (req, res) => {
   let client;
   try {
-    let { prompt, topicPathId, avatarId, currentMessageId } = req.body;
+    let { prompt, topicPathId, avatarId, currentMessageId, isComment: isCommentFlag, turn_kind_id, turn_index, referenceMessageIndex } = req.body;
     
     // Convert currentMessageId to number if provided
     if (currentMessageId) {
@@ -75,7 +75,10 @@ router.post('', async (req, res) => {
     console.log('Using participant ID:', participantId, 'Source:', req.body.participantId ? 'request body' : 'session');
     
     // Process the message to check if it's a comment
-    const commentResult = await processComment(prompt, topicPathId, avatarId, participantId, pool);
+    // If this is explicitly flagged as a comment or starts with 'comment:', process it as a comment
+    const isExplicitComment = isCommentFlag || prompt.trim().startsWith('comment:') || prompt.trim().startsWith('Comment:');
+    const commentResult = isExplicitComment ? 
+      await processComment(prompt, topicPathId, avatarId, participantId, pool, turn_index) : null;
     
     // If it's a comment, return the result and don't continue with LLM processing
     if (commentResult) {

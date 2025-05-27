@@ -395,9 +395,63 @@ div.message.comment-message,
 .messages-container .message.comment-message,
 .messages-list .message.comment-message,
 .messages-column .message.comment-message {
-  background-color: #fffde7 !important; /* Light pastel yellow */
-  border-left: 3px solid #fff59d !important; /* Slightly darker yellow for the border */
-  color: #333 !important;
+  background-color: #fffff0 !important;
+  border-left: 4px solid #ffd700 !important;
+  border-radius: 4px !important;
+  padding: 10px !important;
+}
+
+/* Comment input container */
+.comment-input-container {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 10px;
+  margin: 8px 0 8px 24px;
+  border-left: 3px solid #ffd700;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comment-textarea {
+  width: 100%;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  padding: 8px;
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+}
+
+.comment-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.cancel-comment-btn {
+  background-color: #f8f9fa;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.submit-comment-btn {
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.submit-comment-btn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
 }
 
 /* Styling for the expand/collapse button */
