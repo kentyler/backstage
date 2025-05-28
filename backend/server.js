@@ -50,14 +50,21 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Use the basic memory store to ensure server stability
-const MemoryStore = session.MemoryStore;
-const sessionStore = new MemoryStore();
+// Use PostgreSQL session store for production readiness
+import pgSession from 'connect-pg-simple';
 
-console.log('Using standard in-memory session store');
+// Create the PostgreSQL session store
+const PgStore = pgSession(session);
+const sessionStore = new PgStore({
+  pool: db.pool, // Use the existing database pool
+  tableName: 'session', // Use the existing session table in public schema
+  schemaName: 'public', // Explicitly set to public schema
+  createTableIfMissing: false // Table already exists
+});
 
+console.log('Using PostgreSQL session store with existing session table in public schema');
 
-// Configure session middleware with simplified settings for more reliable behavior
+// Configure session middleware with production-ready settings
 app.use(session({
   secret: process.env.SESSION_SECRET || 'test-session-secret',
   name: 'connect.sid',
@@ -70,9 +77,9 @@ app.use(session({
     secure: false,
     sameSite: 'lax'
   },
-  // These settings ensure the session is saved immediately
-  saveUninitialized: true,
-  resave: true
+  // Production-optimized settings to reduce database writes
+  saveUninitialized: false, // Don't save empty sessions
+  resave: false           // Don't save sessions that weren't modified
 }));
 
 // Serve static files from React build folder
