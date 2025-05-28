@@ -24,33 +24,64 @@ export async function getTurnsByTopicId(topicId, pool) {
       throw new Error('Invalid database pool object');
     }
     
-    // Use the view directly and let the pool's schema search path handle it
-    // This is the safest approach with dynamic schemas
-    const result = await pool.query(
-      `SELECT id, topic_id, avatar_id, content_text, 
-              message_type_id, turn_kind_id, created_at, turn_index,
-              llm_id, participant_id, participant_name,
-              llm_name
-       FROM grp_topic_avatar_turns_with_names
-       WHERE topic_id = $1
-       ORDER BY turn_index ASC`,
-      [topicId]
-    );
+    // Get a dedicated client to ensure schema context is maintained
+    const client = await pool.connect();
+    let result;
     
-    console.log(`Found ${result.rows.length} messages for topic ID ${topicId}`);
+    try {
+      // Make sure we're using the same schema context as the pool
+      // This should match the schema set by the middleware
+      const schemaResult = await client.query('SHOW search_path');
+      const currentSchemaPath = schemaResult.rows[0].search_path;
+      console.log('Current search_path for topic message query:', currentSchemaPath);
+      
+      // If the schema doesn't include 'dev', set it explicitly
+      if (!currentSchemaPath.includes('dev')) {
+        console.log('Schema path does not include dev schema, setting it explicitly');
+        await client.query('SET search_path TO dev, public');
+        const updatedSchema = await client.query('SHOW search_path');
+        console.log('Updated search_path:', updatedSchema.rows[0].search_path);
+      }
+      
+      // Use the view with a dedicated client to maintain schema context
+      result = await client.query(
+        `SELECT id, topic_id, avatar_id, content_text, 
+                message_type_id, turn_kind_id, created_at, turn_index,
+                llm_id, participant_id, participant_name,
+                llm_name
+         FROM grp_topic_avatar_turns_with_names
+         WHERE topic_id = $1
+         ORDER BY turn_index ASC`,
+        [topicId]
+      );
+    } finally {
+      // Always release the client back to the pool
+      client.release();
+      console.log('Released client back to the pool after topic message query');
+    }
     
-    // Add detailed logging for the row data
-    result.rows.forEach((row, idx) => {
-      console.log(`Message ${idx} DB data:`, {
-        id: row.id,
-        topic_id: row.topic_id,
-        message_type_id: row.message_type_id,
-        participant_id: row.participant_id,
-        participant_name: row.participant_name,
-        llm_id: row.llm_id,
-        llm_name: row.llm_name
+    console.log(`Found ${result ? result.rows.length : 0} messages for topic ID ${topicId}`);
+    
+    // Add detailed logging for the row data if result exists
+    if (result && result.rows) {
+      result.rows.forEach((row, idx) => {
+        console.log(`Message ${idx + 1} (ID: ${row.id}):`, {
+          id: row.id,
+          topic_id: row.topic_id,
+          message_type_id: row.message_type_id,
+          participant_id: row.participant_id,
+          participant_name: row.participant_name,
+          llm_id: row.llm_id,
+          llm_name: row.llm_name
+        });
       });
-    });
+    }
+    
+    // Make sure result exists before trying to access it
+    if (!result || !result.rows) {
+      console.error('No results returned from database for topic ID:', topicId);
+      return [];
+    }
     
     return result.rows.map(row => ({
       id: row.id,

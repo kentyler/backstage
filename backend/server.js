@@ -52,17 +52,35 @@ app.use(cors(corsOptions));
 
 // Use PostgreSQL session store for production readiness
 import pgSession from 'connect-pg-simple';
+import pg from 'pg';
 
-// Create the PostgreSQL session store
+// Create a dedicated pool just for sessions to avoid schema context interference
+const sessionPool = new pg.Pool({
+  connectionString: process.env.DB_HOST,
+  ssl: { rejectUnauthorized: false }
+});
+
+// Set the search path explicitly to public for the session pool
+sessionPool.on('connect', async (client) => {
+  await client.query('SET search_path TO public;');
+  console.log('Session pool connection established with search_path: public');
+});
+
+// Log any errors in the session pool
+sessionPool.on('error', (err) => {
+  console.error('Unexpected error on session pool idle client:', err);
+});
+
+// Create the PostgreSQL session store with the dedicated pool
 const PgStore = pgSession(session);
 const sessionStore = new PgStore({
-  pool: db.pool, // Use the existing database pool
+  pool: sessionPool, // Use the dedicated session pool
   tableName: 'session', // Use the existing session table in public schema
   schemaName: 'public', // Explicitly set to public schema
   createTableIfMissing: false // Table already exists
 });
 
-console.log('Using PostgreSQL session store with existing session table in public schema');
+console.log('Using PostgreSQL session store with dedicated connection pool (public schema)');
 
 // Configure session middleware with production-ready settings
 app.use(session({

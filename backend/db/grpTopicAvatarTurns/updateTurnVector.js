@@ -1,16 +1,15 @@
 // src/db/grpTopicAvatarTurns/updateTurnVector.js
-import { pool } from '../connection.js';
-const { query } = pool;
 
 /**
  * Updates the vector representation of a turn
  * 
  * @param {number} turnId - The ID of the turn to update
  * @param {Array} contentVector - The vector representation of the content
+ * @param {Object} pool - The database pool to use
  * @param {Object} client - The database client to use (optional)
  * @returns {Promise<Object>} The updated turn
  */
-export async function updateTurnVector(turnId, contentVector, client = null) {
+export async function updateTurnVector(turnId, contentVector, pool, client = null) {
   if (!turnId) {
     throw new Error('Turn ID is required');
   }

@@ -1,28 +1,36 @@
-import { pool as defaultPool } from '../connection.js';
-import { createDbError, DB_ERROR_CODES } from '../utils/index.js';
+import { createDbError } from '../utils/index.js';
 
 /**
  * Get all topic paths sorted by path
- * @param {Pool} customPool - The PostgreSQL connection pool to use (optional)
+ * @param {Pool} pool - The PostgreSQL connection pool
  * @returns {Promise<Array>} Array of topic paths with ID, index, and path
  */
-export async function getTopicPaths(customPool = null) {
+export async function getTopicPaths(pool) {
+  // Get a dedicated client from the pool
+  const client = await pool.connect();
+  
   try {
-    // Use the provided pool or fall back to the default pool
-    const poolToUse = customPool || defaultPool;
-    
-    if (!poolToUse) {
-      console.error('No database pool available in getTopicPaths');
-      throw createDbError('No database pool available', {
+    if (!pool) {
+      console.error('No database pool provided to getTopicPaths');
+      throw createDbError('Database connection not available', {
         code: 'DB_CONNECTION_ERROR',
         status: 500,
         context: { operation: 'getTopicPaths' }
       });
     }
     
-    console.log('Getting topic paths with pool:', poolToUse ? 'Pool provided' : 'No pool');
+    console.log('Getting topic paths using dedicated client');
     
-    const result = await poolToUse.query(
+    // Log the current search path to debug schema issues
+    try {
+      const schemaResult = await client.query('SHOW search_path');
+      console.log('Current search_path:', schemaResult.rows[0].search_path);
+    } catch (schemaError) {
+      console.error('Error checking search_path:', schemaError.message);
+    }
+    
+    // Use standard query with a dedicated client that maintains schema context
+    const result = await client.query(
       'SELECT id, index, path::text FROM topic_paths ORDER BY index'
     );
     
@@ -44,6 +52,10 @@ export async function getTopicPaths(customPool = null) {
       context: { operation: 'getTopicPaths' },
       cause: error
     });
+  } finally {
+    // Always release the client back to the pool
+    client.release();
+    console.log('Released client back to the pool');
   }
 }
 

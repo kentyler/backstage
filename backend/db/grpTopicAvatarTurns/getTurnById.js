@@ -1,12 +1,11 @@
-import { pool } from '../connection.js';
-
 /**
  * Gets a single turn by its ID
  * @param {number} turnId - The ID of the turn to retrieve
+ * @param {Object} pool - Database connection pool to use
  * @param {Object} [client] - Optional database client (for transactions)
  * @returns {Promise<Object|null>} The turn object or null if not found
  */
-export async function getTurnById(turnId, client = null) {
+export async function getTurnById(turnId, pool, client = null) {
   const query = `
     SELECT 
       id,

@@ -31,7 +31,7 @@ router.get('/messages/:messageId/related', async (req, res, next) => {
     client = await pool.connect();
     
     // 1. Get the message and its embedding
-    const message = await getTurnById(Number(messageId), client);
+    const message = await getTurnById(Number(messageId), pool, client);
     
     if (!message) {
       return next(new ApiError(`Message with ID ${messageId} not found`, 404));
@@ -42,7 +42,7 @@ router.get('/messages/:messageId/related', async (req, res, next) => {
     // If no embedding exists, generate one
     if (!embedding) {
       embedding = await generateEmbedding(message.content_text);
-      await updateTurnVector(Number(messageId), embedding, client);
+      await updateTurnVector(Number(messageId), embedding, pool, client);
     } else if (typeof embedding === 'string') {
       // If embedding is a string, parse it to an array
       try {
@@ -51,7 +51,7 @@ router.get('/messages/:messageId/related', async (req, res, next) => {
         console.error('Error parsing embedding string:', e);
         // If parsing fails, generate a new embedding
         embedding = await generateEmbedding(message.content_text);
-        await updateTurnVector(Number(messageId), embedding, client);
+        await updateTurnVector(Number(messageId), embedding, pool, client);
       }
     }
     

@@ -45,7 +45,7 @@ export async function processAssistantMessage(topicPathId, avatarId, content, ll
     console.log('Generated embedding for assistant response');
     
     // Update the message with the embedding
-    await updateTurnVector(assistantMessageId, embedding, client);
+    await updateTurnVector(assistantMessageId, embedding, pool, client);
     console.log('Updated assistant response with embedding');
     
     // Find relevant messages using the embedding
