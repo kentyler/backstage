@@ -2,6 +2,7 @@
  * Search for file uploads
  * @module db/fileUploads/searchFileUploads
  */
+import { createDbError, DB_ERROR_CODES } from '../utils/index.js';
 
 /**
  * Search for file uploads by text content, filename, or tags
@@ -22,7 +23,11 @@ export async function searchFileUploads(options, pool) {
   } = options;
   
   if (!query) {
-    throw new Error('Search query is required');
+    throw createDbError('Search query is required', {
+      code: 'INVALID_PARAMETER',
+      status: 400,
+      context: { operation: 'searchFileUploads' }
+    });
   }
 
   try {
@@ -81,7 +86,45 @@ export async function searchFileUploads(options, pool) {
     const result = await pool.query(queryText, queryParams);
     return result.rows;
   } catch (error) {
-    console.error('Error searching file uploads:', error);
-    throw error;
+    console.error('Error searching file uploads:', {
+      error: error.message,
+      query,
+      mimeTypes,
+      tags,
+      stack: error.stack
+    });
+    
+    // If it's already a database error, just add additional context
+    if (error.isDbError) {
+      error.context = { ...error.context, operation: 'searchFileUploads' };
+      throw error;
+    }
+    
+    // Handle specific PostgreSQL errors
+    if (error.code === '42P01') { // Relation does not exist
+      throw createDbError('Required table not found', {
+        code: 'DB_RELATION_NOT_FOUND',
+        status: 500,
+        context: { operation: 'searchFileUploads' },
+        cause: error
+      });
+    }
+    
+    if (error.code === '22P02') { // Invalid text representation
+      throw createDbError('Invalid search parameters', {
+        code: 'INVALID_SEARCH_PARAMS',
+        status: 400,
+        context: { query, mimeTypes, tags, operation: 'searchFileUploads' },
+        cause: error
+      });
+    }
+    
+    // For other errors, wrap with standard error
+    throw createDbError('Error performing file search', {
+      code: 'DB_QUERY_ERROR',
+      status: 500,
+      context: { query, mimeTypes, tags, limit, operation: 'searchFileUploads' },
+      cause: error
+    });
   }
 }

@@ -4,6 +4,7 @@
  */
 
 import { parseAdditionalConfig } from './utils/parsing.js';
+import { createDbError, DB_ERROR_CODES } from '../utils/index.js';
 
 /**
  * Gets LLM configuration by ID
@@ -35,6 +36,8 @@ export async function getLlmConfigById(llmId, pool) {
     
     if (!rows || rows.length === 0) {
       console.error('No LLM configuration found for ID:', llmId);
+      // Unlike delete operations, we return null instead of throwing an error
+      // This allows callers to check for existence without try/catch
       return null;
     }
     
@@ -45,7 +48,34 @@ export async function getLlmConfigById(llmId, pool) {
     
     return config;
   } catch (error) {
-    console.error('Error getting LLM config by ID:', error);
-    throw error;
+    console.error('Error getting LLM config by ID:', {
+      error: error.message,
+      llmId,
+      stack: error.stack
+    });
+    
+    // If it's already a database error, just add additional context
+    if (error.isDbError) {
+      error.context = { ...error.context, operation: 'getLlmConfigById' };
+      throw error;
+    }
+    
+    // Handle specific PostgreSQL errors
+    if (error.code === '42P01') { // Relation does not exist
+      throw createDbError('LLM configuration table not found', {
+        code: 'DB_RELATION_NOT_FOUND',
+        status: 500,
+        context: { operation: 'getLlmConfigById', llmId },
+        cause: error
+      });
+    }
+    
+    // For other errors, wrap with standard error
+    throw createDbError('Failed to retrieve LLM configuration', {
+      code: 'DB_QUERY_ERROR',
+      status: 500,
+      context: { llmId, operation: 'getLlmConfigById' },
+      cause: error
+    });
   }
 }

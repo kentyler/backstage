@@ -2,6 +2,7 @@
  * Create a new file upload record
  * @module db/fileUploads/createFileUpload
  */
+import { createDbError, DB_ERROR_CODES } from '../utils/index.js';
 
 /**
  * File Uploads module - creates file upload records
@@ -58,7 +59,43 @@ export async function createFileUpload(uploadData, pool) {
     const result = await pool.query(queryText, values);
     return result.rows[0];
   } catch (error) {
-    console.error('Error creating file upload:', error);
-    throw error;
+    console.error('Error creating file upload:', {
+      error: error.message,
+      filename,
+      stack: error.stack
+    });
+    
+    // If it's already a database error, just add additional context
+    if (error.isDbError) {
+      error.context = { ...error.context, operation: 'createFileUpload' };
+      throw error;
+    }
+    
+    // Handle specific PostgreSQL errors
+    if (error.code === '23505') { // Unique violation
+      throw createDbError(`File upload with path "${filePath}" already exists`, {
+        code: 'DUPLICATE_FILE_UPLOAD',
+        status: 409, // Conflict
+        context: { filename, filePath },
+        cause: error
+      });
+    }
+    
+    if (error.code === '42P01') { // Relation does not exist
+      throw createDbError('File uploads table not found', {
+        code: 'DB_RELATION_NOT_FOUND',
+        status: 500,
+        context: { operation: 'createFileUpload' },
+        cause: error
+      });
+    }
+    
+    // For other errors, wrap with standard error
+    throw createDbError('Failed to create file upload record', {
+      code: 'DB_OPERATION_FAILED',
+      status: 500,
+      context: { filename, filePath, operation: 'createFileUpload' },
+      cause: error
+    });
   }
 }

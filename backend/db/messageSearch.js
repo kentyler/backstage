@@ -111,6 +111,17 @@ export async function findSimilarMessages(embedding, topicId, limit = 10, curren
       currentMessageId,
       embeddingLength: embedding?.length
     });
+    
+    // Enhance the error with consistent metadata for the route handler
+    error.code = error.code || 'MESSAGE_SEARCH_ERROR';
+    error.status = error.status || 500;
+    error.context = {
+      ...error.context,
+      topicId,
+      currentMessageId,
+      operation: 'findSimilarMessages'
+    };
+    
     throw error;
   } finally {
     client.release();

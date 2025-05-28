@@ -24,11 +24,12 @@ const MessageItem = ({
   const isSystem = message.isSystem || message.author === 'System';
   const isComment = message.turn_kind_id === 3; // Using snake_case as returned by the backend
   
-  console.log('Message turn kind check:', { 
+ /**
+  *  console.log('Message turn kind check:', { 
     id: message.id, 
     turn_kind_id: message.turn_kind_id, 
     isComment 
-  });
+  });  */
   
   // Set message class based on type - comments override user message type
   let messageClass;
@@ -79,14 +80,16 @@ const MessageItem = ({
     borderLeft: '3px solid orange',
     border: '2px solid orange'
   } : {};
-  // Add debug information
+  /**
+   * 
+   
   console.log('Message type info:', {
     id: message.id,
     turnKindId: message.turn_kind_id,
     isComment: isComment,
     content: message.content?.substring(0, 30)
   });
-  
+ 
   // For debugging
   console.log('Rendering message:', {
     id: message.id,
@@ -94,7 +97,7 @@ const MessageItem = ({
     isComment,
     messageClass
   });
-  
+   */
   // Direct styling object for comments
   const directCommentStyle = isComment ? {
     backgroundColor: '#fffff0 !important',
@@ -252,8 +255,8 @@ const CommentInput = ({ messageId, index, onSubmit, onCancel }) => {
           <button type="button" onClick={onCancel} className="cancel-comment-btn">
             Cancel
           </button>
-          <button type="submit" className="submit-comment-btn" disabled={!comment.trim()}>
-            <FontAwesomeIcon icon={faPaperPlane} /> Send
+          <button type="submit" className="send-button" disabled={!comment.trim()}>
+            Send
           </button>
         </div>
       </form>

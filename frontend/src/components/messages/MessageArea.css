@@ -445,8 +445,13 @@ div.message.comment-message,
   color: white;
   border: none;
   border-radius: 4px;
-  padding: 6px 12px;
+  padding: 8px 16px;
   cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submit-comment-btn:hover:not(:disabled) {
+  background-color: #0b5ed7;
 }
 
 .submit-comment-btn:disabled {

@@ -2,6 +2,7 @@
  * Get file uploads for a schema
  * @module db/fileUploads/getFileUploadsBySchema
  */
+import { createDbError, DB_ERROR_CODES } from '../utils/index.js';
 
 /**
  * Get all file uploads for a schema, with optional pagination
@@ -64,7 +65,43 @@ export async function getFileUploadsBySchema(options = {}, pool) {
       offset
     };
   } catch (error) {
-    console.error('Error getting file uploads by schema:', error);
-    throw error;
+    console.error('Error getting file uploads by schema:', {
+      error: error.message,
+      options,
+      stack: error.stack
+    });
+    
+    // If it's already a database error, just add additional context
+    if (error.isDbError) {
+      error.context = { ...error.context, operation: 'getFileUploadsBySchema' };
+      throw error;
+    }
+    
+    // Handle specific PostgreSQL errors
+    if (error.code === '42P01') { // Relation does not exist
+      throw createDbError('File uploads table not found', {
+        code: 'DB_RELATION_NOT_FOUND',
+        status: 500,
+        context: { operation: 'getFileUploadsBySchema' },
+        cause: error
+      });
+    }
+    
+    if (error.code === '42703') { // Undefined column
+      throw createDbError('Invalid column in query', {
+        code: 'DB_INVALID_COLUMN',
+        status: 500,
+        context: { options, operation: 'getFileUploadsBySchema' },
+        cause: error
+      });
+    }
+    
+    // For other errors, wrap with standard error
+    throw createDbError('Failed to retrieve file uploads', {
+      code: 'DB_QUERY_ERROR',
+      status: 500,
+      context: { options, operation: 'getFileUploadsBySchema' },
+      cause: error
+    });
   }
 }

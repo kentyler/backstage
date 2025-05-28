@@ -1,4 +1,5 @@
 import { pool as defaultPool } from '../connection.js';
+import { createDbError, DB_ERROR_CODES } from '../utils/index.js';
 
 /**
  * Get all topic paths sorted by path
@@ -12,7 +13,11 @@ export async function getTopicPaths(customPool = null) {
     
     if (!poolToUse) {
       console.error('No database pool available in getTopicPaths');
-      throw new Error('No database pool available');
+      throw createDbError('No database pool available', {
+        code: 'DB_CONNECTION_ERROR',
+        status: 500,
+        context: { operation: 'getTopicPaths' }
+      });
     }
     
     console.log('Getting topic paths with pool:', poolToUse ? 'Pool provided' : 'No pool');
@@ -25,7 +30,20 @@ export async function getTopicPaths(customPool = null) {
     return result.rows;
   } catch (error) {
     console.error('Error in getTopicPaths:', error);
-    throw error;
+    
+    // If it's already a database error, just add additional context
+    if (error.isDbError) {
+      error.context = { ...error.context, operation: 'getTopicPaths' };
+      throw error;
+    }
+    
+    // Otherwise wrap the error
+    throw createDbError('Failed to retrieve topic paths', {
+      code: 'DB_QUERY_ERROR',
+      status: 500,
+      context: { operation: 'getTopicPaths' },
+      cause: error
+    });
   }
 }
 

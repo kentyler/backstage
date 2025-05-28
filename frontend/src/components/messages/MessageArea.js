@@ -196,20 +196,20 @@ const MessageArea = ({ selectedTopic }) => {
   useEffect(() => {
     const loadMessages = async () => {
       if (!selectedTopic?.id) {
-        console.log('DEBUG - No topic selected, clearing messages');
+        //console.log('DEBUG - No topic selected, clearing messages');
         setTopicMessages([]);
         return;
       }
       
-      console.log('DEBUG - Loading messages for topic ID:', selectedTopic.id);
+      //console.log('DEBUG - Loading messages for topic ID:', selectedTopic.id);
       setIsLoadingMessages(true);
       setLoadMessagesError(null);
       
       try {
-        console.log('DEBUG - Calling grpTopicAvatarTurnService.getTurnsByTopicId with:', selectedTopic.id);
+        //console.log('DEBUG - Calling grpTopicAvatarTurnService.getTurnsByTopicId with:', selectedTopic.id);
         const messages = await grpTopicAvatarTurnService.getTurnsByTopicId(selectedTopic.id);
         
-        console.log(`DEBUG - Received ${messages?.length || 0} messages from API`);
+        //console.log(`DEBUG - Received ${messages?.length || 0} messages from API`);
         if (messages && messages.length > 0) {
           messages.forEach((msg, idx) => {
             console.log(`DEBUG - Message ${idx}:`, {
@@ -221,7 +221,7 @@ const MessageArea = ({ selectedTopic }) => {
             });
           });
         } else {
-          console.log('DEBUG - No messages received or empty array');
+          //console.log('DEBUG - No messages received or empty array');
         }
         
         setTopicMessages(messages);
@@ -249,14 +249,14 @@ const MessageArea = ({ selectedTopic }) => {
       setRelatedMessagesError(null);
       
       try {
-        console.log('[DEBUG] Fetching related messages for messageId:', messageId);
+        // console.log('[DEBUG] Fetching related messages for messageId:', messageId);
         // Fetch related messages from the grpTopicAvatarTurnService
         const result = await grpTopicAvatarTurnService.getRelatedMessages(messageId);
-        console.log('[DEBUG] Related messages API result:', result);
-        console.log('[DEBUG] Related messages array type:', Array.isArray(result) ? 'Array' : typeof result);
-        console.log('[DEBUG] Related messages length:', result ? result.length : 0);
+        // console.log('[DEBUG] Related messages API result:', result);
+        //console.log('[DEBUG] Related messages array type:', Array.isArray(result) ? 'Array' : typeof result);
+        //console.log('[DEBUG] Related messages length:', result ? result.length : 0);
         if (result && result.length > 0) {
-          console.log('[DEBUG] First related message:', result[0]);
+          //console.log('[DEBUG] First related message:', result[0]);
           
           // Log the related topics click event
           if (selectedTopic?.id) {
@@ -273,7 +273,7 @@ const MessageArea = ({ selectedTopic }) => {
           }
         }
         setRelatedMessages(result || []);
-        console.log('[DEBUG] State updated with related messages');
+        //console.log('[DEBUG] State updated with related messages');
       } catch (error) {
         console.error('Error loading related messages:', error);
         setRelatedMessagesError('Failed to load related messages');
@@ -438,8 +438,8 @@ const MessageArea = ({ selectedTopic }) => {
               participantId: user?.id
             });
             
-            console.log('Message sent successfully:', result);
-            console.log('DEBUG - Response details:', {
+           /* console.log('Message sent successfully:', result);
+            //console.log('DEBUG - Response details:', {
               id: result?.id,
               content: result?.content?.substring(0, 30),
               turn_kind_id: result?.turn_kind_id,
@@ -447,7 +447,7 @@ const MessageArea = ({ selectedTopic }) => {
               isUserMessage: result?.isUser || false,
               llmResponseIncluded: !!result?.llmResponse,
               llmResponseId: result?.llmResponseId
-            });
+            }); */
             
             // If the server returns the saved message, replace the temporary one
             if (result?.id) {
@@ -457,23 +457,24 @@ const MessageArea = ({ selectedTopic }) => {
                 author: user?.username || 'You' // Ensure username is set correctly
               };
               
+             /*
               console.log('DEBUG - Replacing temp message with:', {
                 id: updatedMessage.id,
                 tempId: tempMessage.id,
                 content: updatedMessage.content?.substring(0, 30),
                 turn_kind_id: updatedMessage.turn_kind_id
-              });
+              }); */
               
               // With comments, we want to replace the temporary message
               // With LLM responses, we want to keep both user message and LLM response
               if (result.turn_kind_id === 3) { // Comment message - replace temp message
-                console.log('DEBUG - This is a comment message, replacing temp message');
+                //console.log('DEBUG - This is a comment message, replacing temp message');
                 setTopicMessages(prev => 
                   prev.map(msg => msg.id === tempMessage.id ? updatedMessage : msg)
                 );
               } else { 
                 // This is a regular message + LLM response flow
-                console.log('DEBUG - This is a regular message + LLM response');
+               // console.log('DEBUG - This is a regular message + LLM response');
                 
                 // Simply add the AI response as a new message rather than replacing anything
                 setTopicMessages(prev => [

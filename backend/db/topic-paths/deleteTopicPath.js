@@ -14,26 +14,40 @@ export default async function deleteTopicPath(pool, path) {
   try {
     console.log(`Attempting to delete topic path: ${path}`);
     
-    // First, check if the path exists
+    // First, check if the path exists - being careful with escaping for paths with dots
+    // Using ILIKE for case-insensitive matching to be more forgiving
+    console.log(`Checking for exact path match: "${path}"`);
     const checkResult = await pool.query(
-      'SELECT id FROM topic_paths WHERE path::text = $1',
+      'SELECT id, path::text AS path_text FROM topic_paths WHERE path::text ILIKE $1',
       [path]
     );
     
+    // Log all found paths for debugging
+    console.log(`Found ${checkResult.rowCount} matches:`, checkResult.rows.map(r => r.path_text));
+    
     if (checkResult.rowCount === 0) {
       console.log(`Topic path not found: ${path}`);
-      throw new Error(`Topic path "${path}" not found`);
+      const error = new Error(`Topic path "${path}" not found`);
+      error.code = 'TOPIC_PATH_NOT_FOUND';
+      error.status = 404;
+      error.context = { path };
+      throw error;
     }
     
     console.log(`Found topic path to delete: ${path}`);
     
-    // Delete the path and any paths that start with this path followed by a dot
+    // Get the ID of the matching path to ensure exact deletion by ID
+    const pathId = checkResult.rows[0].id;
+    console.log(`Using ID-based deletion for path ID: ${pathId}`);
+    
+    // Delete by ID to avoid any issues with text representation
+    // Also handle descendant paths separately to avoid issues with dot escaping
     const result = await pool.query(
       `DELETE FROM topic_paths 
-       WHERE path::text = $1 
-       OR path::text LIKE $2
-       RETURNING id, path`,
-      [path, `${path}.%`]
+       WHERE id = $1
+       OR path::text ILIKE $2 || '.%'
+       RETURNING id, path::text as path_text`,
+      [pathId, path]
     );
 
     if (result.rowCount === 0) {
@@ -44,10 +58,12 @@ export default async function deleteTopicPath(pool, path) {
 
     console.log(`Successfully deleted ${result.rowCount} topic path(s)`);
     
+    console.log(`Deletion result:`, result.rows);
+    
     // Return info about what was deleted
     return {
       deletedCount: result.rowCount,
-      paths: result.rows.map(row => row.path)
+      paths: result.rows.map(row => row.path_text)
     };
   } catch (error) {
     console.error('Error in deleteTopicPath:', {

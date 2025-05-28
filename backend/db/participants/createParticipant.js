@@ -4,6 +4,7 @@
  */
 
 import { hashPassword } from '../../utils/passwordUtils.js';
+import { createDbError, DB_ERROR_CODES } from '../utils/index.js';
 
 /**
  * The database connection pool
@@ -27,7 +28,11 @@ export async function createParticipant(name, email, password, pool) {
     );
 
     if (existingEmail.rows.length > 0) {
-      throw new Error(`Participant with email ${email} already exists`);
+      throw createDbError(`Participant with email ${email} already exists`, {
+        code: 'DUPLICATE_EMAIL',
+        status: 409, // Conflict
+        context: { email }
+      });
     }
     
     // Hash the password before storing
@@ -44,7 +49,44 @@ export async function createParticipant(name, email, password, pool) {
     const result = await pool.query(query, values);
     return result.rows[0];
   } catch (error) {
-    // Rethrow with a more informative message
-    throw new Error(`Failed to create participant: ${error.message}`);
+    console.error('Error creating participant:', {
+      error: error.message,
+      email,
+      name,
+      stack: error.stack
+    });
+    
+    // If it's already a database error, just add additional context
+    if (error.isDbError) {
+      error.context = { ...error.context, operation: 'createParticipant' };
+      throw error;
+    }
+    
+    // Handle specific PostgreSQL errors
+    if (error.code === '23505') { // Unique violation
+      throw createDbError(`Participant with email ${email} already exists`, {
+        code: 'DUPLICATE_EMAIL',
+        status: 409, // Conflict
+        context: { email, operation: 'createParticipant' },
+        cause: error
+      });
+    }
+    
+    if (error.code === '42P01') { // Relation does not exist
+      throw createDbError('Participants table not found', {
+        code: 'DB_RELATION_NOT_FOUND',
+        status: 500,
+        context: { operation: 'createParticipant' },
+        cause: error
+      });
+    }
+    
+    // For other errors, wrap with standard error
+    throw createDbError('Failed to create participant', {
+      code: 'DB_OPERATION_FAILED',
+      status: 500,
+      context: { email, name, operation: 'createParticipant' },
+      cause: error
+    });
   }
 }

@@ -8,15 +8,15 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import * as db from './db/index.js';
 // Topic paths functions are now imported directly in the topicPaths router
-import promptRoutes from './routes/api/promptProcessor.js';
-import topicRoutes from './routes/api/topics/index.js';
-import fileUploadRoutes from './routes/api/fileUploads.js';
-import messagesRoutes from './routes/api/messages.js';
-import llmConfigRoutes from './routes/api/llmConfig.js';
-import authRoutes from './routes/api/auth.js';
-import errorLoggingRoutes from './routes/api/errorLogging.js';
-import eventsRoutes from './routes/api/events.js';
-import commentsRoutes from './routes/api/comments.js';
+import promptRoutes from './routes/api/promptProcessor/index.js';
+// Removed duplicate topics routes - using topicPaths instead
+import fileUploadRoutes from './routes/api/fileUploads/index.js';
+import messageSearchRoutes from './routes/api/messageSearch/index.js';
+import llmConfigRoutes from './routes/api/llmConfig/index.js';
+import authRoutes from './routes/api/auth/index.js';
+import errorLoggingRoutes from './routes/api/errorLogging/index.js';
+import eventsRoutes from './routes/api/events/index.js';
+import commentsRoutes from './routes/api/comments/index.js';
 // Removed conversation routes import as part of migration to topic-based architecture
 import dotenv from 'dotenv';
 import config from './config.js';
@@ -133,11 +133,11 @@ app.use('/api', setClientPool);
 // Mount API routes after ensuring setClientPool is applied
 app.use('/api/llm/prompt', requireClientPool, promptRoutes);
 
-app.use('/api/topics', requireClientPool, topicRoutes);
+// Removed duplicate topics route - consolidated into /api/topic-paths
 
 app.use('/api/file-uploads', requireClientPool, fileUploadRoutes);
 
-app.use('/api/messages', requireClientPool, messagesRoutes);
+app.use('/api/message-search', requireClientPool, messageSearchRoutes);
 
 app.use('/api/client-schemas', requireClientPool, llmConfigRoutes);
 
@@ -152,13 +152,13 @@ app.use('/api/auth', requireClientPool, authRoutes);
 // Authentication routes (login, logout, auth status) have been moved to routes/api/auth.js
 
 // Import the groups router
-import groupsRoutes from './routes/api/groups.js';
+import groupsRoutes from './routes/api/groups/index.js';
 
 // Mount the groups router
 app.use('/api/groups', requireClientPool, groupsRoutes);
 // Import the topic paths and preferences routers
-import topicPathsRoutes from './routes/api/topicPaths.js';
-import preferencesRoutes from './routes/api/preferences.js';
+import topicPathsRoutes from './routes/api/topicPaths/index.js';
+import preferencesRoutes from './routes/api/preferences/index.js';
 
 // Mount the topic paths router
 app.use('/api/topic-paths', requireClientPool, topicPathsRoutes);

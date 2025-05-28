@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 17.4
+-- Dumped from database version 17.5
 -- Dumped by pg_dump version 17.4
 
 SET statement_timeout = 0;
@@ -27,36 +27,6 @@ CREATE SCHEMA dev;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
-
---
--- Name: avatar_event_types; Type: TABLE; Schema: dev; Owner: -
---
-
-CREATE TABLE dev.avatar_event_types (
-    id integer NOT NULL,
-    name text NOT NULL,
-    description text NOT NULL
-);
-
-
---
--- Name: avatar_event_types_id_seq; Type: SEQUENCE; Schema: dev; Owner: -
---
-
-CREATE SEQUENCE dev.avatar_event_types_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: avatar_event_types_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: -
---
-
-ALTER SEQUENCE dev.avatar_event_types_id_seq OWNED BY dev.avatar_event_types.id;
-
 
 --
 -- Name: avatar_scopes; Type: TABLE; Schema: dev; Owner: -
@@ -215,68 +185,6 @@ CREATE SEQUENCE dev.clients_id_seq
 --
 
 ALTER SEQUENCE dev.clients_id_seq OWNED BY dev.clients.id;
-
-
---
--- Name: event_types; Type: TABLE; Schema: dev; Owner: -
---
-
-CREATE TABLE dev.event_types (
-    id integer NOT NULL,
-    name text NOT NULL,
-    description text,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
-);
-
-
---
--- Name: event_types_id_seq; Type: SEQUENCE; Schema: dev; Owner: -
---
-
-CREATE SEQUENCE dev.event_types_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: event_types_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: -
---
-
-ALTER SEQUENCE dev.event_types_id_seq OWNED BY dev.event_types.id;
-
-
---
--- Name: file_types; Type: TABLE; Schema: dev; Owner: -
---
-
-CREATE TABLE dev.file_types (
-    id bigint NOT NULL,
-    name text NOT NULL,
-    description text
-);
-
-
---
--- Name: file_types_id_seq; Type: SEQUENCE; Schema: dev; Owner: -
---
-
-CREATE SEQUENCE dev.file_types_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: file_types_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: -
---
-
-ALTER SEQUENCE dev.file_types_id_seq OWNED BY dev.file_types.id;
 
 
 --
@@ -614,7 +522,6 @@ ALTER SEQUENCE dev.grp_templates_id_seq OWNED BY dev.grp_templates.id;
 
 CREATE TABLE dev.grp_topic_avatar_turns (
     id integer NOT NULL,
-    topicpathid text NOT NULL,
     avatar_id integer NOT NULL,
     turn_index numeric NOT NULL,
     content_text text NOT NULL,
@@ -623,7 +530,10 @@ CREATE TABLE dev.grp_topic_avatar_turns (
     message_type_id integer,
     template_topic_id integer,
     created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
+    updated_at timestamp with time zone DEFAULT now(),
+    topic_id bigint,
+    llm_id integer,
+    participant_id integer
 );
 
 
@@ -645,6 +555,28 @@ CREATE SEQUENCE dev.grp_topic_avatar_turns_id_seq
 --
 
 ALTER SEQUENCE dev.grp_topic_avatar_turns_id_seq OWNED BY dev.grp_topic_avatar_turns.id;
+
+
+--
+-- Name: grp_topic_avatar_turns_with_names; Type: VIEW; Schema: dev; Owner: -
+--
+
+CREATE VIEW dev.grp_topic_avatar_turns_with_names AS
+ SELECT t.id,
+    t.topic_id,
+    t.avatar_id,
+    t.content_text,
+    t.message_type_id,
+    t.turn_kind_id,
+    t.created_at,
+    t.turn_index,
+    t.llm_id,
+    t.participant_id,
+    p.name AS participant_name,
+    l.name AS llm_name
+   FROM ((dev.grp_topic_avatar_turns t
+     LEFT JOIN public.participants p ON ((t.participant_id = p.id)))
+     LEFT JOIN public.llms l ON ((t.llm_id = l.id)));
 
 
 --
@@ -742,36 +674,6 @@ CREATE SEQUENCE dev.participant_avatars_id_seq
 --
 
 ALTER SEQUENCE dev.participant_avatars_id_seq OWNED BY dev.participant_avatars.id;
-
-
---
--- Name: participant_event_types; Type: TABLE; Schema: dev; Owner: -
---
-
-CREATE TABLE dev.participant_event_types (
-    id integer NOT NULL,
-    name text NOT NULL,
-    description text NOT NULL
-);
-
-
---
--- Name: participant_event_types_id_seq; Type: SEQUENCE; Schema: dev; Owner: -
---
-
-CREATE SEQUENCE dev.participant_event_types_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: participant_event_types_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: -
---
-
-ALTER SEQUENCE dev.participant_event_types_id_seq OWNED BY dev.participant_event_types.id;
 
 
 --
@@ -972,16 +874,10 @@ CREATE TABLE dev.topic_paths (
     path public.ltree NOT NULL,
     created_by integer,
     created_on timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    id text NOT NULL,
+    index text NOT NULL,
+    id bigint DEFAULT nextval('public.topic_paths_numeric_id_seq'::regclass) NOT NULL,
     CONSTRAINT valid_path CHECK ((path IS NOT NULL))
 );
-
-
---
--- Name: avatar_event_types id; Type: DEFAULT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.avatar_event_types ALTER COLUMN id SET DEFAULT nextval('dev.avatar_event_types_id_seq'::regclass);
 
 
 --
@@ -1017,20 +913,6 @@ ALTER TABLE ONLY dev.client_schemas ALTER COLUMN id SET DEFAULT nextval('dev.cli
 --
 
 ALTER TABLE ONLY dev.clients ALTER COLUMN id SET DEFAULT nextval('dev.clients_id_seq'::regclass);
-
-
---
--- Name: event_types id; Type: DEFAULT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.event_types ALTER COLUMN id SET DEFAULT nextval('dev.event_types_id_seq'::regclass);
-
-
---
--- Name: file_types id; Type: DEFAULT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.file_types ALTER COLUMN id SET DEFAULT nextval('dev.file_types_id_seq'::regclass);
 
 
 --
@@ -1097,13 +979,6 @@ ALTER TABLE ONLY dev.participant_avatars ALTER COLUMN id SET DEFAULT nextval('de
 
 
 --
--- Name: participant_event_types id; Type: DEFAULT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.participant_event_types ALTER COLUMN id SET DEFAULT nextval('dev.participant_event_types_id_seq'::regclass);
-
-
---
 -- Name: participant_events id; Type: DEFAULT; Schema: dev; Owner: -
 --
 
@@ -1129,22 +1004,6 @@ ALTER TABLE ONLY dev.participant_preferences ALTER COLUMN id SET DEFAULT nextval
 --
 
 ALTER TABLE ONLY dev.site_preferences ALTER COLUMN id SET DEFAULT nextval('dev.site_preferences_id_seq'::regclass);
-
-
---
--- Name: avatar_event_types avatar_event_types_name_key; Type: CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.avatar_event_types
-    ADD CONSTRAINT avatar_event_types_name_key UNIQUE (name);
-
-
---
--- Name: avatar_event_types avatar_event_types_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.avatar_event_types
-    ADD CONSTRAINT avatar_event_types_pkey PRIMARY KEY (id);
 
 
 --
@@ -1225,38 +1084,6 @@ ALTER TABLE ONLY dev.clients
 
 ALTER TABLE ONLY dev.clients
     ADD CONSTRAINT clients_pkey PRIMARY KEY (id);
-
-
---
--- Name: event_types event_types_name_key; Type: CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.event_types
-    ADD CONSTRAINT event_types_name_key UNIQUE (name);
-
-
---
--- Name: event_types event_types_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.event_types
-    ADD CONSTRAINT event_types_pkey PRIMARY KEY (id);
-
-
---
--- Name: file_types file_types_name_key; Type: CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.file_types
-    ADD CONSTRAINT file_types_name_key UNIQUE (name);
-
-
---
--- Name: file_types file_types_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.file_types
-    ADD CONSTRAINT file_types_pkey PRIMARY KEY (id);
 
 
 --
@@ -1348,14 +1175,6 @@ ALTER TABLE ONLY dev.participant_avatars
 
 
 --
--- Name: participant_event_types participant_event_types_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.participant_event_types
-    ADD CONSTRAINT participant_event_types_pkey PRIMARY KEY (id);
-
-
---
 -- Name: participant_events participant_events_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
 --
 
@@ -1388,14 +1207,6 @@ ALTER TABLE ONLY dev.participant_llms
 
 
 --
--- Name: participant_preferences participant_preferences_participant_id_preference_type_id_key; Type: CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.participant_preferences
-    ADD CONSTRAINT participant_preferences_participant_id_preference_type_id_key UNIQUE (participant_id, preference_type_id);
-
-
---
 -- Name: participant_preferences participant_preferences_pkey; Type: CONSTRAINT; Schema: dev; Owner: -
 --
 
@@ -1417,6 +1228,14 @@ ALTER TABLE ONLY dev.site_preferences
 
 ALTER TABLE ONLY dev.site_preferences
     ADD CONSTRAINT site_preferences_preference_type_id_key UNIQUE (preference_type_id);
+
+
+--
+-- Name: topic_paths topic_paths_index_key; Type: CONSTRAINT; Schema: dev; Owner: -
+--
+
+ALTER TABLE ONLY dev.topic_paths
+    ADD CONSTRAINT topic_paths_index_key UNIQUE (index);
 
 
 --
@@ -1493,10 +1312,10 @@ CREATE INDEX idx_grp_topic_avatar_turns_content_vector ON dev.grp_topic_avatar_t
 
 
 --
--- Name: idx_grp_topic_avatar_turns_topicpathid; Type: INDEX; Schema: dev; Owner: -
+-- Name: idx_topic_paths_path; Type: INDEX; Schema: dev; Owner: -
 --
 
-CREATE INDEX idx_grp_topic_avatar_turns_topicpathid ON dev.grp_topic_avatar_turns USING btree (topicpathid);
+CREATE INDEX idx_topic_paths_path ON dev.topic_paths USING btree (path);
 
 
 --
@@ -1552,14 +1371,6 @@ ALTER TABLE ONLY dev.grp_templates
 
 ALTER TABLE ONLY dev.grp_topic_avatars
     ADD CONSTRAINT fk_grp_topic_avatars_avatar FOREIGN KEY (avatar_id) REFERENCES dev.avatars(id) ON DELETE CASCADE;
-
-
---
--- Name: grp_topic_avatars fk_grp_topic_avatars_topic_path; Type: FK CONSTRAINT; Schema: dev; Owner: -
---
-
-ALTER TABLE ONLY dev.grp_topic_avatars
-    ADD CONSTRAINT fk_grp_topic_avatars_topic_path FOREIGN KEY (topic_path_id) REFERENCES dev.topic_paths(id) ON DELETE CASCADE;
 
 
 --

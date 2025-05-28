@@ -17,7 +17,7 @@ export async function getMessagesByTopicId(topicId) {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/topics/id/${encodeURIComponent(topicId)}`, {
+    const response = await fetch(`${API_BASE_URL}/api/topic-paths/id/${encodeURIComponent(topicId)}`, {
       credentials: 'include' // Important for session cookies
     });
     

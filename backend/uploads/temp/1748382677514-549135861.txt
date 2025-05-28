@@ -1,0 +1,162 @@
+{
+  "systemInfo": {
+    "operatingSystem": "win32",
+    "windsurfVersion": "1.9.1",
+    "ideName": "windsurf",
+    "userName": "Kenneth Tyler",
+    "userEmail": "ken@8thfold.com",
+    "teamsTier": 1,
+    "timestamp": "2025-05-22T15:57:45.227Z",
+    "installationId": "07f3eb86-cf54-48b6-bc70-57149f09f658"
+  },
+  "userSettings": {
+    "openMostRecentChatConversation": false,
+    "lastSelectedModel": "MODEL_UNSPECIFIED",
+    "themePreference": "THEME_PREFERENCE_UNSPECIFIED",
+    "extensionPanelTab": "EXTENSION_PANEL_TAB_UNSPECIFIED",
+    "fontSize": "FONT_SIZE_UNSPECIFIED",
+    "autocompleteSpeed": "AUTOCOMPLETE_SPEED_UNSPECIFIED",
+    "rememberLastModelSelection": "REMEMBER_LAST_MODEL_SELECTION_UNSPECIFIED",
+    "lastSelectedModelName": "",
+    "lastSelectedCascadeModel": "MODEL_UNSPECIFIED",
+    "cascadeNuxStates": [
+      {
+        "event": "CASCADE_NUX_EVENT_WEB_SEARCH"
+      }
+    ],
+    "cascadePlannerMode": "CONVERSATIONAL_PLANNER_MODE_DEFAULT",
+    "cascadeAllowedCommands": [],
+    "cascadeDeniedCommands": [],
+    "userNuxStates": [],
+    "cascadeWebSearchDisabled": false,
+    "disableAutocomplete": false,
+    "disableSupercomplete": false,
+    "disableSelectionPopup": false,
+    "disableExplainProblemInlayHint": false,
+    "disableInlayHintShortcuts": false,
+    "disableOpenCascadeOnReload": false,
+    "disableAutoOpenEditedFiles": false,
+    "disableTabToJump": false,
+    "cascadeAutoExecutionPolicy": "CASCADE_COMMANDS_AUTO_EXECUTION_UNSPECIFIED",
+    "explainAndFixInCurrentConversation": false,
+    "allowCascadeAccessGitignoreFiles": false,
+    "disableCascadeAutoFixLints": false,
+    "disableCascadeBrowserPreviews": false,
+    "detectProxy": false,
+    "disableTabToImport": false,
+    "useClipboardForCompletions": false,
+    "disableHighlightAfterAccept": false,
+    "lastSelectedNewConvoTab": "",
+    "disableAutoGenerateMemories": false,
+    "enableSoundsForSpecialEvents": false,
+    "enableTabSounds": false,
+    "allowCascadeInBackground": false,
+    "tabToJump": "TAB_TO_JUMP_UNSPECIFIED",
+    "cascadeWebSearch": "CASCADE_WEB_SEARCH_TOOL_UNSPECIFIED",
+    "enableTerminalCompletion": false,
+    "featureUsageData": {
+      "CASCADE_CLICK_MODEL_SELECTOR": {
+        "hasUsed": true
+      },
+      "CASCADE_BROWSER": {
+        "hasUsed": true
+      }
+    },
+    "disableCascadeInBackground": false
+  },
+  "extensionLogs": [
+    "2025-05-22 08:56:00.658 [info] 2025/05/22 08:56:00 maxprocs: Leaving GOMAXPROCS=8: CPU quota undefined",
+    "2025-05-22 08:56:01.250 [info] I0522 08:56:01.029654  9760 main.go:585] Setting GOMAXPROCS to 4",
+    "2025-05-22 08:56:01.250 [info] I0522 08:56:01.030180  9760 main.go:800] Starting language server process with pid 9760",
+    "2025-05-22 08:56:01.250 [info] I0522 08:56:01.030180  9760 server.go:269] Language server will attempt to listen on host 127.0.0.1",
+    "2025-05-22 08:56:01.250 [info] I0522 08:56:01.032998  9760 server.go:276] Language server listening on random port at 50485",
+    "2025-05-22 08:56:01.412 [info] I0522 08:56:01.411845  9760 server.go:387] Created extension server client at port 50484",
+    "2025-05-22 08:56:22.602 [info] I0522 08:56:22.601224  9760 server.go:946] Local search is enabled, will index local files.",
+    "2025-05-22 08:56:22.606 [info] I0522 08:56:22.601224  9760 server.go:950] Using 2 indexer workers",
+    "2025-05-22 08:56:22.651 [info] (Windsurf) 2025-05-22 08:56:22.647 [INFO]: Language server started",
+    "2025-05-22 08:56:23.291 [info] (Windsurf) 2025-05-22 08:56:23.291 [INFO]: LS lspClient started successfully"
+  ],
+  "languageServerDiagnostics": {
+    "logs": [
+      "I0522 08:56:01.029654  9760 main.go:585] Setting GOMAXPROCS to 4\n",
+      "I0522 08:56:01.030180  9760 main.go:800] Starting language server process with pid 9760\n",
+      "I0522 08:56:01.030180  9760 server.go:269] Language server will attempt to listen on host 127.0.0.1\n",
+      "I0522 08:56:01.032998  9760 server.go:276] Language server listening on random port at 50485\n",
+      "I0522 08:56:01.411845  9760 server.go:387] Created extension server client at port 50484\n",
+      "I0522 08:56:22.601224  9760 server.go:946] Local search is enabled, will index local files.\n",
+      "I0522 08:56:22.601224  9760 server.go:950] Using 2 indexer workers\n"
+    ]
+  },
+  "recentTrajectories": [
+    {
+      "cascadeId": "752baecc-0f9d-496c-8884-9bf421db2328",
+      "trajectoryId": "e61ecced-eb36-440f-a93f-fcf638da769f",
+      "summary": "Debugging Topic Management Errors",
+      "lastStepIndex": 2182,
+      "lastModifiedTime": "2025-05-22T05:44:07.600Z"
+    },
+    {
+      "cascadeId": "1882b8d7-5bf3-4f1a-ad07-854f048f9756",
+      "trajectoryId": "2bb098b0-e805-4889-a613-7ecbce748171",
+      "summary": "Debugging Topic Path Usage  ",
+      "lastStepIndex": 17,
+      "lastModifiedTime": "2025-05-21T13:59:13.870Z"
+    },
+    {
+      "cascadeId": "fed0e380-1487-4810-91f1-592c04bb766b",
+      "trajectoryId": "2c3d45b1-854d-4f73-9cb4-3c32f4f4dd5e",
+      "summary": "Refactoring Topic Preference System",
+      "lastStepIndex": 960,
+      "lastModifiedTime": "2025-05-21T05:06:40.663Z"
+    },
+    {
+      "cascadeId": "ded06bce-4a1d-4831-a16e-4cbb61f7be5c",
+      "trajectoryId": "665487fe-bfea-4c32-a4f2-45c8f48aaa55",
+      "summary": "Implementing File Uploads with Supabase",
+      "lastStepIndex": 965,
+      "lastModifiedTime": "2025-05-20T00:43:33.749Z"
+    },
+    {
+      "cascadeId": "57593364-880d-419d-a09d-c709ba2daea7",
+      "trajectoryId": "7ef91d23-9496-4fe8-a593-5604687704f2",
+      "summary": "Fixing API Route Issues and Logging",
+      "lastStepIndex": 1097,
+      "lastModifiedTime": "2025-05-19T05:41:09.270Z"
+    },
+    {
+      "cascadeId": "6f0a15c6-28d4-485a-a4db-bce8f2713646",
+      "trajectoryId": "0aa349ab-7193-4401-a01a-9bf791987fcc",
+      "summary": "Vectorizing LLM Prompts and Responses",
+      "lastStepIndex": 1985,
+      "lastModifiedTime": "2025-05-18T05:33:07.365Z"
+    },
+    {
+      "cascadeId": "e5630b05-fd7d-4bb6-9e23-dfa739bb24d8",
+      "trajectoryId": "017c9b5c-0c94-4231-b710-50f05dd29317",
+      "summary": "Client and Schema Management Design",
+      "lastStepIndex": 617,
+      "lastModifiedTime": "2025-05-17T05:13:17.212Z"
+    },
+    {
+      "cascadeId": "6d15e474-fff7-448c-9368-258866830d9e",
+      "trajectoryId": "f2242ce5-584a-4923-9982-231b36436232",
+      "summary": "Refactoring React App Header",
+      "lastStepIndex": 785,
+      "lastModifiedTime": "2025-05-16T06:30:29.544Z"
+    },
+    {
+      "cascadeId": "cee07281-c976-405c-9e3e-a7e66a3d339a",
+      "trajectoryId": "90146d1a-eeae-408e-911f-c2b0efd10a5f",
+      "summary": "Rebuilding Lost Functionality in App",
+      "lastStepIndex": 1940,
+      "lastModifiedTime": "2025-05-15T23:45:42.516Z"
+    },
+    {
+      "cascadeId": "7381139a-36f7-4249-bce4-2d4eab8f410b",
+      "trajectoryId": "e4e9102d-94bb-49e6-b478-389266354b1e",
+      "summary": "Implementing Database Connection Pools",
+      "lastStepIndex": 344,
+      "lastModifiedTime": "2025-05-14T17:52:00.194Z"
+    }
+  ]
+}

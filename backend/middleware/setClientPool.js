@@ -6,6 +6,7 @@
 
 import pg from 'pg';
 import { determineSchemaFromHostname } from './setClientSchema.js';
+import { ApiError } from './errorHandler.js';
 import dotenv from 'dotenv';
 
 // Initialize dotenv
@@ -81,6 +82,9 @@ export function setClientPool(req, res, next) {
     next();
   } catch (error) {
     console.error(`Error getting connection pool:`, error);
-    next(error);
+    // Pass to next middleware with ApiError, but be careful about error handler dependencies
+    // We're wrapping the original error to provide a user-friendly message
+    const apiError = new ApiError('Database connection setup failed', 500, { cause: error });
+    next(apiError);
   }
 }

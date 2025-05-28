@@ -1,4 +1,6 @@
 📁 C:\Users\Ken\Desktop\back-stage
+  📁 .cascade/
+    📄 instructions.md
   📄 .env
   📄 .gitignore
   📄 architecture.txt
@@ -28,6 +30,18 @@
         📄 query.js
         📄 schema.js
         📄 testConnection.js
+      📁 fileUploads/
+        📄 createFileUpload.js
+        📄 deleteFileUpload.js
+        📄 getFileUploadById.js
+        📄 getFileUploadsBySchema.js
+        📄 index.js
+        📄 searchFileUploads.js
+      📁 fileUploadVectors/
+        📄 createFileUploadVector.js
+        📄 getFileUploadVectors.js
+        📄 index.js
+        📄 searchSimilarVectors.js
       📁 groups/
         📄 createGroup.js
         📄 deleteGroup.js
@@ -37,55 +51,33 @@
         📄 getGroupsByParticipant.js
         📄 index.js
         📄 updateGroup.js
-      📁 grpConAvatars/
-        📄 createGrpConAvatar.js
-        📄 deleteGrpConAvatar.js
-        📄 getGrpConAvatarsByConversation.js
-        📄 getGrpConsByAvatar.js
+      📁 grpTopicAvatars/
+        📄 createGrpTopicAvatar.js
+        📄 getAvatarsByTopicPath.js
+        📄 getTopicPathsByAvatar.js
         📄 index.js
-      📁 grpConAvatarTurnRelationships/
-        📄 createGrpConAvatarTurnRelationship.js
-        📄 deleteGrpConAvatarTurnRelationship.js
-        📄 getGrpConAvatarTurnRelationshipById.js
-        📄 getGrpConAvatarTurnRelationshipsByTurn.js
+      📁 grpTopicAvatarTurns/
+        📄 createGrpTopicAvatarTurn.js
+        📄 createGrpTopicTurn.js
+        📄 getTurnById.js
+        📄 getTurnsByTopic.js
         📄 index.js
-        📄 updateGrpConAvatarTurnRelationship.js
-      📁 grpConAvatarTurns/
-        📄 createGrpConAvatarTurn.js
-        📄 deleteGrpConAvatarTurn.js
-        📄 getGrpConAvatarTurnById.js
-        📄 getGrpConAvatarTurnsByConversation.js
-        📄 index.js
-        📄 updateGrpConAvatarTurn.js
-      📁 grpCons/
-        📄 createGrpCon.js
-        📄 deleteGrpCon.js
-        📄 getGrpConById.js
-        📄 getGrpConsByGroup.js
-        📄 index.js
-        📄 updateGrpCon.js
-      📁 grpConTemplateInstances/
-        📄 createGrpConTemplateInstance.js
-        📄 getGrpConTemplateInstancesByTemplate.js
-        📄 index.js
-      📁 grpConTemplateTopics/
-        📄 createGrpConTemplateTopic.js
-        📄 deleteGrpConTemplateTopic.js
-        📄 getGrpConTemplateTopicById.js
-        📄 getGrpConTemplateTopicsByTemplate.js
-        📄 index.js
-        📄 updateGrpConTemplateTopic.js
-      📁 grpConUploads/
-        📄 createGrpConUpload.js
-        📄 deleteGrpConUpload.js
-        📄 getGrpConUploadById.js
-        📄 getGrpConUploadsByConversation.js
-        📄 index.js
-      📁 grpConUploadVectors/
-        📄 createGrpConUploadVector.js
-        📄 getGrpConUploadVectorsByUpload.js
-        📄 index.js
+        📄 updateTurnVector.js
       📄 index.js
+      📁 llm/
+        📄 getClientSchemaLLMConfig.js
+        📄 getLlmConfigById.js
+        📄 index.js
+        📁 preferences/
+          📄 getClientSchemaPreference.js
+          📄 getLlmPreferenceTypeId.js
+        📄 updateClientSchemaLLMConfig.js
+        📁 utils/
+          📄 db-helpers.js
+          📄 parsing.js
+          📄 validation.js
+      📄 llmConfig.js
+      📄 messageSearch.js
       📁 participantAvatars/
         📄 createParticipantAvatar.js
         📄 deleteParticipantAvatar.js
@@ -118,9 +110,11 @@
       📁 preferences/
         📄 createGroupPreference.js
         📄 createParticipantPreference.js
+        📄 createParticipantTopicPreference.js
         📄 createSitePreference.js
         📄 each time a template is used the turns a.md
         📄 getAllPreferenceTypes.js
+        📄 getCurrentParticipantTopic.js
         📄 getPreferenceTypeByName.js
         📄 getPreferenceWithFallback.js
         📄 index.js
@@ -130,17 +124,195 @@
         📄 getTopicPaths.js
         📄 index.js
         📄 updateTopicPath.js
+      📁 utils/
+        📄 dbError.js
+        📄 index.js
+        📄 README.md
+        📁 vectors/
+          📄 constants.js
+          📄 index.js
+          📄 normalizeVector.js
+          📄 toVectorLiteral.js
     📄 db.js
     📁 middleware/
+      📄 auth.js
+      📄 errorHandler.js
+      📄 requireClientPool.js
       📄 setClientPool.js
       📄 setClientSchema.js
     📄 package-lock.json
     📄 package.json
+    📁 routes/
+      📁 api/
+        📁 auth/
+          📄 index.js
+          📄 login.js
+          📄 logout.js
+          📄 status.js
+          📄 test.js
+        📁 comments/
+          📄 commentCreation.js
+          📄 index.js
+        📁 errorLogging/
+          📄 errorLogger.js
+          📄 index.js
+          📄 recentErrors.js
+          📄 testError.js
+        📁 events/
+          📄 eventLogger.js
+          📄 index.js
+        📁 fileUploads/
+          📄 fileContent.js
+          📄 fileDeletion.js
+          📄 fileList.js
+          📄 fileRetrieval.js
+          📄 fileSearch.js
+          📄 fileUpload.js
+          📄 index.js
+        📁 groups/
+          📄 groupCreation.js
+          📄 groupDeletion.js
+          📄 groupsRetrieval.js
+          📄 groupUpdate.js
+          📄 index.js
+        📁 llmConfig/
+          📄 configRetrieval.js
+          📄 configUpdate.js
+          📄 index.js
+        📁 messageSearch/
+          📄 index.js
+          📄 relatedMessages.js
+        📁 preferences/
+          📄 currentTopicRetrieval.js
+          📄 index.js
+          📄 topicPreferenceCreation.js
+        📁 promptProcessor/
+          📄 commentProcessor.js
+          📄 index.js
+          📄 messageProcessor.js
+        📁 topicPaths/
+          📄 index.js
+          📄 pathCreation.js
+          📄 pathsDeletion.js
+          📄 pathsMessageRetrieval.js
+          📄 pathsRetrieval.js
+          📄 pathsUpdate.js
+    📁 scripts/
+      📄 update-password.js
     📄 server.js
+    📁 services/
+      📁 comments/
+        📄 index.js
+      📁 common/
+        📄 getNextTurnIndex.js
+        📄 storeMessage.js
+      📄 embeddings.js
+      📄 errorLogger.js
+      📄 eventLogger.js
+      📄 fileProcessing.js
+      📁 fileUploads/
+        📄 createFileTurn.js
+        📄 getNextTurnIndex.js
+        📄 getParticipantId.js
+      📁 llm/
+        📄 anthropic.js
+        📄 index.js
+        📄 openai.js
+      📄 llm.js
+      📄 messageProcessor.js
+      📄 sessionMonitor.js
+      📁 turns/
+        📄 getNextTurnIndex.js
     📄 sessions.sqlite
+    📁 test/
+      📄 llmConfig.test.js
+      📄 test-loader.js
+      📄 test-setup.js
+    📁 test-logs/
+      📄 llm-config-tests.log
+    📄 test_output.log
+    📁 uploads/
+      📁 temp/
+        📄 1747696960115-145146850.txt
+        📄 1747697334591-281718602.txt
+        📄 1747697560308-719752010.txt
+        📄 1747697842699-335358361.txt
+        📄 1747698096667-563926615.txt
+        📄 1747698357296-314865715.txt
+        📄 1747699015449-974558320.txt
+        📄 1747699469527-606400527.txt
+        📄 1747699814404-500076995.txt
+        📄 1747700115284-388020114.txt
+        📄 1747700588037-722516087.txt
+        📄 1747700885940-302237851.txt
+        📄 1747701373969-695297414.txt
+        📄 1747701702713-564060809.txt
+        📄 1747931423661-843819896.txt
+        📄 1747933074957-340922686.txt
+        📄 1747933744377-542657372.txt
+        📄 1747934302326-955899237.txt
+        📄 1747934556576-756593702.txt
+        📄 1747935052393-762207730.txt
+        📄 1747938426278-228747548.txt
+        📄 1747938708101-531580017.txt
+        📄 1747941243806-435218086.txt
+        📄 1747941640189-808310923.txt
+        📄 1747941854769-176822388.txt
+        📄 1747941877503-196298487.txt
+        📄 1747942095505-444517610.txt
+        📄 1747942248875-526060381.txt
+        📄 1747942261949-394801470.txt
+        📄 1747942736641-474227523.txt
+        📄 1747943617292-242512852.txt
+        📄 1748017734405-389514985.txt
+        📄 1748043412303-278352376.txt
+        📄 1748044033223-81330623.txt
+        📄 1748044785231-896131931.txt
+        📄 1748319730776-141570056.txt
+        📄 1748320021409-83431874.txt
+        📄 1748320234121-116450491.txt
+        📄 1748376055180-544205405.txt
+        📄 1748382677514-549135861.txt
+        📄 1748382951121-891419208.txt
+        📄 1748383883155-966599791.txt
+        📄 1748384040664-132953799.txt
+        📄 1748384460204-375822462.txt
+        📄 1748384863985-637538519.txt
+        📄 1748385467394-630861716.txt
+        📄 1748385971346-623482389.txt
+        📄 1748386366855-431907805.txt
+        📄 1748386559561-566212259.txt
+    📁 utils/
+      📄 passwordUtils.js
+      📄 storage.js
   📄 build-and-run.ps1
+  📁 consolidated-for-claude/
+    📄 1_file_upload_system.js
+    📄 2_backend_core_and_db.js
+    📄 3_api_routes_and_endpoints.js
+    📄 4_frontend_components.js
   📄 deployment-test.js
+  📄 dev_schema.sql
+  📄 dev_to_dev_schema_migration.sql
   📄 dir-tree.js
+  📄 directory-tree.txt
+  📁 docs/
+    📄 ARCHITECTURE.md
+    📄 debugging-guide.md
+    📁 decisions/
+      📄 2025-05-16-client-and-schema-management.md
+      📄 2025-05-16-documentation-structure.md
+      📄 2025-05-16-llm-preference-hierarchy.md
+      📄 README.md
+      📄 TEMPLATE.md
+    📁 design/
+      📄 llm-management.md
+    📄 directory_tree.txt
+    📄 File Upload Implementation Summary.md
+    📄 jsdocs.json
+    📄 llm-configuration.md
+    📄 schema_dump.sql
+  📄 documentation.md
   📄 extract_jsdocs.py
   📁 frontend/
     📄 .env
@@ -159,6 +331,8 @@
     📄 package-lock.json
     📄 package.json
     📁 public/
+      📄 error-test.html
+      📄 error-test.js
       📄 index.html
     📁 src/
       📄 App.css
@@ -172,15 +346,25 @@
           📄 LoginForm.js
           📄 LogoutButton.js
           📄 PrivateRoute.js
-        📄 DatabaseTest.css
-        📄 DatabaseTest.js
+        📄 ErrorLogTest.js
         📄 MainLayout.css
         📄 MainLayout.js
-        📄 MessageArea.css
-        📄 MessageArea.js
-        📄 TopicsMenu.css
-        📄 TopicsMenu.js
-        📄 TopicTreeNode.js
+        📁 messages/
+          📁 components/
+            📄 MessageInput.js
+            📄 MessageItem.js
+            📄 MessageList.js
+          📄 MessageArea.css
+          📄 MessageArea.css.new
+          📄 MessageArea.js
+          📄 MessageArea.js.new
+          📄 RelatedMessages.css
+          📄 RelatedMessages.js
+        📁 topics/
+          📄 TopicsMenu.css
+          📄 TopicsMenu.js
+          📄 TopicTreeNode.js
+      📄 config.js
       📄 index.css
       📄 index.js
       📁 services/
@@ -188,204 +372,44 @@
         📁 auth/
           📄 authApi.js
           📄 authContext.js
+        📄 errorLogger.js
+        📁 events/
+          📄 eventApi.js
+        📁 files/
+          📄 fileService.js
+          📄 index.js
+        📁 grpTopicAvatarTurns/
+          📄 grpTopicAvatarTurnService.js
+        📄 llmService.js
         📁 topics/
           📄 topicsApi.js
-    📁 vanilla-build/
-      📄 api.js
-      📄 asset-manifest.json
-      📁 auth/
-        📄 authApi.js
-        📄 authForms.js
-        📄 authNavigation.js
-        📄 authOrchestrator.js
-        📄 authState.js
-        📄 authUI.js
-        📄 userSession.js
-      📄 auth.js
-      📄 conversations.js
-      📄 index.html
-      📄 login.html
-      📄 main.js
-      📄 react-auth-test.html
-      📁 static/
-        📁 css/
-          📄 main.fca1b7a9.css
-          📄 main.fca1b7a9.css.map
-        📁 js/
-          📄 main.f4c2c485.js
-          📄 main.f4c2c485.js.LICENSE.txt
-          📄 main.f4c2c485.js.map
-      📁 styles/
-        📄 main.css
-      📄 templates.js
-      📄 topics.js
-      📄 utils.js
+          📄 topicService.js
+  📄 neon_schema.sql
+  📄 package-lock.json
   📄 package.json
+  📄 pg_dump_dev_schema.ps1
+  📄 pg_dump_public_schema.ps1
   📄 pg_dump_schema.ps1
-  📁 previous/
-    📁 public/
-      📄 auth-check.html
-      📄 auth_diagnostic.html
-      📄 conversation-test.html
-      📄 csrf-auth-test.html
-      📄 csrf-conversation-test.html
-      📄 csrf-test.html
-      📄 direct-auth-test.html
-      📄 forgot-password.html
-      📄 index.html
-      📄 index_backup.html
-      📄 index_bak.html
-      📄 login-test.html
-      📄 login.html
-      📄 react-login.html
-      📁 scripts/
-        📄 api.js
-        📄 auth.js
-        📄 conversations.js
-        📄 main.js
-        📄 templates.js
-        📄 topics.js
-        📄 utils.js
-      📁 styles/
-        📄 main.css
-      📄 template-debug.html
-      📄 test-template-assignment.html
-    📁 src/
-      📁 config/
-        📄 schema.js
-      📁 controllers/
-        📁 participants/
-          📄 loginHandler.js
-          📄 logoutHandler.js
-      📁 db/
-        📄 connection.js
-        📁 groups/
-        📁 grpConAvatars/
-          📄 createGrpConAvatar.js
-          📄 deleteGrpConAvatar.js
-          📄 getGrpConAvatarsByConversation.js
-          📄 getGrpConsByAvatar.js
-          📄 index.js
-        📁 grpConAvatarTurnRelationships/
-          📄 createGrpConAvatarTurnRelationship.js
-          📄 deleteGrpConAvatarTurnRelationship.js
-          📄 getGrpConAvatarTurnRelationshipById.js
-          📄 getGrpConAvatarTurnRelationshipsByTurn.js
-          📄 index.js
-          📄 updateGrpConAvatarTurnRelationship.js
-        📁 grpConAvatarTurns/
-          📄 createGrpConAvatarTurn.js
-          📄 deleteGrpConAvatarTurn.js
-          📄 getGrpConAvatarTurnById.js
-          📄 getGrpConAvatarTurnsByConversation.js
-          📄 index.js
-          📄 updateGrpConAvatarTurn.js
-        📁 grpCons/
-          📄 createGrpCon.js
-          📄 deleteGrpCon.js
-          📄 getGrpConById.js
-          📄 getGrpConsByGroup.js
-          📄 index.js
-          📄 updateGrpCon.js
-        📁 grpConTemplateInstances/
-          📄 createGrpConTemplateInstance.js
-          📄 getGrpConTemplateInstancesByTemplate.js
-          📄 index.js
-        📁 grpConTemplateTopics/
-          📄 createGrpConTemplateTopic.js
-          📄 deleteGrpConTemplateTopic.js
-          📄 getGrpConTemplateTopicById.js
-          📄 getGrpConTemplateTopicsByTemplate.js
-          📄 index.js
-          📄 updateGrpConTemplateTopic.js
-        📁 grpConUploads/
-          📄 createGrpConUpload.js
-          📄 deleteGrpConUpload.js
-          📄 getGrpConUploadById.js
-          📄 getGrpConUploadsByConversation.js
-          📄 index.js
-        📁 grpConUploadVectors/
-          📄 createGrpConUploadVector.js
-          📄 getGrpConUploadVectorsByUpload.js
-          📄 index.js
-        📁 participantAvatars/
-          📄 createParticipantAvatar.js
-          📄 deleteParticipantAvatar.js
-          📄 getParticipantAvatarById.js
-          📄 getParticipantAvatarsByAvatar.js
-          📄 getParticipantAvatarsByParticipant.js
-          📄 index.js
-        📁 participantEvents/
-          📄 createParticipantEvent.js
-          📄 getParticipantEventById.js
-          📄 getParticipantEventsByParticipant.js
-          📄 getParticipantEventsByType.js
-          📄 index.js
-        📁 participants/
-          📄 createParticipant.js
-          📄 createParticipantHandler.js
-          📄 deleteParticipant.js
-          📄 deleteParticipantHandler.js
-          📄 getAllParticipants.js
-          📄 getAllParticipantsHandler.js
-          📄 getParticipantByEmail.js
-          📄 getParticipantByEmailHandler.js
-          📄 getParticipantById.js
-          📄 getParticipantByIdHandler.js
-          📄 getParticipantsByGroup.js
-          📄 getParticipantsByGroupHandler.js
-          📄 index.js
-          📄 updateParticipant.js
-          📄 updateParticipantHandler.js
-        📄 pool.js
-        📁 preferences/
-          📄 createGroupPreference.js
-          📄 createParticipantPreference.js
-          📄 createSitePreference.js
-          📄 each time a template is used the turns a.md
-          📄 getAllPreferenceTypes.js
-          📄 getPreferenceTypeByName.js
-          📄 getPreferenceWithFallback.js
-          📄 index.js
-      📁 middleware/
-        📄 auth.js
-        📄 auth_old.js
-        📄 cookieHandler.js
-        📄 csrf.js
-        📄 setClientPool.js
-        📄 setClientSchema.js
-        📄 simplified-auth.js
-      📁 routes/
-        📄 auth-debug.js
-        📄 auth-test.js
-        📄 conversations.js
-        📄 direct-auth.js
-        📄 groups.js
-        📄 grpConAvatars.js
-        📄 grpConAvatarTurnRelationships.js
-        📄 grpConAvatarTurns.js
-        📄 grpCons.js
-        📄 grpConTemplateInstances.js
-        📄 grpConTemplateTopics.js
-        📄 grpConUploads.js
-        📄 grpTemplates.js
-        📄 grpTemplateTopics.js
-        📄 me.js
-        📄 participantAvatars.js
-        📄 participantEvents.js
-        📄 participants.js
-        📄 preferences.js
-      📁 services/
-        📄 authService.js
-        📄 embeddingService.js
-        📄 llmService.js
-        📄 supabaseService.js
-      📁 utils/
-        📄 clientSchema.js
-        📄 env.js
   📄 project-summary.md
+  📄 public_schema.sql
+  📄 public_to_public_schema_migration.sql
   📄 README.md
   📄 restart-servers-fixed.ps1
   📄 restart-servers.ps1
+  📄 run_docs.ps1
   📁 scripts/
+    📄 add_topic_id_to_avatar_turns.sql
+    📄 clone_dev_to_first_congregational.sql
     📄 copy-build.js
+    📄 copy_dev_to_first_congregational.sql
+    📄 create_first_congregational.sql
+    📄 dev_to_dev_schema_migration.sql
+    📄 direct_copy_schema.sql
+    📄 move_tables_to_public.sql
+    📄 new-decision.ps1
+    📄 remove_participant_preference_constraint.sql
+    📄 remove_unique_constraint.sql
+    📄 update-architecture.ps1
+    📄 update_message_topic_references.sql
+    📄 update_topic_paths_structure.sql
+  📄 Vector Integration Progress Summary.txt

@@ -436,21 +436,27 @@ function createVectorizerStream(fileUploadId, pool, schemaName = 'public') {
   const MAX_CONCURRENT = 3; // Only process 3 chunks at a time
   const queue = [];
   
-  // First check if the file still exists in the database
-  let fileExists = false;
+  // Track if file has been verified to exist
+  let fileVerified = false;
   
+  // Store schema info for consistent usage across all operations
+  // IMPORTANT: Don't override the schema that's already set in the pool
+  const effectiveSchema = pool._schema || schemaName || 'public';
+  console.log(`Using schema '${effectiveSchema}' for file ${fileUploadId} vectorization`);
+  
+  // Verify file existence once for the entire stream
   const verifyFileExists = async () => {
     try {
       // Direct query to ensure we're checking the exact same schema and connection
-      // This is more reliable than using the imported function
       const client = await pool.connect();
       try {
         // Use the explicitly provided schema name
         const schema = client.escapeIdentifier ? 
-          client.escapeIdentifier(schemaName) : 
-          `"${schemaName}"`;
+          client.escapeIdentifier(effectiveSchema) : 
+          `"${effectiveSchema}"`;
           
         await client.query(`SET search_path TO ${schema}, public;`);
+        console.log(`Set search_path to ${effectiveSchema} for file verification`);
         
         // Direct query to check file existence
         const result = await client.query(
@@ -458,17 +464,15 @@ function createVectorizerStream(fileUploadId, pool, schemaName = 'public') {
           [fileUploadId]
         );
         
-        fileExists = result.rowCount > 0;
+        const exists = result.rowCount > 0;
         
-        if (!fileExists) {
+        if (!exists) {
           console.error(`File ${fileUploadId} no longer exists in database (direct query), aborting vectorization`);
         } else {
           console.log(`Verified file ${fileUploadId} exists in database (direct query), proceeding with vectorization`);
-          // Log the schema being used
-          console.log(`Using schema: ${pool._schema || 'public'} for file ${fileUploadId} verification`);
         }
         
-        return fileExists;
+        return exists;
       } finally {
         client.release();
       }
@@ -478,56 +482,76 @@ function createVectorizerStream(fileUploadId, pool, schemaName = 'public') {
     }
   };
   
+  // Process chunks from the queue
   const processQueue = async (stream) => {
-    // If we haven't checked file existence yet, do it now
-    if (fileExists === false) {
-      const exists = await verifyFileExists();
-      if (!exists) return; // Stop processing if file doesn't exist
-    }
-    
     // While we have capacity and items in the queue
     while (activePromises < MAX_CONCURRENT && queue.length > 0) {
       const chunk = queue.shift();
       activePromises++;
       
       try {
-        console.log(`Vectorizing chunk ${chunk.index + 1} for file ${fileUploadId}`);
+        console.log(`Vectorizing chunk ${chunk.index} for file ${fileUploadId}`);
         
         // Generate embedding
         const embedding = await generateEmbedding(chunk.text);
         
-        // Double-check file still exists before inserting vector
-        const stillExists = await verifyFileExists();
-        if (!stillExists) {
-          console.log(`File ${fileUploadId} was deleted during processing, skipping vector creation`);
-          return; // Exit early
+        // Store in database using the same pool that was passed to this function
+        // Ensure schema context is preserved throughout the entire process
+        // Extract schema from connection options if available
+        let extractedSchema = 'public';
+        
+        // Try to get schema information from the pool or connection options
+        if (pool._clients && pool._clients[0] && pool._clients[0].connectionParameters) {
+          const params = pool._clients[0].connectionParameters;
+          if (params.search_path) {
+            const parts = params.search_path.split(',');
+            if (parts.length > 0) {
+              extractedSchema = parts[0].trim().replace(/"/g, '');
+            }
+          }
         }
         
-        // Store in database
+        console.log(`Using schema '${extractedSchema}' for vectorizing chunk ${chunk.index} of file ${fileUploadId}`);
+        
         await createFileUploadVector({
           fileUploadId,
           chunkIndex: chunk.index,
           contentText: chunk.text,
-          contentVector: embedding
+          contentVector: embedding,
+          // Explicitly pass the schema name to ensure consistency
+          schemaName: extractedSchema
         }, pool);
         
-        console.log(`Completed processing chunk ${chunk.index + 1} for file ${fileUploadId}`);
+        console.log(`Completed processing chunk ${chunk.index} for file ${fileUploadId}`);
       } catch (error) {
         console.error(`Error vectorizing chunk ${chunk.index}:`, error);
       } finally {
         activePromises--;
         // Process more items if available
-        if (queue.length > 0 && fileExists) {
+        if (queue.length > 0) {
           processQueue(stream);
         }
       }
     }
   };
   
+  // Create and return the transform stream
   return new Transform({
     objectMode: true,
-    transform(chunk, encoding, callback) {
-      // Add the chunk to our processing queue
+    async transform(chunk, encoding, callback) {
+      // Only verify file existence once for the first chunk
+      if (!fileVerified) {
+        const exists = await verifyFileExists();
+        fileVerified = true; // Mark as verified regardless of result
+        
+        if (!exists) {
+          console.log(`File ${fileUploadId} doesn't exist, skipping all chunk processing`);
+          callback();
+          return;
+        }
+      }
+      
+      // Add chunk to processing queue
       queue.push(chunk);
       
       // Start processing if we have capacity
@@ -538,9 +562,10 @@ function createVectorizerStream(fileUploadId, pool, schemaName = 'public') {
       callback();
     },
     flush(callback) {
-      // Return a promise that resolves when all chunks are processed
+      // Wait for all pending operations to complete
       const checkComplete = () => {
         if (activePromises === 0 && queue.length === 0) {
+          console.log(`Completed streaming processing for file ${fileUploadId}`);
           callback();
         } else {
           setTimeout(checkComplete, 100);

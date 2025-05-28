@@ -2,6 +2,7 @@
  * @file src/db/participant/getParticipantByEmail.js
  * @description Retrieves a participant record from the database by email address.
  */
+import { createDbError, DB_ERROR_CODES } from '../utils/index.js';
 
 /**
  * Retrieves a participant by their email address
@@ -22,6 +23,34 @@ export async function getParticipantByEmail(email, pool) {
     const result = await pool.query(query, values);
     return result.rows[0] || null;
   } catch (error) {
-    throw new Error(`Failed to get participant by email: ${error.message}`);
+    console.error('Error getting participant by email:', {
+      error: error.message,
+      email,
+      stack: error.stack
+    });
+    
+    // If it's already a database error, just add additional context
+    if (error.isDbError) {
+      error.context = { ...error.context, operation: 'getParticipantByEmail' };
+      throw error;
+    }
+    
+    // Handle specific PostgreSQL errors
+    if (error.code === '42P01') { // Relation does not exist
+      throw createDbError('Participants table not found', {
+        code: 'DB_RELATION_NOT_FOUND',
+        status: 500,
+        context: { email, operation: 'getParticipantByEmail' },
+        cause: error
+      });
+    }
+    
+    // For other errors, wrap with standard error
+    throw createDbError('Failed to retrieve participant by email', {
+      code: 'DB_QUERY_ERROR',
+      status: 500,
+      context: { email, operation: 'getParticipantByEmail' },
+      cause: error
+    });
   }
 }

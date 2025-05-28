@@ -1,3 +1,5 @@
+import { createDbError, DB_ERROR_CODES } from '../utils/index.js';
+
 /**
  * Creates a new topic path
  * @param {string} path - The ltree path to create
@@ -22,7 +24,11 @@ export async function createTopicPath(path, userId, pool) {
     );
     
     if (!result.rows || result.rows.length === 0) {
-      throw new Error('No rows returned from insert');
+      throw createDbError('Failed to create topic path - no rows returned', {
+        code: 'DB_INSERT_FAILED',
+        status: 500,
+        context: { path, userId }
+      });
     }
     
     console.log('Successfully created topic path:', result.rows[0]);
@@ -34,7 +40,30 @@ export async function createTopicPath(path, userId, pool) {
       userId,
       stack: error.stack
     });
-    throw error;
+    
+    // If it's already a database error, just add additional context
+    if (error.isDbError) {
+      error.context = { ...error.context, operation: 'createTopicPath' };
+      throw error;
+    }
+    
+    // Check for potential duplicate key errors
+    if (error.code === '23505') { // PostgreSQL duplicate key error
+      throw createDbError(`Topic path "${path}" already exists`, {
+        code: 'DUPLICATE_TOPIC_PATH',
+        status: 409, // Conflict
+        context: { path, userId },
+        cause: error
+      });
+    }
+    
+    // For other errors, wrap with standard error
+    throw createDbError('Failed to create topic path', {
+      code: 'DB_OPERATION_FAILED',
+      status: 500,
+      context: { path, userId, operation: 'createTopicPath' },
+      cause: error
+    });
   }
 }
 

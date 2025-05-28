@@ -90,7 +90,7 @@ async function getTurnsByTopicId(topicId) {
   console.log('DEBUG getTurnsByTopicId - Called with topicId:', topicId);
 
   try {
-    const url = `${API_BASE_URL}/api/topics/id/${encodeURIComponent(topicId)}`;
+    const url = `${API_BASE_URL}/api/topic-paths/id/${encodeURIComponent(topicId)}`;
     console.log('DEBUG getTurnsByTopicId - Fetching from URL:', url);
     
     const response = await fetch(url, {
@@ -185,7 +185,7 @@ async function getRelatedMessages(messageId) {
     console.log(`Fetching related messages for message ID: ${messageId}`);
     
     // Use the dedicated endpoint for fetching related messages
-    const url = `${API_BASE_URL}/api/messages/${messageId}/related`;
+    const url = `${API_BASE_URL}/api/message-search/messages/${messageId}/related`;
     console.log(`Making request to: ${url}`);
     
     const response = await fetch(url, {

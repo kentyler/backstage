@@ -12,7 +12,7 @@ import { logUserEvent } from '../events/eventApi';
 
 export const fetchTopicPaths = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/topics`, {
+    const response = await fetch(`${API_BASE_URL}/api/topic-paths`, {
       credentials: 'include', // Important for session cookies
     });
     
@@ -38,7 +38,7 @@ export async function createTopicPath(path) {
   try {
     console.log(`Creating topic path: ${path}`);
     
-    const response = await fetch(`${API_BASE_URL}/api/topics`, {
+    const response = await fetch(`${API_BASE_URL}/api/topic-paths`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ export async function deleteTopicPath(path) {
     console.log(`Deleting topic path: ${path}`);
 
     // Use POST with path in request body to avoid URL encoding issues with dots
-    const response = await fetch(`${API_BASE_URL}/api/topics/delete`, {
+    const response = await fetch(`${API_BASE_URL}/api/topic-paths/delete`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -141,7 +141,7 @@ export async function deleteTopicPath(path) {
  */
 export async function updateTopicPath(oldPath, newPath) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/topics/${encodeURIComponent(oldPath)}`, {
+    const response = await fetch(`${API_BASE_URL}/api/topic-paths/${encodeURIComponent(oldPath)}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

@@ -4,7 +4,7 @@
  */
 
 import { createGrpTopicAvatarTurn } from '../../db/grpTopicAvatarTurns/index.js';
-import { MESSAGE_TYPE } from '../../db/grpTopicAvatarTurns/createGrpTopicAvatarTurn.js';
+import { MESSAGE_TYPE, TURN_KIND } from '../../db/grpTopicAvatarTurns/createGrpTopicAvatarTurn.js';
 
 /**
  * Creates a turn record for a file upload
@@ -27,15 +27,15 @@ export async function createFileTurn(topicId, avatarId, turnIndex, fileUpload, p
   let turnData = null;
   
   try {
-    // Create a turn record with turn_kind = 6 for file uploads
+    // Create a turn record
     const turn = await createGrpTopicAvatarTurn(
       topicId,
       avatarId,
       turnIndex,
       contentText,
       null, // No vector for this message
-      6, // TURN_KIND.FILE_UPLOAD
-      MESSAGE_TYPE.USER, // Mark as user message
+      TURN_KIND.FILE, // 6 - File upload turn kind
+      MESSAGE_TYPE.USER, // 1 - User message type
       null, // No template topic
       pool,
       null, // No LLM ID for file uploads

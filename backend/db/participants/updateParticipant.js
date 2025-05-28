@@ -2,6 +2,7 @@
  * @file src/db/participant/updateParticipant.js
  * @description Updates a participant's information in the database.
  */
+import { createDbError, DB_ERROR_CODES } from '../utils/index.js';
 
 /**
  * Updates a participant's information
@@ -35,7 +36,11 @@ export async function updateParticipant(id, updates, createdByParticipantId = nu
       );
 
       if (existingEmail.rows.length > 0) {
-        throw new Error(`Participant with email ${updates.email} already exists`);
+        throw createDbError(`Participant with email ${updates.email} already exists`, {
+          code: 'DUPLICATE_EMAIL',
+          status: 409, // Conflict
+          context: { email: updates.email, participantId: id }
+        });
       }
     }
 
@@ -87,6 +92,44 @@ export async function updateParticipant(id, updates, createdByParticipantId = nu
     
     return result.rows[0];
   } catch (error) {
-    throw new Error(`Failed to update participant: ${error.message}`);
+    console.error('Error updating participant:', {
+      error: error.message,
+      participantId: id,
+      updates,
+      stack: error.stack
+    });
+    
+    // If it's already a database error, just add additional context
+    if (error.isDbError) {
+      error.context = { ...error.context, operation: 'updateParticipant' };
+      throw error;
+    }
+    
+    // Handle specific PostgreSQL errors
+    if (error.code === '23505') { // Unique violation
+      throw createDbError(`Email already in use by another participant`, {
+        code: 'DUPLICATE_EMAIL',
+        status: 409, // Conflict
+        context: { email: updates.email, participantId: id, operation: 'updateParticipant' },
+        cause: error
+      });
+    }
+    
+    if (error.code === '42P01') { // Relation does not exist
+      throw createDbError('Participants table not found', {
+        code: 'DB_RELATION_NOT_FOUND',
+        status: 500,
+        context: { participantId: id, operation: 'updateParticipant' },
+        cause: error
+      });
+    }
+    
+    // For other errors, wrap with standard error
+    throw createDbError('Failed to update participant', {
+      code: 'DB_OPERATION_FAILED',
+      status: 500,
+      context: { participantId: id, updates, operation: 'updateParticipant' },
+      cause: error
+    });
   }
 }
