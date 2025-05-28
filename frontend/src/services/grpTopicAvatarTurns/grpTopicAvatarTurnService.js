@@ -3,7 +3,8 @@
  * @description Service for managing grpTopicAvatarTurn-related operations
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// Use relative URL to work in all environments
+const API_BASE_URL = '';
 
 /**
  * Submits a prompt to create a new turn and optionally get an AI response

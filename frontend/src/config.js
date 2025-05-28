@@ -2,7 +2,7 @@
  * Application configuration constants
  */
 
-// API base URL - adjust for production environments as needed
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// API base URL - using relative URL to work in all environments
+export const API_BASE_URL = '';
 
 // Other global configuration constants can be added here

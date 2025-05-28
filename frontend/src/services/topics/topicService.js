@@ -3,8 +3,8 @@
  * @description Service for managing topic-related operations
  */
 
-// Use the same API base URL pattern as in topicsApi.js
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// Use relative URL to work in all environments
+const API_BASE_URL = '';
 
 /**
  * Fetches conversation messages for a topic using its numeric ID

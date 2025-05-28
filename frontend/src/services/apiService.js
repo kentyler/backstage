@@ -2,12 +2,8 @@ import axios from 'axios';
 
 // Get the base URL for API calls
 const getApiBaseUrl = () => {
-  // In production, use relative URL
-  if (process.env.NODE_ENV === 'production') {
-    return '/api';
-  }
-  // In development, use the full URL
-  return 'http://localhost:5000/api';
+  // Always use relative URL to work in all environments
+  return '/api';
 };
 
 // Create an axios instance with default settings

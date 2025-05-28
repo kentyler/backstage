@@ -3,8 +3,8 @@
  * Handles all authentication-related API calls
  */
 
-// Ensure we're targeting the backend server (port 5000) not the frontend server (port 3000)
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// Use relative URL to work in all environments
+const API_BASE_URL = '';
 
 
 
