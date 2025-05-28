@@ -31,6 +31,14 @@ export async function createParticipantTopicPreference(participantId, topicId, p
       throw new Error('Database pool is required');
     }
     
+    // Debug pool information
+    console.log('Pool configuration:', { 
+      options: pool.options, 
+      totalCount: pool.totalCount,
+      idleCount: pool.idleCount,
+      waitingCount: pool.waitingCount
+    });
+    
     // Get the schema from the pool's options if available
     const poolSchema = pool.options?.schema || 'dev';
     console.log('Pool schema from options:', poolSchema);
@@ -78,6 +86,23 @@ export async function createParticipantTopicPreference(participantId, topicId, p
     
     return result.rows[0];
   } catch (error) {
+    // Enhanced error logging for debugging
+    console.error('TOPIC PREFERENCE ERROR:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      hint: error.hint,
+      position: error.position,
+      internalQuery: error.internalQuery,
+      where: error.where,
+      schema: error.schema,
+      table: error.table,
+      column: error.column,
+      dataType: error.dataType,
+      constraint: error.constraint,
+      stack: error.stack
+    });
+    
     // Log the error with our structured logging system
     await logError(
       error,
@@ -85,7 +110,14 @@ export async function createParticipantTopicPreference(participantId, topicId, p
         context: 'createParticipantTopicPreference',
         severity: ERROR_SEVERITY.ERROR,
         source: ERROR_SOURCE.DATABASE,
-        metadata: { participantId, topicId, preferenceTypeId: 4 }
+        metadata: { 
+          participantId, 
+          topicId, 
+          preferenceTypeId: 4,
+          errorCode: error.code,
+          errorDetail: error.detail,
+          errorConstraint: error.constraint 
+        }
       },
       null,
       pool
