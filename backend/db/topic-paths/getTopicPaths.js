@@ -23,10 +23,24 @@ export async function getTopicPaths(pool) {
     
     // Log the current search path to debug schema issues
     try {
+      // Get the schema from the pool's options if available
+      const poolSchema = pool.options?.schema || 'public';
+      console.log('Pool schema from options:', poolSchema);
+
+      // Check current search path
       const schemaResult = await client.query('SHOW search_path');
-      console.log('Current search_path:', schemaResult.rows[0].search_path);
+      const currentSchemaPath = schemaResult.rows[0].search_path;
+      console.log('Current search_path for topic paths:', currentSchemaPath);
+      
+      // If the schema search path doesn't include our needed schema, set it explicitly
+      if (!currentSchemaPath.includes(poolSchema)) {
+        console.log(`Schema path does not include ${poolSchema} schema, setting it explicitly`);
+        await client.query(`SET search_path TO ${poolSchema}, public`);
+        const updatedSchema = await client.query('SHOW search_path');
+        console.log('Updated search_path:', updatedSchema.rows[0].search_path);
+      }
     } catch (schemaError) {
-      console.error('Error checking search_path:', schemaError.message);
+      console.error('Error checking or setting search_path:', schemaError.message);
     }
     
     // Use standard query with a dedicated client that maintains schema context

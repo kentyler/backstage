@@ -44,12 +44,11 @@ router.get('/id/:id', async (req, res, next) => {
       // Use the client-specific pool that's set by the middleware
       // This includes the correct schema search path for the client
       const pool = req.clientPool;
-      const limit = req.query.limit || 100;
       
       console.log('Using req.clientPool with schema:', req.clientSchema);
       
       // Pass the correct pool to the database function
-      const turns = await getTurnsByTopicId(Number(topicId), pool, parseInt(limit));
+      const turns = await getTurnsByTopicId(Number(topicId), pool);
       
       // Log the exact data being returned to the client
       console.log('DETAILED RESPONSE DATA:');

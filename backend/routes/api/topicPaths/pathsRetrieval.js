@@ -26,6 +26,7 @@ router.get('/', async (req, res, next) => {
   try {
     // Log the client pool to help with debugging
     console.log('Fetching topic paths with client pool:', req.clientPool ? 'Present' : 'Missing');
+    console.log('Schema context for request:', req.clientSchema);
     
     // Ensure we have a client pool
     if (!req.clientPool) {
