@@ -2,8 +2,8 @@
 import OpenAI from 'openai';
 
 // Only initialize OpenAI if API key is provided
-const openai = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'optional-for-dev' 
-  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+const openai = process.env.LLM_API_KEY && process.env.LLM_API_KEY !== 'optional-for-dev' 
+  ? new OpenAI({ apiKey: process.env.LLM_API_KEY })
   : null;
 
 const EMBEDDING_MODEL = process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-large';
@@ -21,7 +21,7 @@ export async function generateEmbedding(text) {
   }
 
   if (!openai) {
-    throw new Error('OpenAI API key not configured - embeddings unavailable');
+    throw new Error('LLM_API_KEY not configured - embeddings unavailable');
   }
 
   try {

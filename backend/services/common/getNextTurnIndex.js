@@ -20,7 +20,7 @@ export async function getNextTurnIndex(topicId, pool) {
     // Use COALESCE to handle null cases more elegantly
     const indexQuery = `
       SELECT COALESCE(MAX(turn_index), 0) + 1 as next_index 
-      FROM grp_topic_avatar_turns 
+      FROM participant_topic_turns 
       WHERE topic_id = $1
     `;
     const result = await pool.query(indexQuery, [numericTopicId]);

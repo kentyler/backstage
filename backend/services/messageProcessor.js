@@ -1,20 +1,20 @@
 import { storeMessage } from './common/storeMessage.js';
 import { generateEmbedding } from './embeddings.js';
-import { updateTurnVector } from '../db/grpTopicAvatarTurns/index.js';
+import { updateTurnVector } from '../db/participantTopicTurns/index.js';
 import { findSimilarMessages } from '../db/messageSearch.js';
 
 /**
  * Processes and stores a user message
  * @param {string} topicPathId - The topic path ID
- * @param {number} avatarId - The avatar ID
+ * @param {number} participantId - The participant ID
  * @param {string} content - The message content
- * @param {number|null} participantId - The participant ID (optional)
+ * @param {number|null} participantIdForMessage - The participant ID for the message (optional)
  * @param {object} pool - The database connection pool
  * @returns {Promise<number>} - The ID of the stored message
  */
-export async function processUserMessage(topicPathId, avatarId, content, participantId, pool) {
+export async function processUserMessage(topicPathId, participantId, content, participantIdForMessage, pool) {
   console.log('Storing user message...');
-  const userMessageId = await storeMessage(topicPathId, avatarId, content, true, null, participantId, pool);
+  const userMessageId = await storeMessage(topicPathId, participantId, content, true, null, participantIdForMessage, pool);
   console.log('User message stored with ID:', userMessageId);
   return userMessageId;
 }
@@ -22,18 +22,18 @@ export async function processUserMessage(topicPathId, avatarId, content, partici
 /**
  * Processes and stores an assistant message with embeddings
  * @param {string} topicPathId - The topic path ID
- * @param {number} avatarId - The avatar ID
+ * @param {number} participantId - The participant ID
  * @param {string} content - The message content
  * @param {number|null} llmId - The LLM ID (optional)
  * @param {object} pool - The database connection pool
  * @param {object} client - The database client
  * @returns {Promise<object>} - The message ID and relevant messages
  */
-export async function processAssistantMessage(topicPathId, avatarId, content, llmId, pool, client) {
+export async function processAssistantMessage(topicPathId, participantId, content, llmId, pool, client) {
   console.log('Storing assistant response...');
   console.log('Using LLM ID:', llmId);
   
-  const assistantMessageId = await storeMessage(topicPathId, avatarId, content, false, llmId, null, pool);
+  const assistantMessageId = await storeMessage(topicPathId, participantId, content, false, llmId, participantId, pool);
   console.log('Assistant response stored with ID:', assistantMessageId);
   
   // Generate and store embedding for the assistant's response
@@ -52,29 +52,6 @@ export async function processAssistantMessage(topicPathId, avatarId, content, ll
     console.log('Finding relevant messages for the response...');
     relevantMessages = await findSimilarMessages(embedding, topicPathId, 5, assistantMessageId);
     console.log(`Found ${relevantMessages.length} relevant messages`);
-    
-    if (relevantMessages.length > 0) {
-      console.log('First relevant message:', {
-        topicId: relevantMessages[0].topicId,
-        score: relevantMessages[0].score,
-        snippet: relevantMessages[0].content?.substring(0, 50) + '...'
-      });
-    } else {
-      console.log('No relevant messages found. Embedding details:', {
-        embeddingType: typeof embedding,
-        embeddingIsArray: Array.isArray(embedding),
-        embeddingLength: embedding?.length,
-        topicId: topicPathId
-      });
-      
-      // Try querying with a very small limit just to check if any messages exist
-      console.log('Attempting broader search with no threshold limit...');
-      const testMessages = await client.query(
-        'SELECT COUNT(*) FROM grp_topic_avatar_turns WHERE content_vector IS NOT NULL AND topic_id != $1',
-        [topicPathId]
-      );
-      console.log('Database has', testMessages.rows[0].count, 'messages with embeddings in other topics');
-    }
   } catch (error) {
     console.error('Error in embedding generation or finding relevant messages:', error);
     // Continue without failing the request

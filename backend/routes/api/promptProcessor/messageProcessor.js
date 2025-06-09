@@ -5,7 +5,7 @@
 
 import express from 'express';
 import { pool } from '../../../db/connection.js';
-import { getClientSchemaLLMConfig } from '../../../db/llm/index.js';
+import { getClientLLMConfig } from '../../../db/llm/index.js';
 import { sendPromptToOpenAI, sendPromptToAnthropic } from '../../../services/llm/index.js';
 import { processUserMessage, processAssistantMessage } from '../../../services/messageProcessor.js';
 import { ApiError } from '../../../middleware/errorHandler.js';
@@ -17,13 +17,14 @@ const router = express.Router();
  * @desc    Process a prompt and return a response, storing the conversation
  * @access  Private
  */
-router.post('', async (req, res, next) => {
+router.post('/', async (req, res, next) => {
   let client;
   try {
+    
     const { 
       prompt, 
       topicPathId, 
-      avatarId, 
+      participantId, 
       currentMessageId, 
       isComment, 
       turn_kind_id, 
@@ -45,19 +46,8 @@ router.post('', async (req, res, next) => {
       return next(new ApiError('topicPathId is required', 400));
     }
     
-    if (!avatarId) {
-      return next(new ApiError('avatarId is required', 400));
-    }
-    
     // Convert topicPathId to string and trim
     const processedTopicPathId = String(topicPathId).trim();
-    
-    // Convert avatarId to number
-    const processedAvatarId = Number(avatarId);
-    
-    if (isNaN(processedAvatarId)) {
-      return next(new ApiError('avatarId must be a valid number', 400));
-    }
 
     if (!prompt) {
       return next(new ApiError('Prompt is required', 400));
@@ -69,15 +59,19 @@ router.post('', async (req, res, next) => {
     // Set the schema if needed (assuming 'dev' schema for now)
     await client.query('SET search_path TO dev, public');
     
-    // Get the LLM configuration using the default schema ID (1)
-    const schemaId = 1; // Default schema ID
-    console.log('Fetching LLM config for schema ID:', schemaId);
-    const llmConfig = await getClientSchemaLLMConfig(schemaId, pool);
+    // Get the client_id from the session
+    const clientId = req.session?.client_id;
+    if (!clientId) {
+      return next(new ApiError('Client ID not found in session. Please log in first.', 401));
+    }
+    
+    console.log('Fetching LLM config for client ID:', clientId);
+    const llmConfig = await getClientLLMConfig(clientId, pool);
     
     if (!llmConfig) {
-      console.error('No LLM configuration found for schema ID:', schemaId);
+      console.error('No LLM configuration found for client:', clientId);
       return next(new ApiError('LLM configuration not found', 404, {
-        details: `No configuration found for schema ID ${schemaId}`
+        details: `No configuration found for client ID ${clientId}`
       }));
     }
     
@@ -90,15 +84,15 @@ router.post('', async (req, res, next) => {
     }
     
     // Get the user's participant ID from the request body or fall back to session
-    const participantId = req.body.participantId || req.session?.userId || null;
-    console.log('Using participant ID:', participantId, 'Source:', req.body.participantId ? 'request body' : 'session');
+    const finalParticipantId = participantId || req.session?.userId || null;
+    console.log('Using participant ID:', finalParticipantId, 'Source:', participantId ? 'request body' : 'session');
     
     // For normal messages, continue with regular flow
     const userMessageId = await processUserMessage(
       processedTopicPathId, 
-      processedAvatarId, 
+      finalParticipantId, 
       prompt, 
-      participantId, 
+      finalParticipantId, 
       pool
     );
     
@@ -125,9 +119,8 @@ router.post('', async (req, res, next) => {
       
       llmResponse = await sendPromptToAnthropic(
         prompt,
-        llmConfig.model,
         llmConfig.api_key,
-        llmConfig.temperature,
+        llmConfig.model,
         llmConfig.max_tokens
       );
     } else if (llmConfig.provider === 'openai') {
@@ -148,20 +141,23 @@ router.post('', async (req, res, next) => {
     }
     
     // Process the assistant's response
-    const assistantMessageId = await processAssistantMessage(
+    const assistantResult = await processAssistantMessage(
       processedTopicPathId,
-      processedAvatarId,
+      finalParticipantId,
       llmResponse,
-      participantId,
+      llmConfig.id,
       pool
     );
     
     const response = {
       userMessageId,
-      assistantMessageId,
+      assistantMessageId: assistantResult,
+      id: assistantResult.id,
+      content: llmResponse,
       text: llmResponse,
       model: llmConfig.model,
-      provider: llmConfig.provider
+      provider: llmConfig.provider,
+      relevantMessages: assistantResult.relevantMessages || []
     };
     
     res.json(response);

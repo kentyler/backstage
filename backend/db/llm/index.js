@@ -3,7 +3,7 @@
  * @description Exports LLM database operations
  */
 
-export { getClientSchemaLLMConfig } from './getClientSchemaLLMConfig.js';
+export { getClientLLMConfig } from './getClientSchemaLLMConfig.js';
 export { updateClientSchemaLLMConfig } from './updateClientSchemaLLMConfig.js';
 export { getLlmConfigById } from './getLlmConfigById.js';
 

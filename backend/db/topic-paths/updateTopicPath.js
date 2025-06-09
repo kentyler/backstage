@@ -1,23 +1,23 @@
 import { createDbError, DB_ERROR_CODES } from '../utils/index.js';
 
 /**
- * Update a topic path in the database.
+ * Update a topic path in the database for a specific group.
  * TODO: In the future, we'll need to handle any posts that use this path
  * by updating their paths as well.
  */
-export default async function updateTopicPath(pool, oldPath, newPath) {
+export default async function updateTopicPath(pool, oldPath, newPath, groupId) {
   try {
-  // First check if the new path already exists
+  // First check if the new path already exists in this group
   const existingPath = await pool.query(
-    'SELECT id FROM topic_paths WHERE path::text = $1',
-    [newPath]
+    'SELECT id FROM topic_paths WHERE path::text = $1 AND group_id = $2',
+    [newPath, groupId]
   );
 
   if (existingPath.rowCount > 0) {
-    throw createDbError(`Topic path "${newPath}" already exists`, {
+    throw createDbError(`Topic path "${newPath}" already exists in this group`, {
       code: 'DUPLICATE_TOPIC_PATH',
       status: 409, // Conflict
-      context: { oldPath, newPath }
+      context: { oldPath, newPath, groupId }
     });
   }
 
@@ -29,17 +29,16 @@ export default async function updateTopicPath(pool, oldPath, newPath) {
          WHEN path::text = $1 THEN $2::ltree
          ELSE ($2::ltree || subpath(path, nlevel($1::ltree)))::ltree
        END
-     WHERE path::text = $1 
-     OR path::text LIKE $3
+     WHERE group_id = $4 AND (path::text = $1 OR path::text LIKE $3)
      RETURNING id, path`,
-    [oldPath, newPath, `${oldPath}.%`]
+    [oldPath, newPath, `${oldPath}.%`, groupId]
   );
 
   if (result.rowCount === 0) {
     throw createDbError(`Topic path "${oldPath}" not found`, {
       code: 'TOPIC_PATH_NOT_FOUND',
       status: 404,
-      context: { oldPath, newPath }
+      context: { oldPath, newPath, groupId }
     });
   }
 
@@ -60,7 +59,7 @@ export default async function updateTopicPath(pool, oldPath, newPath) {
       throw createDbError('Topic paths table not found', {
         code: 'DB_RELATION_NOT_FOUND',
         status: 500,
-        context: { oldPath, newPath, operation: 'updateTopicPath' },
+        context: { oldPath, newPath, groupId, operation: 'updateTopicPath' },
         cause: error
       });
     }
@@ -69,7 +68,7 @@ export default async function updateTopicPath(pool, oldPath, newPath) {
     throw createDbError('Failed to update topic path', {
       code: 'DB_OPERATION_FAILED',
       status: 500,
-      context: { oldPath, newPath, operation: 'updateTopicPath' },
+      context: { oldPath, newPath, groupId, operation: 'updateTopicPath' },
       cause: error
     });
   }

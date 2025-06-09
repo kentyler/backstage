@@ -16,27 +16,36 @@ const router = express.Router();
 router.use(auth);
 
 /**
- * @route   PUT /api/topic-paths/:oldPath
- * @desc    Update a specific topic path
+ * @route   PUT /api/topic-paths
+ * @desc    Update a specific topic path for a group
  * @access  Private (requires authentication)
- * @param   {string} oldPath - The current topic path to update
- * @param   {string} newPath - The new path value (in request body)
+ * @param   {string} old_path - The current topic path to update (in request body)
+ * @param   {string} new_path - The new path value (in request body)
+ * @param   {number} group_id - The group ID the topic belongs to (in request body)
  * @returns {Object} Updated topic path object
  * @throws  {Error} If database connection fails or update fails
  */
-router.put('/:oldPath(*)', async (req, res, next) => {
+router.put('/', async (req, res, next) => {
   try {
-    const { oldPath } = req.params;
-    const { newPath } = req.body;
+    console.log('📚 TOPICS: Received update topic request with body:', req.body);
+    const { old_path, new_path, group_id } = req.body;
     
-    if (!oldPath) {
-      console.log('Error: Old path parameter is required');
-      return next(new ApiError('Old path parameter is required', 400));
+    // Validate required fields
+    if (!old_path || !old_path.trim()) {
+      return next(new ApiError('old_path is required', 400));
     }
     
-    if (!newPath) {
-      console.log('Error: New path is required in request body');
-      return next(new ApiError('New path is required in request body', 400));
+    if (!new_path || !new_path.trim()) {
+      return next(new ApiError('new_path is required', 400));
+    }
+    
+    if (!group_id) {
+      return next(new ApiError('group_id is required', 400));
+    }
+    
+    const groupId = parseInt(group_id);
+    if (isNaN(groupId)) {
+      return next(new ApiError('group_id must be a valid number', 400));
     }
     
     // Ensure we have a client pool
@@ -45,16 +54,17 @@ router.put('/:oldPath(*)', async (req, res, next) => {
       return next(new ApiError('Database connection not available', 500));
     }
     
-    // Authentication is handled by the auth middleware
     try {
-      console.log(`Attempting to update topic path from ${oldPath} to ${newPath}`);
-      const updated = await updateTopicPath(oldPath, newPath, req.session.userId, req.clientPool);
-      console.log('Successfully updated topic path:', updated);
+      console.log(`📚 TOPICS: Updating topic path from ${old_path} to ${new_path} for group ${groupId}`);
+      
+      // Pass parameters in the correct order: pool, oldPath, newPath, groupId
+      const updated = await updateTopicPath(req.clientPool, old_path.trim(), new_path.trim(), groupId);
+      console.log('📚 TOPICS: Successfully updated topic path:', updated);
       
       return res.json({ 
         success: true, 
         message: 'Topic path updated successfully',
-        topicPath: updated
+        result: updated
       });
     } catch (dbError) {
       console.error('Database error updating topic path:', dbError);

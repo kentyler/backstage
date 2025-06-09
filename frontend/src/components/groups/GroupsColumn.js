@@ -9,9 +9,10 @@ import './GroupsColumn.css';
  * Groups Column Component
  * Shows groups for the authenticated user's client
  * Allows creating, editing, and deleting groups
+ * Supports selecting a group to view its topics
  * Only shows when authenticated
  */
-const GroupsColumn = () => {
+const GroupsColumn = ({ selectedGroupId, onGroupSelect }) => {
   const { isAuthenticated, clientId, participantId } = useAuth();
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -122,6 +123,8 @@ const GroupsColumn = () => {
         ) : (
           <GroupList 
             groups={groups}
+            selectedGroupId={selectedGroupId}
+            onGroupSelect={onGroupSelect}
             onUpdateGroup={handleUpdateGroup}
             onDeleteGroup={handleDeleteGroup}
             currentParticipantId={participantId}

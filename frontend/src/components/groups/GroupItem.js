@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 
 /**
  * Group Item Component
- * Displays a single group with edit/delete options
+ * Displays a single group with edit/delete options and selection
  */
 const GroupItem = ({ 
   group, 
   isEditing, 
+  isSelected,
+  onSelect,
   onStartEdit, 
   onCancelEdit, 
   onSaveEdit, 
@@ -40,6 +42,19 @@ const GroupItem = ({
     onDelete(group.id);
   };
 
+  const handleSelect = () => {
+    console.log('🏢 GROUP ITEM: handleSelect called with group:', group);
+    if (onSelect) {
+      console.log('🏢 GROUP ITEM: Calling onSelect with:', { 
+        id: group.id, 
+        idType: typeof group.id,
+        name: group.name, 
+        nameType: typeof group.name 
+      });
+      onSelect(group.id, group.name);
+    }
+  };
+
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       handleSave();
@@ -53,7 +68,7 @@ const GroupItem = ({
   };
 
   return (
-    <div className="group-item">
+    <div className={`group-item ${isSelected ? 'selected' : ''}`}>
       <div className="group-main">
         {isEditing ? (
           <div className="group-edit">
@@ -85,9 +100,12 @@ const GroupItem = ({
             </div>
           </div>
         ) : (
-          <div className="group-display">
+          <div className="group-display" onClick={handleSelect} style={{ cursor: 'pointer' }}>
             <div className="group-info">
-              <div className="group-name">{group.name}</div>
+              <div className="group-name">
+                {isSelected ? '📂' : '📁'} {group.name}
+                {isSelected && <span className="selected-indicator"> ✓</span>}
+              </div>
               <div className="group-meta">
                 <span className="group-id">ID: {group.id}</span>
                 <span className="group-created">Created: {formatDate(group.created_at)}</span>
@@ -95,14 +113,20 @@ const GroupItem = ({
             </div>
             <div className="group-actions">
               <button 
-                onClick={() => onStartEdit(group.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onStartEdit(group.id);
+                }}
                 className="edit-button"
                 title="Edit group name"
               >
                 ✏️
               </button>
               <button 
-                onClick={handleDelete}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete();
+                }}
                 className="delete-button"
                 title="Delete group"
               >

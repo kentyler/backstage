@@ -1,67 +1,388 @@
 /* Topics Column - Isolated Styles */
 
 .topics-column {
-  /* Topics-specific styles will go here */
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
 }
 
-.topics-tree {
-  margin-top: 10px;
+/* Header */
+.topics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.topics-header h3 {
+  margin: 0;
+  color: #495057;
+  font-size: 16px;
+}
+
+.create-topic-toggle {
+  background: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.create-topic-toggle:hover:not(:disabled) {
+  background: #138496;
+}
+
+.create-topic-toggle:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Group Info */
+.topics-group-info {
+  margin-bottom: 15px;
+  padding: 8px 12px;
+  background-color: #e8f4f8;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #495057;
+}
+
+/* Error Display */
+.topics-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.error-dismiss {
+  background: none;
+  border: none;
+  color: #721c24;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  margin-left: 10px;
+}
+
+/* Create Topic Form */
+.create-topic-form {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.create-topic-form .form-group {
+  margin-bottom: 12px;
+}
+
+.create-topic-form label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: #495057;
+  font-size: 13px;
+}
+
+.topic-path-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.topic-path-input:focus {
+  border-color: #17a2b8;
+  outline: none;
+  box-shadow: 0 0 2px rgba(23,162,184,0.25);
+}
+
+.path-help {
+  font-size: 11px;
+  color: #6c757d;
+  margin-top: 4px;
+}
+
+.form-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.create-button, .cancel-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.create-button {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.create-button:hover:not(:disabled) {
+  background-color: #138496;
+}
+
+.create-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.cancel-button {
+  background-color: #6c757d;
+  color: white;
+}
+
+.cancel-button:hover:not(:disabled) {
+  background-color: #545b62;
+}
+
+/* Topics Content */
+.topics-content {
+  flex: 1;
+  margin-bottom: 15px;
+}
+
+.topics-loading {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 40px 0;
+}
+
+/* Placeholder */
+.topics-placeholder {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6c757d;
+}
+
+.placeholder-text {
+  font-size: 14px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Empty State */
+.topics-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6c757d;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.empty-message {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #495057;
+}
+
+.empty-subtitle {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+/* Topic List */
+.topic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .topic-node {
   margin-bottom: 4px;
 }
 
+/* Topic Item */
 .topic-item {
-  padding: 8px 12px;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-  user-select: none;
+  background-color: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 12px;
+  transition: box-shadow 0.2s;
 }
 
 .topic-item:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.topic-item.intermediate {
   background-color: #f8f9fa;
+  border-style: dashed;
+  opacity: 0.7;
 }
 
-.topic-item.selected {
-  background-color: #fff3cd;
-  border-left: 3px solid #ffc107;
+.topic-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.topic-item.expanded {
-  font-weight: 500;
-}
-
-.topic-children {
-  margin-left: 20px;
-  border-left: 1px dashed #ddd;
-  padding-left: 10px;
+.topic-info {
+  flex: 1;
 }
 
 .topic-name {
-  color: #333;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 4px;
   font-size: 14px;
 }
 
-.topic-actions {
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid #eee;
+.topic-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: #6c757d;
+  flex-wrap: wrap;
 }
 
-.topic-button {
-  width: 100%;
-  padding: 8px 12px;
-  background-color: #ffc107;
-  color: #333;
+.topic-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.select-button, .edit-button, .delete-button {
+  background: none;
   border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.select-button:hover {
+  background-color: #d1ecf1;
+}
+
+.edit-button:hover {
+  background-color: #e9ecef;
+}
+
+.delete-button:hover {
+  background-color: #f8d7da;
+}
+
+/* Topic Edit Mode */
+.topic-edit {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.topic-edit-input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #17a2b8;
   border-radius: 4px;
   font-size: 13px;
-  cursor: pointer;
-  margin-bottom: 8px;
 }
 
-.topic-button:hover {
-  background-color: #e0a800;
+.topic-edit-input:focus {
+  outline: none;
+  box-shadow: 0 0 2px rgba(23,162,184,0.25);
+}
+
+.topic-edit-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.save-button {
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.save-button:hover:not(:disabled) {
+  background-color: #138496;
+}
+
+.save-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.topic-edit .cancel-button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.topic-edit .cancel-button:hover:not(:disabled) {
+  background-color: #545b62;
+}
+
+/* Topic Children (Hierarchy) */
+.topic-children {
+  margin-left: 20px;
+  border-left: 2px dashed #dee2e6;
+  padding-left: 15px;
+  margin-top: 8px;
+}
+
+/* Status Display */
+.topics-status {
+  margin-top: auto;
+  padding: 12px;
+  background-color: #e8f4f8;
+  border: 1px solid #bee5eb;
+  border-radius: 6px;
+}
+
+.topics-status .status-item {
+  background-color: transparent;
+  border-left: 3px solid #17a2b8;
+  margin-bottom: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.topics-status .status-item:last-child {
+  margin-bottom: 0;
 }

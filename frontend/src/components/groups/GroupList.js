@@ -3,9 +3,9 @@ import GroupItem from './GroupItem';
 
 /**
  * Group List Component
- * Displays a list of groups with management options
+ * Displays a list of groups with management options and selection
  */
-const GroupList = ({ groups, onUpdateGroup, onDeleteGroup, currentParticipantId }) => {
+const GroupList = ({ groups, selectedGroupId, onGroupSelect, onUpdateGroup, onDeleteGroup, currentParticipantId }) => {
   const [editingGroupId, setEditingGroupId] = useState(null);
 
   const handleStartEdit = (groupId) => {
@@ -43,6 +43,8 @@ const GroupList = ({ groups, onUpdateGroup, onDeleteGroup, currentParticipantId 
           key={group.id}
           group={group}
           isEditing={editingGroupId === group.id}
+          isSelected={selectedGroupId === group.id}
+          onSelect={onGroupSelect}
           onStartEdit={handleStartEdit}
           onCancelEdit={handleCancelEdit}
           onSaveEdit={handleSaveEdit}

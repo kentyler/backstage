@@ -45,7 +45,7 @@ export async function findSimilarMessages(embedding, topicId, limit = 10, curren
           m.message_type_id = 1 as "isUser",
           m.content_vector <-> $1 as distance,
           m.turn_index
-        FROM grp_topic_avatar_turns m
+        FROM participant_topic_turns m
         LEFT JOIN topic_paths tp ON m.topic_id = tp.id
         WHERE (m.id != $3::integer OR $3 IS NULL)  -- Exclude only the current message instead of the entire topic
         -- We no longer filter by topic_id, allowing messages from all topics including the current one

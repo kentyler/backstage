@@ -5,21 +5,21 @@
  * or implementing a soft delete system.
  */
 /**
- * Delete a topic path and all its descendants from the database.
+ * Delete a topic path and all its descendants from the database for a specific group.
  * TODO: In the future, we'll need to handle any posts that use these paths
  * by either preventing deletion if posts exist, moving posts to a different path,
  * or implementing a soft delete system.
  */
-export default async function deleteTopicPath(pool, path) {
+export default async function deleteTopicPath(pool, path, groupId) {
   try {
-    console.log(`Attempting to delete topic path: ${path}`);
+    console.log(`Attempting to delete topic path: ${path} in group ${groupId}`);
     
     // First, check if the path exists - being careful with escaping for paths with dots
     // Using ILIKE for case-insensitive matching to be more forgiving
-    console.log(`Checking for exact path match: "${path}"`);
+    console.log(`Checking for exact path match: "${path}" in group ${groupId}`);
     const checkResult = await pool.query(
-      'SELECT id, path::text AS path_text FROM topic_paths WHERE path::text ILIKE $1',
-      [path]
+      'SELECT id, path::text AS path_text FROM topic_paths WHERE path::text ILIKE $1 AND group_id = $2',
+      [path, groupId]
     );
     
     // Log all found paths for debugging
@@ -44,10 +44,9 @@ export default async function deleteTopicPath(pool, path) {
     // Also handle descendant paths separately to avoid issues with dot escaping
     const result = await pool.query(
       `DELETE FROM topic_paths 
-       WHERE id = $1
-       OR path::text ILIKE $2 || '.%'
+       WHERE group_id = $1 AND (id = $2 OR path::text ILIKE $3 || '.%')
        RETURNING id, path::text as path_text`,
-      [pathId, path]
+      [groupId, pathId, path]
     );
 
     if (result.rowCount === 0) {

@@ -3,7 +3,7 @@
  * @description Updates the LLM configuration for a client schema
  */
 
-import { getClientSchemaLLMConfig } from './getClientSchemaLLMConfig.js';
+import { getClientLLMConfig } from './getClientSchemaLLMConfig.js';
 
 /**
  * Updates the LLM configuration for a client schema

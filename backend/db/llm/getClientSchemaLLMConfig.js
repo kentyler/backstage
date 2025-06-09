@@ -7,44 +7,22 @@ import { getLlmPreferenceTypeId } from './preferences/getLlmPreferenceTypeId.js'
 import { parseAdditionalConfig } from './utils/parsing.js';
 
 /**
- * Gets the LLM configuration for a client schema
- * @param {number} clientSchemaId - The client schema ID
+ * Gets the LLM configuration for a client
+ * @param {number} clientId - The client ID
  * @param {Object} pool - The database connection pool
  * @returns {Promise<Object>} The LLM configuration
  */
-export async function getClientSchemaLLMConfig(clientSchemaId, pool) {
-  console.log('getClientSchemaLLMConfig called with clientSchemaId:', clientSchemaId);
+export async function getClientLLMConfig(clientId, pool) {
+  console.log('getClientLLMConfig called with clientId:', clientId);
   
   try {
     if (!pool) {
       throw new Error('Database pool is required');
     }
 
-    // First check if the view exists
-    console.log('Checking if llm_config_view exists in current schema...');
-    const viewCheck = await pool.query(`
-      SELECT EXISTS (
-        SELECT FROM pg_views 
-        WHERE viewname = 'llm_config_view'
-      ) as view_exists;
-    `);
-    
-    console.log('View check result:', viewCheck.rows[0]);
-    
-    if (!viewCheck.rows[0].view_exists) {
-      // Check current schema for debugging
-      const schemaCheck = await pool.query('SELECT current_schema();');
-      console.error('llm_config_view not found in schema:', {
-        currentSchema: schemaCheck.rows[0].current_schema,
-        viewExists: viewCheck.rows[0].view_exists
-      });
-      throw new Error('The llm_config_view does not exist in the current schema');
-    }
+    // Note: The llm_config_view was removed - using direct table joins instead
 
-    // Get the preference type ID for LLM selection
-    const preferenceTypeId = await getLlmPreferenceTypeId(pool);
-
-    // Get the LLM configuration using the view
+    // Get the LLM configuration from client's current_llm_id
     const query = `
       SELECT 
         l.id AS id,
@@ -57,18 +35,15 @@ export async function getClientSchemaLLMConfig(clientSchemaId, pool) {
         l.api_key,
         lt.name AS type_name,
         lt.api_handler
-      FROM llms l
+      FROM clients c
+      JOIN llms l ON l.id = c.current_llm_id
       JOIN llm_types lt ON l.type_id = lt.id
-      JOIN client_schema_preferences csp ON 
-        l.id = csp.preference_value::integer
-        AND csp.client_schema_id = $1
-        AND csp.preference_type_id = $2
-      LIMIT 1;
+      WHERE c.id = $1;
     `;
 
-    console.log('Executing query for client schema ID:', clientSchemaId, 'and preference type ID:', preferenceTypeId);
+    console.log('Executing query for client ID:', clientId);
     
-    const { rows } = await pool.query(query, [clientSchemaId, preferenceTypeId]);
+    const { rows } = await pool.query(query, [clientId]);
     
     console.log('LLM query details:', {
       rowCount: rows.length,
@@ -83,7 +58,7 @@ export async function getClientSchemaLLMConfig(clientSchemaId, pool) {
     });
     
     if (rows.length === 0) {
-      console.error('No LLM configuration found for client schema:', clientSchemaId);
+      console.error('No LLM configuration found for client:', clientId);
       return null;
     }
     
@@ -94,7 +69,7 @@ export async function getClientSchemaLLMConfig(clientSchemaId, pool) {
     
     return config;
   } catch (error) {
-    console.error('Error in getClientSchemaLLMConfig:', error);
+    console.error('Error in getClientLLMConfig:', error);
     throw error;
   }
 }

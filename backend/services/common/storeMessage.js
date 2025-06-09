@@ -3,7 +3,7 @@
  * @description Utility to store a message with its vector representation
  */
 
-import { createGrpTopicAvatarTurn } from '../../db/grpTopicAvatarTurns/index.js';
+import { createParticipantTopicTurn } from '../../db/participantTopicTurns/index.js';
 import { generateEmbedding } from '../embeddings.js';
 
 /**
@@ -61,18 +61,16 @@ export async function storeMessage(
       const turnKindId = isUser ? 1 : 2;
       const templateTopicId = null; // This can be updated if needed in the future
       
-      const insertResult = await createGrpTopicAvatarTurn(
+      const insertResult = await createParticipantTopicTurn(
         numericTopicId,
-        avatarId,
+        participantId, // participant_id comes second in new function
         turnIndex,
         content,
         contentVector || null, // Handle the case where contentVector is undefined
         turnKindId,
         messageTypeId,
-        templateTopicId,
-        pool, // Pass the pool to maintain transaction context
         llmId, // Pass the llm_id
-        participantId // Pass the participant_id
+        pool // Pass the pool to maintain transaction context
       );
       
       // Return the ID of the created turn

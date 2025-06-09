@@ -1,11 +1,12 @@
 import { createDbError } from '../utils/index.js';
 
 /**
- * Get all topic paths sorted by path
+ * Get all topic paths for a specific group, sorted by index
  * @param {Pool} pool - The PostgreSQL connection pool
+ * @param {number} groupId - The group ID to filter by
  * @returns {Promise<Array>} Array of topic paths with ID, index, and path
  */
-export async function getTopicPaths(pool) {
+export async function getTopicPaths(pool, groupId) {
   // Get a dedicated client from the pool
   const client = await pool.connect();
   
@@ -45,10 +46,11 @@ export async function getTopicPaths(pool) {
     
     // Use standard query with a dedicated client that maintains schema context
     const result = await client.query(
-      'SELECT id, index, path::text FROM topic_paths ORDER BY index'
+      'SELECT id, index, path::text, group_id FROM topic_paths WHERE group_id = $1 ORDER BY index',
+      [groupId]
     );
     
-    console.log(`Retrieved ${result.rows.length} topic paths`);
+    console.log(`Retrieved ${result.rows.length} topic paths for group ${groupId}`);
     return result.rows;
   } catch (error) {
     console.error('Error in getTopicPaths:', error);

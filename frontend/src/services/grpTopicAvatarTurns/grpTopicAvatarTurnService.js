@@ -11,13 +11,12 @@ const API_BASE_URL = '';
  * @param {string} prompt - The prompt to send
  * @param {Object} options - Additional options
  * @param {number} options.topicPathId - The ID of the topic path (required)
- * @param {number} options.avatarId - The ID of the user's avatar (required)
- * @param {number} options.participantId - The ID of the participant (optional)
+ * @param {number} options.participantId - The ID of the participant (required)
  * @param {number} options.currentMessageId - The ID of the current message (optional)
  * @returns {Promise<Object>} The response with created turn
  */
 async function submitPrompt(prompt, options = {}) {
-  const { topicPathId, avatarId, currentMessageId, participantId, turn_index, referenceMessageIndex } = options;
+  const { topicPathId, participantId, currentMessageId, turn_index, referenceMessageIndex } = options;
   
   console.log('=== submitPrompt called ===');
   console.log('Prompt:', prompt);
@@ -30,8 +29,8 @@ async function submitPrompt(prompt, options = {}) {
   // Convert to string and trim any whitespace
   const cleanTopicPathId = String(topicPathId).trim();
   
-  if (!avatarId) throw new Error('avatarId is required');
-  if (isNaN(Number(avatarId))) throw new Error('avatarId must be a number');
+  if (!participantId) throw new Error('participantId is required');
+  if (isNaN(Number(participantId))) throw new Error('participantId must be a number');
 
   // Check if this is a comment (starts with 'comment:' or 'Comment:')
   const isComment = prompt.trim().startsWith('comment:') || prompt.trim().startsWith('Comment:');
@@ -56,9 +55,8 @@ async function submitPrompt(prompt, options = {}) {
       body: JSON.stringify({
         prompt: cleanPrompt, // Use the cleaned prompt without the prefix
         topicPathId: cleanTopicPathId,
-        avatarId: Number(avatarId),
+        participantId: Number(participantId),
         currentMessageId: currentMessageId || null,
-        participantId: participantId,
         isComment: isComment, // Flag to indicate this is a comment (don't send to LLM)
         turn_kind_id: isComment ? 3 : 1, // Use turn_kind_id 3 for comments, 1 for regular messages
         turn_index: isComment && turn_index ? turn_index : null, // Only send turn_index for comments

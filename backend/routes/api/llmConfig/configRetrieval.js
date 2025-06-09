@@ -4,25 +4,25 @@
  */
 
 import express from 'express';
-import { getClientSchemaLLMConfig } from '../../../db/llm/index.js';
+import { getClientLLMConfig } from '../../../db/llm/index.js';
 import { ApiError } from '../../../middleware/errorHandler.js';
 
 const router = express.Router();
 
 /**
- * @route   GET /api/client-schemas/:clientSchemaId/llm-config
- * @desc    Get the LLM configuration for a client schema
+ * @route   GET /api/llm-config
+ * @desc    Get the LLM configuration for the current client
  * @access  Private
  */
-router.get('/:clientSchemaId/llm-config', async (req, res, next) => {
+router.get('/llm-config', async (req, res, next) => {
   let client;
   try {
-    const { clientSchemaId } = req.params;
-    console.log('Fetching LLM config for client schema:', clientSchemaId);
+    const clientId = req.session?.client_id;
+    console.log('Fetching LLM config for client:', clientId);
     
-    if (!clientSchemaId) {
-      console.error('Client schema ID is required');
-      return next(new ApiError('Client schema ID is required', 400));
+    if (!clientId) {
+      console.error('Client ID not found in session');
+      return next(new ApiError('Client ID not found in session. Please log in first.', 401));
     }
 
     // Check if we have a client pool
@@ -39,18 +39,18 @@ router.get('/:clientSchemaId/llm-config', async (req, res, next) => {
     console.log('Database connection test successful');
 
     // Get the LLM config
-    console.log('Calling getClientSchemaLLMConfig');
-    const config = await getClientSchemaLLMConfig(clientSchemaId, req.clientPool);
+    console.log('Calling getClientLLMConfig');
+    const config = await getClientLLMConfig(clientId, req.clientPool);
     
     if (!config) {
-      console.error('No LLM config found for client schema:', clientSchemaId);
-      return next(new ApiError('LLM configuration not found for this client schema', 404));
+      console.error('No LLM config found for client:', clientId);
+      return next(new ApiError('LLM configuration not found for this client', 404));
     }
 
-    console.log('Successfully retrieved LLM config for client schema:', clientSchemaId);
+    console.log('Successfully retrieved LLM config for client:', clientId);
     res.json(config);
   } catch (error) {
-    console.error('Error in GET /api/client-schemas/:clientSchemaId/llm-config:', {
+    console.error('Error in GET /api/llm-config:', {
       message: error.message,
       stack: error.stack,
       code: error.code,
@@ -58,7 +58,7 @@ router.get('/:clientSchemaId/llm-config', async (req, res, next) => {
       query: error.query,
       where: error.where,
       schema: req.session?.schema,
-      clientSchemaId: req.params.clientSchemaId,
+      clientId: req.session?.client_id,
       hasClientPool: !!req.clientPool,
       hint: error.hint,
       position: error.position,
@@ -73,7 +73,7 @@ router.get('/:clientSchemaId/llm-config', async (req, res, next) => {
       file: error.file,
       line: error.line,
       routine: error.routine,
-      clientSchemaId: req?.params?.clientSchemaId,
+      clientId: req?.session?.client_id,
       poolAvailable: !!req?.clientPool
     });
     

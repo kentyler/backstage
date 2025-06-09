@@ -168,7 +168,6 @@ const MessageArea = ({ selectedTopic }) => {
         // Use the dedicated comment API - this won't trigger an LLM response
         const result = await grpTopicAvatarTurnService.submitComment(commentText, {
           topicPathId: selectedTopic.id,
-          avatarId: 1, // Default avatar ID 
           participantId: user?.id,
           turn_index: commentTurnIndex, // Include the calculated fractional turn index
           referenceMessageId: currentMessage.id || null // Include the ID of the message being commented on
@@ -434,7 +433,6 @@ const MessageArea = ({ selectedTopic }) => {
             // Use the grpTopicAvatarTurnService to submit the message
             const result = await grpTopicAvatarTurnService.submitPrompt(message, {
               topicPathId: selectedTopic.id,
-              avatarId: 1, // Default avatar ID 
               participantId: user?.id
             });
             
