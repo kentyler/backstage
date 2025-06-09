@@ -3,10 +3,14 @@
  */
 
 import pg from 'pg';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+
 const { Pool } = pg;
 
-const connectionString = process.env.DATABASE_URL || 
-  'postgresql://neondb_owner:npg_t2aufdmn3sbw@ep-sparkling-violet-a4j85pt4-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require';
+const connectionString = process.env.DB_HOST;
 
 async function cleanupOrphanedTopics() {
   const pool = new Pool({ 

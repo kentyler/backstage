@@ -5,13 +5,17 @@
 
 import { expect } from 'chai';
 import pg from 'pg';
+import dotenv from 'dotenv';
 import { createInvitation, getInvitationByToken, acceptInvitation } from '../../db/auth/invitations/index.js';
+
+// Load environment variables
+dotenv.config();
 
 const { Client } = pg;
 
 // Test database connection
 const testClient = new Client({
-  connectionString: 'postgresql://neondb_owner:npg_t2aufdmn3sbw@ep-sparkling-violet-a4j85pt4-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require'
+  connectionString: process.env.DB_HOST
 });
 
 describe('Invitation System', function() {
