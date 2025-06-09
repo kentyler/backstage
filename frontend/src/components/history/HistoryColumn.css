@@ -248,6 +248,77 @@
   color: #856404;
 }
 
+/* Comment Input Section */
+.comment-input-section {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.comment-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.comment-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.comment-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  justify-content: flex-end;
+}
+
+.comment-submit-btn,
+.comment-cancel-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.comment-submit-btn {
+  background: #007bff;
+  color: white;
+}
+
+.comment-submit-btn:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.comment-submit-btn:disabled {
+  background: #6c757d;
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.comment-cancel-btn {
+  background: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+}
+
+.comment-cancel-btn:hover {
+  background: #e2e6ea;
+  color: #495057;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .history-message {
@@ -267,4 +338,42 @@
   .message-actions {
     flex-wrap: wrap;
   }
+  
+  .comment-input-section {
+    padding: 12px;
+  }
+  
+  .comment-actions {
+    flex-direction: column;
+  }
+  
+  .comment-submit-btn,
+  .comment-cancel-btn {
+    width: 100%;
+  }
+}
+
+/* Related Messages Section */
+.related-messages-section {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f0f8ff;
+  border-radius: 8px;
+  border: 1px solid #b3d9ff;
+}
+
+.related-messages-section .related-messages {
+  margin: 0;
+}
+
+.related-messages-section .related-messages-header {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #b3d9ff;
+}
+
+.related-messages-section .related-messages-header h3 {
+  font-size: 14px;
+  color: #0056b3;
+  margin: 0;
 }

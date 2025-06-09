@@ -54,6 +54,14 @@ body {
   margin: 0 auto;
 }
 
+.six-column-layout {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 80px);
+  max-width: 2800px;
+  margin: 0 auto;
+}
+
 /* Base Column Styles */
 .column {
   background: white;
@@ -89,6 +97,11 @@ body {
 }
 
 .column.history-column-wrapper {
+  width: 400px;
+  flex-shrink: 0;
+}
+
+.column.related-column-wrapper {
   width: 400px;
   flex-shrink: 0;
 }

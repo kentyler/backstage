@@ -8,9 +8,10 @@ import GroupsColumn from './components/groups/GroupsColumn';
 import TopicsColumn from './components/topics/TopicsColumn';
 import PromptResponseColumn from './components/prompts/PromptResponseColumn';
 import HistoryColumn from './components/history/HistoryColumn';
+import RelatedColumn from './components/related/RelatedColumn';
 
 /**
- * 5-column App - Auth + Groups + Topics + Prompts + History
+ * 6-column App - Auth + Groups + Topics + Prompts + History + Related Messages
  * Clean layout focusing on core functionality
  */
 function App() {
@@ -34,10 +35,17 @@ function AppContent() {
   const [showTopicsColumn, setShowTopicsColumn] = useState(true);
   const [showPromptColumn, setShowPromptColumn] = useState(true);
   const [showHistoryColumn, setShowHistoryColumn] = useState(true);
+  const [showRelatedColumn, setShowRelatedColumn] = useState(false);
   
   // Topic selection for prompt column
   const [selectedTopicId, setSelectedTopicId] = useState(null);
   const [selectedTopicName, setSelectedTopicName] = useState('');
+  
+  // Related messages state
+  const [relatedMessages, setRelatedMessages] = useState([]);
+  const [selectedMessageId, setSelectedMessageId] = useState(null);
+  const [isLoadingRelated, setIsLoadingRelated] = useState(false);
+  const [relatedError, setRelatedError] = useState(null);
   
   useEffect(() => {
     console.log('📱 APP: Checking auth status on mount...');
@@ -64,6 +72,34 @@ function AppContent() {
     setShowPromptColumn(true);
     setShowHistoryColumn(true);
   };
+
+  const handleShowRelated = async (messageId) => {
+    console.log('📱 APP: Show related requested for message:', messageId);
+    setSelectedMessageId(messageId);
+    setIsLoadingRelated(true);
+    setRelatedError(null);
+    setShowRelatedColumn(true);
+    
+    try {
+      const response = await fetch(`/api/message-search/messages/${messageId}/related?limit=5`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch related messages');
+      }
+      
+      const related = await response.json();
+      console.log('📱 APP: Found related messages:', related);
+      setRelatedMessages(related);
+    } catch (err) {
+      console.error('📱 APP: Error fetching related messages:', err);
+      setRelatedError('Failed to fetch related messages');
+      setRelatedMessages([]);
+    } finally {
+      setIsLoadingRelated(false);
+    }
+  };
   
   // Calculate visible columns for layout class
   const visibleColumns = [
@@ -71,10 +107,12 @@ function AppContent() {
     isAuthenticated && showGroupsColumn,
     isAuthenticated && selectedGroupId && showTopicsColumn,
     isAuthenticated && selectedTopicId && showPromptColumn,
-    isAuthenticated && selectedTopicId && showHistoryColumn
+    isAuthenticated && selectedTopicId && showHistoryColumn,
+    isAuthenticated && selectedTopicId && showRelatedColumn
   ].filter(Boolean).length;
   
-  const layoutClass = visibleColumns === 5 ? "five-column-layout" :
+  const layoutClass = visibleColumns === 6 ? "six-column-layout" :
+                     visibleColumns === 5 ? "five-column-layout" :
                      visibleColumns === 4 ? "four-column-layout" :
                      visibleColumns === 3 ? "three-column-layout" : 
                      visibleColumns === 2 ? "two-column-layout" : "one-column-layout";
@@ -125,6 +163,15 @@ function AppContent() {
             📜 History {showHistoryColumn ? '▼' : '▶'}
           </button>
         )}
+        
+        {isAuthenticated && selectedTopicId && (
+          <button 
+            onClick={() => setShowRelatedColumn(!showRelatedColumn)}
+            className={`toggle-btn ${showRelatedColumn ? 'active' : 'inactive'}`}
+          >
+            🔗 Related {showRelatedColumn ? '▼' : '▶'}
+          </button>
+        )}
       </div>
 
       <div className={layoutClass}>
@@ -173,6 +220,21 @@ function AppContent() {
             <HistoryColumn 
               selectedTopicId={selectedTopicId}
               selectedTopicName={selectedTopicName}
+              onShowRelated={handleShowRelated}
+              onTopicSelect={handleTopicSelect}
+            />
+          </div>
+        )}
+        
+        {/* Column 6: Related Messages - Only visible when topic is selected and related column is shown */}
+        {isAuthenticated && selectedTopicId && showRelatedColumn && (
+          <div className="column related-column-wrapper">
+            <RelatedColumn 
+              relatedMessages={relatedMessages}
+              isLoading={isLoadingRelated}
+              error={relatedError}
+              selectedMessageId={selectedMessageId}
+              onTopicSelect={handleTopicSelect}
             />
           </div>
         )}
