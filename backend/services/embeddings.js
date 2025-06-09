@@ -1,9 +1,10 @@
 // backend/services/embeddings.js
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+// Only initialize OpenAI if API key is provided
+const openai = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'optional-for-dev' 
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null;
 
 const EMBEDDING_MODEL = process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-large';
 const EMBEDDING_DIMENSIONS = 1536; // Must match the database vector dimensions
@@ -17,6 +18,10 @@ const EMBEDDING_DIMENSIONS = 1536; // Must match the database vector dimensions
 export async function generateEmbedding(text) {
   if (!text?.trim()) {
     throw new Error('Text is required to generate embedding');
+  }
+
+  if (!openai) {
+    throw new Error('OpenAI API key not configured - embeddings unavailable');
   }
 
   try {

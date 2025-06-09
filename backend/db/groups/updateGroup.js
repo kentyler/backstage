@@ -7,33 +7,34 @@
 import { createDbError, DB_ERROR_CODES } from '../utils/index.js';
 
 /**
- * Updates an existing group's properties.
- * @param { Pool } pool - The PostgreSQL connection pool.
+ * Updates an existing group's properties for a specific client.
+ * @param {Pool} pool - The PostgreSQL connection pool.
  * @param {number} groupId - The ID of the group to update.
+ * @param {number} clientId - The client ID to filter by.
  * @param {Object} updates - The properties to update.
  * @param {string} [updates.name] - The new name for the group.
- * @returns {Promise<{id: number, name: string, created_at: string}|null>} The updated group record, or null if not found.
+ * @returns {Promise<{id: number, name: string, created_at: string, client_id: number}|null>} The updated group record, or null if not found.
  */
-export async function updateGroup(groupId, updates = {}, pool) {
+export async function updateGroup(pool, groupId, clientId, updates = {}) {
   try {
     // Build the SET clause and values array dynamically based on provided updates
     const setClauses = [];
-    const values = [groupId]; // First parameter is always the group ID
+    const values = [groupId, clientId]; // First parameters are group ID and client ID
     
     if (updates.name !== undefined) {
-      // Check if another group with the same name already exists
+      // Check if another group with the same name already exists for this client
       if (updates.name) {
         const checkQuery = `
           SELECT id FROM groups
-          WHERE name = $1 AND id != $2
+          WHERE name = $1 AND client_id = $2 AND id != $3
         `;
         
-        const checkResult = await pool.query(checkQuery, [updates.name, groupId]);
+        const checkResult = await pool.query(checkQuery, [updates.name, clientId, groupId]);
         if (checkResult.rowCount > 0) {
-          throw createDbError(`Group with name '${updates.name}' already exists`, {
+          throw createDbError(`Group with name '${updates.name}' already exists for this client`, {
             code: 'DUPLICATE_GROUP_NAME',
             status: 409, // Conflict
-            context: { groupId, name: updates.name }
+            context: { groupId, clientId, name: updates.name }
           });
         }
       }
@@ -50,8 +51,8 @@ export async function updateGroup(groupId, updates = {}, pool) {
     const query = `
       UPDATE groups
       SET ${setClauses.join(', ')}
-      WHERE id = $1
-      RETURNING id, name, created_at
+      WHERE id = $1 AND client_id = $2
+      RETURNING id, name, created_at, client_id
     `;
     
     const result = await pool.query(query, values);

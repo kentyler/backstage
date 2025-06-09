@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../services/auth/authContext';
-import { useNavigate } from 'react-router-dom';
 import './auth.css';
 
 /**
@@ -8,45 +7,23 @@ import './auth.css';
  * Handles user logout and navigation
  */
 const LogoutButton = () => {
-  const { logout, user } = useAuth();
-  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const handleLogout = async () => {
-    console.log('LOGOUT BUTTON CLICKED!');
+    console.log('🔐 LOGOUT: Button clicked');
     setLoading(true);
     try {
-      console.log('Calling logout function...');
-      // Add a direct fetch call as a fallback
-      try {
-        const directResponse = await fetch('/api/auth/logout', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include'
-        });
-        console.log('Direct logout response:', directResponse);
-      } catch (directError) {
-        console.error('Direct logout error:', directError);
-      }
-      
-      // Call the normal logout function too
       const result = await logout();
-      console.log('Logout result:', result);
+      console.log('🔐 LOGOUT: Result:', result);
       
       if (result?.success) {
-        console.log('Logout successful, navigating to login page');
-        navigate('/login');
+        console.log('🔐 LOGOUT: Successful - auth context will handle UI updates');
       } else {
-        console.error('Logout failed:', result?.error);
-        // Force navigate to login page anyway as a fallback
-        navigate('/login');
+        console.error('🔐 LOGOUT: Failed:', result?.error);
       }
     } catch (error) {
-      console.error('Logout error:', error);
-      // Force navigate to login page anyway
-      navigate('/login');
+      console.error('🔐 LOGOUT: Error:', error);
     } finally {
       setLoading(false);
     }

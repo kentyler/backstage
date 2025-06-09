@@ -1,21 +1,17 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
 // Auth components
 import { AuthProvider, useAuth } from './services/auth/authContext';
-import LoginForm from './components/auth/LoginForm';
-import PrivateRoute from './components/auth/PrivateRoute';
-
-// Main app components
-import MainLayout from './components/MainLayout';
+import AuthColumn from './components/auth/AuthColumn';
+import GroupsColumn from './components/groups/GroupsColumn';
 
 /**
- * App component
- * Sets up routing and authentication
+ * Simple 2-column App - Auth + Groups
+ * Clean layout focusing on core functionality
  */
 function App() {
-  console.log('App component rendering...');
+  console.log('📱 APP: Rendering...');
   
   return (
     <AuthProvider>
@@ -25,27 +21,30 @@ function App() {
 }
 
 function AppContent() {
-  const { checkAuth } = useAuth();
+  const { checkAuth, isAuthenticated } = useAuth();
   
   useEffect(() => {
-    console.log('Checking auth status...');
+    console.log('📱 APP: Checking auth status on mount...');
     checkAuth();
   }, [checkAuth]);
   
   return (
-    <div style={{ padding: '20px', backgroundColor: '#f0f0f0', minHeight: '100vh' }}>
-      <Router>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<LoginForm />} />
-          
-          {/* Protected routes */}
-          <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>} />
-          
-          {/* Catch all route */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
+    <div className="app-container">
+      <div className="two-column-layout">
+        
+        {/* Column 1: Authentication */}
+        <div className="column auth-column-wrapper">
+          <AuthColumn />
+        </div>
+        
+        {/* Column 2: Groups - Only visible when authenticated */}
+        {isAuthenticated && (
+          <div className="column groups-column-wrapper">
+            <GroupsColumn />
+          </div>
+        )}
+        
+      </div>
     </div>
   );
 }

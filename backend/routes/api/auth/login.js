@@ -76,6 +76,7 @@ router.post('/login', requireClientPool, async (req, res, next) => {
     req.session.userId = participant.id;
     req.session.email = participant.email;
     req.session.authenticated = true;
+    req.session.client_id = participant.client_id;
     
     // Log the "login successful" event (ID: 1)
     await logEvent({

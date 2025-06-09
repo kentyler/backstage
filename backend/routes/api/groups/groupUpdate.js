@@ -6,18 +6,14 @@
  */
 
 import express from 'express';
-import { updateGroup, getGroupById } from '../../../db/groups/index.js';
-import auth from '../../../middleware/auth.js';
+import { updateGroup, removeParticipantFromGroup } from '../../../db/groups/index.js';
 import { ApiError } from '../../../middleware/errorHandler.js';
 
 const router = express.Router();
 
-// Apply authentication middleware to all routes
-router.use(auth);
-
 /**
  * @route   PUT /api/groups/:id
- * @desc    Update an existing group
+ * @desc    Update an existing group for the authenticated user's client
  * @access  Private (requires authentication)
  * @param   {number} id - The ID of the group to update
  * @param   {string} name - The new name for the group (in request body)
@@ -39,21 +35,31 @@ router.put('/:id', async (req, res, next) => {
       return next(new ApiError('Valid group name is required', 400));
     }
     
-    // Check if clientPool is available
-    if (!req.clientPool) {
+    // Check if pool and client_id are available
+    if (!req.pool) {
       console.error('Database connection pool not available');
       return next(new ApiError('Database connection not available', 500));
     }
     
-    // Check if group exists
-    const existingGroup = await getGroupById(groupId, req.clientPool);
-    if (!existingGroup) {
+    if (!req.client_id) {
+      console.error('Client ID not available in request');
+      return next(new ApiError('Authentication required', 401));
+    }
+    
+    console.log('🏢 GROUPS: Updating group', { 
+      group_id: groupId, 
+      new_name: name.trim(), 
+      client_id: req.client_id 
+    });
+    
+    // Update the group
+    const updatedGroup = await updateGroup(req.pool, groupId, req.client_id, { name: name.trim() });
+    
+    if (!updatedGroup) {
       return next(new ApiError(`Group with ID ${groupId} not found`, 404));
     }
     
-    // Update the group
-    const updatedGroup = await updateGroup(groupId, name, req.clientPool);
-    console.log('Updated group:', updatedGroup);
+    console.log('🏢 GROUPS: Updated group:', updatedGroup);
     
     return res.json({
       success: true,
@@ -69,6 +75,58 @@ router.put('/:id', async (req, res, next) => {
     }
     
     return next(new ApiError('Failed to update group', 500, { cause: error }));
+  }
+});
+
+/**
+ * @route   DELETE /api/groups/:id/participants/:participantId
+ * @desc    Remove a participant from a group
+ * @access  Private (requires authentication)
+ * @param   {number} id - The ID of the group
+ * @param   {number} participantId - The ID of the participant to remove
+ * @returns {Object} Success message
+ * @throws  {Error} If database connection fails, validation fails, or query execution fails
+ */
+router.delete('/:id/participants/:participantId', async (req, res, next) => {
+  try {
+    const groupId = parseInt(req.params.id);
+    const participantId = parseInt(req.params.participantId);
+    
+    if (isNaN(groupId)) {
+      return next(new ApiError('Invalid group ID. Must be a number.', 400));
+    }
+    
+    if (isNaN(participantId)) {
+      return next(new ApiError('Invalid participant ID. Must be a number.', 400));
+    }
+    
+    // Check if pool and client_id are available
+    if (!req.pool) {
+      console.error('Database connection pool not available');
+      return next(new ApiError('Database connection not available', 500));
+    }
+    
+    if (!req.client_id) {
+      console.error('Client ID not available in request');
+      return next(new ApiError('Authentication required', 401));
+    }
+    
+    console.log('🏢 GROUPS: Removing participant from group', { 
+      group_id: groupId, 
+      participant_id: participantId,
+      client_id: req.client_id 
+    });
+    
+    // Remove participant from group
+    await removeParticipantFromGroup(req.pool, participantId, groupId, req.client_id);
+    
+    return res.json({
+      success: true,
+      message: 'Participant removed from group successfully'
+    });
+  } catch (error) {
+    console.error('Error removing participant from group:', error);
+    return next(new ApiError('Failed to remove participant from group', 500, { cause: error }));
   }
 });
 

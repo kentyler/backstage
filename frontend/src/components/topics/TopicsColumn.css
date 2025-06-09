@@ -1,0 +1,67 @@
+/* Topics Column - Isolated Styles */
+
+.topics-column {
+  /* Topics-specific styles will go here */
+}
+
+.topics-tree {
+  margin-top: 10px;
+}
+
+.topic-node {
+  margin-bottom: 4px;
+}
+
+.topic-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  user-select: none;
+}
+
+.topic-item:hover {
+  background-color: #f8f9fa;
+}
+
+.topic-item.selected {
+  background-color: #fff3cd;
+  border-left: 3px solid #ffc107;
+}
+
+.topic-item.expanded {
+  font-weight: 500;
+}
+
+.topic-children {
+  margin-left: 20px;
+  border-left: 1px dashed #ddd;
+  padding-left: 10px;
+}
+
+.topic-name {
+  color: #333;
+  font-size: 14px;
+}
+
+.topic-actions {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.topic-button {
+  width: 100%;
+  padding: 8px 12px;
+  background-color: #ffc107;
+  color: #333;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.topic-button:hover {
+  background-color: #e0a800;
+}

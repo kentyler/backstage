@@ -6,18 +6,14 @@
  */
 
 import express from 'express';
-import { deleteGroup, getGroupById } from '../../../db/groups/index.js';
-import auth from '../../../middleware/auth.js';
+import { deleteGroup } from '../../../db/groups/index.js';
 import { ApiError } from '../../../middleware/errorHandler.js';
 
 const router = express.Router();
 
-// Apply authentication middleware to all routes
-router.use(auth);
-
 /**
  * @route   DELETE /api/groups/:id
- * @desc    Delete an existing group
+ * @desc    Delete an existing group for the authenticated user's client
  * @access  Private (requires authentication)
  * @param   {number} id - The ID of the group to delete
  * @returns {Object} Success message
@@ -32,21 +28,25 @@ router.delete('/:id', async (req, res, next) => {
       return next(new ApiError('Invalid group ID. Must be a number.', 400));
     }
     
-    // Check if clientPool is available
-    if (!req.clientPool) {
+    // Check if pool and client_id are available
+    if (!req.pool) {
       console.error('Database connection pool not available');
       return next(new ApiError('Database connection not available', 500));
     }
     
-    // Check if group exists
-    const existingGroup = await getGroupById(groupId, req.clientPool);
-    if (!existingGroup) {
-      return next(new ApiError(`Group with ID ${groupId} not found`, 404));
+    if (!req.client_id) {
+      console.error('Client ID not available in request');
+      return next(new ApiError('Authentication required', 401));
     }
     
-    // Delete the group
-    await deleteGroup(groupId, req.clientPool);
-    console.log(`Deleted group with ID ${groupId}`);
+    console.log('🏢 GROUPS: Deleting group', { 
+      group_id: groupId, 
+      client_id: req.client_id 
+    });
+    
+    // Delete the group (this will also verify it belongs to the client)
+    await deleteGroup(req.pool, groupId, req.client_id);
+    console.log(`🏢 GROUPS: Deleted group with ID ${groupId}`);
     
     // Return 204 No Content for successful deletion
     return res.status(204).send();

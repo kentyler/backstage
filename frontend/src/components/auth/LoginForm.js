@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../services/auth/authContext';
-import { useNavigate } from 'react-router-dom';
-import AppHeader from '../AppHeader';
-import './auth.css';
+import './AuthColumn.css';
 
 /**
- * Login form component
- * Handles user authentication and form state
+ * Clean Login form - only handles authentication
+ * No navigation, just pure login functionality
  */
 const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -15,23 +13,28 @@ const LoginForm = () => {
   const [loading, setLoading] = useState(false);
   
   const { login } = useAuth();
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
+    console.log('🔐 LOGIN FORM: Submitting login form');
+
     try {
       const result = await login(email, password);
       
       if (result.success) {
-        console.log('Login successful, navigating to root');
-        navigate('/');
+        console.log('🔐 LOGIN FORM: Login successful - auth context will handle state');
+        // Clear form on success
+        setEmail('');
+        setPassword('');
       } else {
+        console.log('🔐 LOGIN FORM: Login failed:', result.error);
         setError(result.error || 'Login failed');
       }
     } catch (error) {
+      console.error('🔐 LOGIN FORM: Login error:', error);
       setError(error.message);
     } finally {
       setLoading(false);
@@ -39,10 +42,12 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="auth-container">
-      <AppHeader />
+    <div className="auth-column">
+      <div className="auth-header">
+        <h3>🔐 Authentication</h3>
+      </div>
+      
       <form onSubmit={handleSubmit} className="login-form">
-        
         {error && (
           <div className="error-message">
             {error}

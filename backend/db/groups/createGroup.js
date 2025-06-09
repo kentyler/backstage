@@ -6,35 +6,36 @@
 import { createDbError, DB_ERROR_CODES } from '../utils/index.js';
 
 /**
- * Creates a new group with the given name.
- * @param { Pool } pool - The PostgreSQL connection pool.
+ * Creates a new group with the given name for a specific client.
+ * @param {Pool} pool - The PostgreSQL connection pool.
  * @param {string} name - The name of the group.
- * @returns {Promise<{id: number, name: string, created_at: string}>} The newly created group record.
+ * @param {number} clientId - The client ID the group belongs to.
+ * @returns {Promise<{id: number, name: string, created_at: string, client_id: number}>} The newly created group record.
  */
-export async function createGroup(name, pool) {
+export async function createGroup(pool, name, clientId) {
   try {
-    // Check if a group with this name already exists
+    // Check if a group with this name already exists for this client
     const checkQuery = `
       SELECT id FROM groups
-      WHERE name = $1
+      WHERE name = $1 AND client_id = $2
     `;
     
-    const checkResult = await pool.query(checkQuery, [name]);
+    const checkResult = await pool.query(checkQuery, [name, clientId]);
     if (checkResult.rowCount > 0) {
-      throw createDbError(`Group with name '${name}' already exists`, {
+      throw createDbError(`Group with name '${name}' already exists for this client`, {
         code: 'DUPLICATE_GROUP_NAME',
         status: 409, // Conflict
-        context: { name }
+        context: { name, clientId }
       });
     }
     
     // Create the new group
     const query = `
-      INSERT INTO groups (name)
-      VALUES ($1)
-      RETURNING id, name, created_at
+      INSERT INTO groups (name, client_id)
+      VALUES ($1, $2)
+      RETURNING id, name, created_at, client_id
     `;
-    const result = await pool.query(query, [name]);
+    const result = await pool.query(query, [name, clientId]);
     return result.rows[0];
   } catch (error) {
     console.error('Error creating group:', {

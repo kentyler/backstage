@@ -180,7 +180,7 @@ app.use('/api/auth', requireClientPool, authRoutes);
 import groupsRoutes from './routes/api/groups/index.js';
 
 // Mount the groups router
-app.use('/api/groups', requireClientPool, groupsRoutes);
+app.use('/api/groups', requireClientPool, auth, groupsRoutes);
 // Import the topic paths and preferences routers
 import topicPathsRoutes from './routes/api/topicPaths/index.js';
 import preferencesRoutes from './routes/api/preferences/index.js';

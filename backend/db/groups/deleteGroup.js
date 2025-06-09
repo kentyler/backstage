@@ -8,18 +8,19 @@ import { createDbError, DB_ERROR_CODES } from '../utils/index.js';
 
 
 /**
- * Deletes a group from the database.
- * @param { Pool } pool - The PostgreSQL connection pool.
+ * Deletes a group from the database for a specific client.
+ * @param {Pool} pool - The PostgreSQL connection pool.
  * @param {number} groupId - The ID of the group to delete.
+ * @param {number} clientId - The client ID to filter by.
  * @returns {Promise<boolean>} True if a group was deleted, false otherwise.
  */
-export async function deleteGroup(groupId, pool) {
+export async function deleteGroup(pool, groupId, clientId) {
   try {
     const query = `
       DELETE FROM groups
-      WHERE id = $1
+      WHERE id = $1 AND client_id = $2
     `;
-    const result = await pool.query(query, [groupId]);
+    const result = await pool.query(query, [groupId, clientId]);
     
     // Check if any rows were affected by the delete operation
     if (result.rowCount === 0) {

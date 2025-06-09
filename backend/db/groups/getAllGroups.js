@@ -7,19 +7,21 @@ import { createDbError, DB_ERROR_CODES } from '../utils/index.js';
 
 
 /**
- * Retrieves all groups from the database.
- * @returns {Promise<Array<{id: number, name: string, created_at: string}>>} Array of group records.
- * @param { Pool } pool - The PostgreSQL connection pool.
+ * Retrieves all groups from the database for a specific client.
+ * @param {Pool} pool - The PostgreSQL connection pool.
+ * @param {number} clientId - The client ID to filter groups by.
+ * @returns {Promise<Array<{id: number, name: string, created_at: string, client_id: number}>>} Array of group records.
  */
-export async function getAllGroups(pool) {
+export async function getAllGroups(pool, clientId) {
   try {
     const query = `
-      SELECT id, name, created_at
+      SELECT id, name, created_at, client_id
       FROM groups
-      ORDER BY id
+      WHERE client_id = $1
+      ORDER BY name
     `;
     
-    const result = await pool.query(query);
+    const result = await pool.query(query, [clientId]);
     return result.rows;
   } catch (error) {
     console.error('Error retrieving all groups:', {
