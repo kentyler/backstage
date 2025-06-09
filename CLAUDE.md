@@ -47,6 +47,18 @@ Multi-tenant chat application with 6-column responsive layout that underwent arc
 - ✅ **Bug Fixes**: Fixed turn_index calculation using parseFloat() instead of string concatenation
 - ✅ **UI/UX**: Related messages appear in dedicated column instead of inline display
 
+## Technical Debt Cleanup (2025-06-09)
+- ✅ **Code Consolidation**: Removed duplicate `getNextTurnIndex` functions (83 lines of duplicate code eliminated)
+  - Consolidated from 3 identical files to single source of truth in `/services/common/`
+  - All functionality verified working after cleanup
+  - Eliminated maintenance burden and potential for inconsistent behavior
+
+- ✅ **File Processing Refactoring**: Split 806-line monolithic `fileProcessing.js` into modular structure
+  - Created specialized modules: storage.js, extraction.js, vectorization.js, search.js, index.js
+  - Improved separation of concerns and maintainability
+  - Maintained backward compatibility through re-exports
+  - All imports working correctly, servers tested successfully
+
 ## Development Workflow
 - Use `./restart-servers.sh` to restart both backend and frontend servers
 - Frontend auto-rebuilds on changes
