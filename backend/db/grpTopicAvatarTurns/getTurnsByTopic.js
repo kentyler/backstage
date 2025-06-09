@@ -45,11 +45,11 @@ export async function getTurnsByTopicId(topicId, pool) {
       
       // Use the view with a dedicated client to maintain schema context
       result = await client.query(
-        `SELECT id, topic_id, avatar_id, content_text, 
+        `SELECT id, topic_id, content_text, 
                 message_type_id, turn_kind_id, created_at, turn_index,
                 llm_id, participant_id, participant_name,
                 llm_name
-         FROM grp_topic_avatar_turns_with_names
+         FROM participant_topic_turns_with_names
          WHERE topic_id = $1
          ORDER BY turn_index ASC`,
         [topicId]
@@ -86,7 +86,6 @@ export async function getTurnsByTopicId(topicId, pool) {
     return result.rows.map(row => ({
       id: row.id,
       topicId: row.topic_id,
-      avatarId: row.avatar_id,
       content: row.content_text,
       isUser: row.message_type_id === MESSAGE_TYPE.USER,
       turn_kind_id: row.turn_kind_id, // Keep in snake_case for frontend compatibility

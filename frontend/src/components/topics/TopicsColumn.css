@@ -266,6 +266,19 @@
   font-size: 14px;
 }
 
+.topic-name.clickable {
+  cursor: pointer;
+  transition: color 0.2s, background-color 0.2s;
+  padding: 4px 6px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.topic-name.clickable:hover {
+  color: #17a2b8;
+  background-color: #e8f4f8;
+}
+
 .topic-meta {
   display: flex;
   gap: 12px;

@@ -7,9 +7,10 @@ import AuthColumn from './components/auth/AuthColumn';
 import GroupsColumn from './components/groups/GroupsColumn';
 import TopicsColumn from './components/topics/TopicsColumn';
 import PromptResponseColumn from './components/prompts/PromptResponseColumn';
+import HistoryColumn from './components/history/HistoryColumn';
 
 /**
- * 3-column App - Auth + Groups + Topics
+ * 5-column App - Auth + Groups + Topics + Prompts + History
  * Clean layout focusing on core functionality
  */
 function App() {
@@ -32,6 +33,7 @@ function AppContent() {
   const [showGroupsColumn, setShowGroupsColumn] = useState(true);
   const [showTopicsColumn, setShowTopicsColumn] = useState(true);
   const [showPromptColumn, setShowPromptColumn] = useState(true);
+  const [showHistoryColumn, setShowHistoryColumn] = useState(true);
   
   // Topic selection for prompt column
   const [selectedTopicId, setSelectedTopicId] = useState(null);
@@ -57,6 +59,10 @@ function AppContent() {
     console.log('📱 APP: Topic selected for prompting', { topicId, topicPath });
     setSelectedTopicId(topicId);
     setSelectedTopicName(topicPath);
+    
+    // Ensure both prompt and history columns are visible when topic is selected
+    setShowPromptColumn(true);
+    setShowHistoryColumn(true);
   };
   
   // Calculate visible columns for layout class
@@ -64,10 +70,12 @@ function AppContent() {
     showAuthColumn,
     isAuthenticated && showGroupsColumn,
     isAuthenticated && selectedGroupId && showTopicsColumn,
-    isAuthenticated && selectedTopicId && showPromptColumn
+    isAuthenticated && selectedTopicId && showPromptColumn,
+    isAuthenticated && selectedTopicId && showHistoryColumn
   ].filter(Boolean).length;
   
-  const layoutClass = visibleColumns === 4 ? "four-column-layout" :
+  const layoutClass = visibleColumns === 5 ? "five-column-layout" :
+                     visibleColumns === 4 ? "four-column-layout" :
                      visibleColumns === 3 ? "three-column-layout" : 
                      visibleColumns === 2 ? "two-column-layout" : "one-column-layout";
 
@@ -108,6 +116,15 @@ function AppContent() {
             💬 Prompts {showPromptColumn ? '▼' : '▶'}
           </button>
         )}
+        
+        {isAuthenticated && selectedTopicId && (
+          <button 
+            onClick={() => setShowHistoryColumn(!showHistoryColumn)}
+            className={`toggle-btn ${showHistoryColumn ? 'active' : 'inactive'}`}
+          >
+            📜 History {showHistoryColumn ? '▼' : '▶'}
+          </button>
+        )}
       </div>
 
       <div className={layoutClass}>
@@ -144,6 +161,16 @@ function AppContent() {
         {isAuthenticated && selectedTopicId && showPromptColumn && (
           <div className="column prompt-response-column-wrapper">
             <PromptResponseColumn 
+              selectedTopicId={selectedTopicId}
+              selectedTopicName={selectedTopicName}
+            />
+          </div>
+        )}
+        
+        {/* Column 5: History - Only visible when topic is selected */}
+        {isAuthenticated && selectedTopicId && showHistoryColumn && (
+          <div className="column history-column-wrapper">
+            <HistoryColumn 
               selectedTopicId={selectedTopicId}
               selectedTopicName={selectedTopicName}
             />

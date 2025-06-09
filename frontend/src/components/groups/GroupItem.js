@@ -107,7 +107,7 @@ const GroupItem = ({
                 {isSelected && <span className="selected-indicator"> ✓</span>}
               </div>
               <div className="group-meta">
-                <span className="group-id">ID: {group.id}</span>
+                <span className="group-id">{group.id}</span>
                 <span className="group-created">Created: {formatDate(group.created_at)}</span>
               </div>
             </div>

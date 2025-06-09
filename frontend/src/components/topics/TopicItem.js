@@ -73,7 +73,7 @@ const TopicItem = ({
           <div className="topic-info">
             <div className="topic-name">{name}</div>
             <div className="topic-meta">
-              <span className="topic-path">Path: {fullPath}</span>
+              <span className="topic-path">{fullPath}</span>
             </div>
           </div>
         </div>
@@ -116,12 +116,16 @@ const TopicItem = ({
         ) : (
           <div className="topic-display">
             <div className="topic-info">
-              <div className="topic-name">
+              <div 
+                className="topic-name clickable"
+                onClick={handleTopicSelect}
+                title="Click to select topic for prompting"
+              >
                 {hasChildren ? '📁' : '📄'} {name}
               </div>
               <div className="topic-meta">
-                <span className="topic-id">ID: {topic.id}</span>
-                <span className="topic-path">Path: {topic.path}</span>
+                <span className="topic-id">{topic.id}</span>
+                <span className="topic-path">{topic.path}</span>
                 {topic.created_on && (
                   <span className="topic-created">Created: {formatCreatedDate(topic.created_on)}</span>
                 )}
@@ -131,13 +135,6 @@ const TopicItem = ({
               </div>
             </div>
             <div className="topic-actions">
-              <button 
-                onClick={handleTopicSelect}
-                className="select-button"
-                title="Select topic for prompting"
-              >
-                💬
-              </button>
               <button 
                 onClick={() => onStartEdit(topic.id)}
                 className="edit-button"
