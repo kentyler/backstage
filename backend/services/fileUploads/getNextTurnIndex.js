@@ -20,7 +20,7 @@ export async function getNextTurnIndex(topicId, pool) {
     // Query to find the highest turn_index for this topic
     const indexQuery = `
       SELECT MAX(turn_index) as max_index 
-      FROM grp_topic_avatar_turns 
+      FROM participant_topic_turns 
       WHERE topic_id = $1
     `;
     const indexResult = await pool.query(indexQuery, [numericTopicId]);

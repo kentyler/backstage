@@ -20,7 +20,7 @@ export async function getNextTurnIndex(topicId, dbClient) {
     // Use a consistent query that works with both pool and client objects
     const indexQuery = `
       SELECT COALESCE(MAX(turn_index), 0) + 1 as next_index 
-      FROM grp_topic_avatar_turns 
+      FROM participant_topic_turns 
       WHERE topic_id = $1
     `;
     

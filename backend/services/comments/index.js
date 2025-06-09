@@ -67,10 +67,10 @@ export async function storeComment(topicId, avatarId, content, participantId, po
     // turnKindId is now passed as a parameter (defaults to 3 for comments)
     const messageTypeId = 1; // User message
     
-    // Insert the comment
+    // Insert the comment using participant_topic_turns table
     const commentResult = await pool.query(
-      'INSERT INTO grp_topic_avatar_turns (topic_id, avatar_id, turn_index, content_text, message_type_id, turn_kind_id, participant_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-      [numericTopicId, avatarId, turnIndex, content, messageTypeId, turnKindId, participantId]
+      'INSERT INTO participant_topic_turns (topic_id, participant_id, turn_index, content_text, message_type_id, turn_kind_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+      [numericTopicId, participantId || avatarId, turnIndex, content, messageTypeId, turnKindId]
     );
     
     const commentId = commentResult.rows[0].id;

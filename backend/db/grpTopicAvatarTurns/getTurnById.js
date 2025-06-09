@@ -10,17 +10,15 @@ export async function getTurnById(turnId, pool, client = null) {
     SELECT 
       id,
       topic_id,
-      avatar_id,
+      participant_id,
       content_text,
       content_vector,
       message_type_id,
       turn_kind_id,
       created_at,
-      updated_at,
       turn_index,
-      llm_id,
-      participant_id
-    FROM grp_topic_avatar_turns
+      llm_id
+    FROM participant_topic_turns
     WHERE id = $1
   `;
 

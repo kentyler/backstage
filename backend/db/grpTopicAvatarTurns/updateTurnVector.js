@@ -35,10 +35,10 @@ export async function updateTurnVector(turnId, contentVector, pool, client = nul
     
     // Update the turn with the new vector
     const result = await localClient.query(
-      `UPDATE grp_topic_avatar_turns 
+      `UPDATE participant_topic_turns 
        SET content_vector = $1 
        WHERE id = $2
-       RETURNING id, topic_id, avatar_id, turn_index, content_text, created_at, message_type_id, turn_kind_id`,
+       RETURNING id, topic_id, participant_id, turn_index, content_text, created_at, message_type_id, turn_kind_id`,
       [vectorValue, turnId]
     );
     
