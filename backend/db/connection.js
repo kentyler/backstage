@@ -33,6 +33,13 @@ export function createPool(schema = 'public') {
   const pool = new Pool({
     connectionString: process.env.DB_HOST,
     ssl: { rejectUnauthorized: false }, // accept Neon's server cert
+    // Add connection timeout and retry settings
+    connectionTimeoutMillis: 10000, // 10 seconds
+    idleTimeoutMillis: 30000, // 30 seconds
+    max: 20, // maximum number of clients in the pool
+    // Allow retries for DNS failures
+    statement_timeout: 30000, // 30 second query timeout
+    query_timeout: 30000,
   });
 
   // Store the schema name in the pool for reference
